@@ -44,6 +44,38 @@ final class ArbolDeModulos
     }
 
     /**
+     * Ruta jerárquica de cada módulo del proyecto, indexada por id:
+     * `[7 => 'Clientes › Facturación']`.
+     *
+     * **Una sola consulta**, sea cual sea la profundidad. Existe para que un
+     * listado pueda mostrar la ruta completa sin llamar a
+     * `Modulo::rutaCompleta()` fila por fila: ese método sube por `padre` y,
+     * sin la relación precargada, dispara una consulta por nivel y por fila.
+     *
+     * @return array<int, string>
+     */
+    public static function rutasDe(Proyecto $proyecto, string $separador = ' › '): array
+    {
+        $modulos = $proyecto->modulos()->get(['id', 'parent_id', 'nombre']);
+
+        $nombres = [];
+        $padres = [];
+
+        foreach ($modulos as $modulo) {
+            $nombres[$modulo->getKey()] = $modulo->nombre;
+            $padres[$modulo->getKey()] = $modulo->parent_id;
+        }
+
+        $rutas = [];
+
+        foreach (array_keys($nombres) as $id) {
+            $rutas[$id] = self::rutaDesde($id, $nombres, $padres, $rutas, $separador);
+        }
+
+        return $rutas;
+    }
+
+    /**
      * Ids de todos los descendientes de un módulo, en una sola consulta sobre
      * los módulos del proyecto.
      *
@@ -107,6 +139,39 @@ final class ArbolDeModulos
                 ];
             })
             ->all();
+    }
+
+    /**
+     * Ruta de un módulo, memorizando en `$rutas` las que ya se resolvieron: el
+     * padre de un nodo se calcula una sola vez aunque tenga veinte hijos.
+     *
+     * `$vistos` corta un ciclo de `parent_id` —imposible por la interfaz, pero
+     * un bucle infinito aquí colgaría la petición entera—.
+     *
+     * @param  array<int, string>  $nombres
+     * @param  array<int, int|null>  $padres
+     * @param  array<int, string>  $rutas
+     */
+    private static function rutaDesde(int $id, array $nombres, array $padres, array $rutas, string $separador): string
+    {
+        $segmentos = [];
+        $actual = $id;
+        $vistos = [];
+
+        while ($actual !== null && isset($nombres[$actual]) && ! isset($vistos[$actual])) {
+            $vistos[$actual] = true;
+
+            if (isset($rutas[$actual])) {
+                array_unshift($segmentos, $rutas[$actual]);
+
+                break;
+            }
+
+            array_unshift($segmentos, $nombres[$actual]);
+            $actual = $padres[$actual];
+        }
+
+        return implode($separador, $segmentos);
     }
 
     /**

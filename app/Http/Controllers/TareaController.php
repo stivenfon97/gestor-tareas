@@ -15,6 +15,7 @@ use App\Models\Proyecto;
 use App\Models\Tarea;
 use App\Services\ArbolDeModulos;
 use App\Services\CambiarEstadoTarea;
+use App\Services\EstadoDeTabla;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,10 @@ class TareaController extends Controller
     public function index(Request $request, Proyecto $proyecto): Response
     {
         Gate::authorize('viewAny', [Tarea::class, $proyecto]);
+
+        // Una consulta para todo el árbol del proyecto, reutilizada por las
+        // filas y por el desplegable de filtro.
+        $rutas = ArbolDeModulos::rutasDe($proyecto);
 
         $tareas = QueryBuilder::for(Tarea::class)
             // El scope va antes que cualquier filtro: sin él, un filtro mal
@@ -61,17 +66,22 @@ class TareaController extends Controller
                 AllowedSort::field('fecha_fin'),
                 AllowedSort::field('updated_at'),
             )
-            ->with(['modulo:id,nombre', 'periodo:id,consecutivo'])
-            ->paginate(30)
+            ->with('periodo:id,consecutivo')
+            ->paginate(EstadoDeTabla::porPagina($request))
             ->withQueryString()
-            ->through($this->comoFila(...));
+            // La ruta del módulo sale del mapa, no de la fila: `rutaCompleta()`
+            // por fila subiría por `padre` con una consulta por nivel.
+            ->through(fn (Tarea $tarea): array => $this->comoFila($tarea, $rutas));
 
         return Inertia::render('tareas/Index', [
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'tareas' => $tareas,
-            'filtros' => (array) $request->input('filter', []),
-            'orden' => $request->input('sort'),
-            'opciones' => $this->opciones($proyecto),
+            'filtros' => EstadoDeTabla::filtros($request),
+            // El orden viaja ya descompuesto: la tabla necesita saber en qué
+            // posición va cada campo para dibujar la prioridad de orden.
+            'orden' => EstadoDeTabla::orden($request, 'codigo'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
+            'opciones' => $this->opciones($proyecto, $rutas),
             'puede' => ['crear' => Gate::allows('create', [Tarea::class, $proyecto])],
         ]);
     }
@@ -290,9 +300,10 @@ class TareaController extends Controller
     }
 
     /**
+     * @param  array<int, string>  $rutas
      * @return array<string, mixed>
      */
-    private function comoFila(Tarea $tarea): array
+    private function comoFila(Tarea $tarea, array $rutas): array
     {
         return [
             'id' => $tarea->id,
@@ -301,7 +312,10 @@ class TareaController extends Controller
             'estado' => $tarea->estado->value,
             'tipo' => $tarea->tipo->value,
             'prioridad' => $tarea->prioridad->value,
-            'modulo' => $tarea->modulo?->nombre,
+            'modulo_id' => $tarea->modulo_id,
+            // Ruta completa, no solo el nombre: "Facturación" a secas no dice
+            // de qué cuelga, y en un proyecto grande hay varias.
+            'modulo' => $rutas[$tarea->modulo_id] ?? null,
             'periodo' => $tarea->periodo?->consecutivo,
             'arrastrada' => $tarea->estaArrastrada(),
             'fecha_fin' => $tarea->fecha_fin?->toDateString(),
@@ -344,19 +358,19 @@ class TareaController extends Controller
     }
 
     /**
+     * @param  array<int, string>|null  $rutas  Mapa ya resuelto, si quien llama lo tiene.
      * @return array<string, mixed>
      */
-    private function opciones(Proyecto $proyecto): array
+    private function opciones(Proyecto $proyecto, ?array $rutas = null): array
     {
+        $rutas ??= ArbolDeModulos::rutasDe($proyecto);
+
         return [
             'estados' => $this->comoOpciones(EstadoTarea::cases()),
             'tipos' => $this->comoOpciones(TipoTarea::cases()),
             'prioridades' => $this->comoOpciones(PrioridadTarea::cases()),
-            'modulos' => $proyecto->modulos()->with('padre')->orderBy('orden')->get()
-                ->map(fn (Modulo $modulo): array => [
-                    'id' => $modulo->id,
-                    'ruta' => $modulo->rutaCompleta(),
-                ])
+            'modulos' => collect($rutas)
+                ->map(fn (string $ruta, int $id): array => ['id' => $id, 'ruta' => $ruta])
                 ->sortBy('ruta')
                 ->values(),
             'periodos' => $proyecto->periodos()->orderByDesc('consecutivo')->get()

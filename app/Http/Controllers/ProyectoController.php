@@ -12,6 +12,7 @@ use App\Models\Pago;
 use App\Models\Proyecto;
 use App\Models\Reporte;
 use App\Models\Reunion;
+use App\Services\EstadoDeTabla;
 use App\Services\ResolverRolProyecto;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,10 +48,12 @@ class ProyectoController extends Controller
                 fn ($consulta) => $consulta->whereIn('id', ResolverRolProyecto::proyectosDelUsuario($usuario)),
             )
             ->defaultSort('nombre')
+            // Varios campos separados por coma (`sort=-created_at,nombre`) son
+            // orden multicolumna: la lista es la prioridad del desempate.
             ->allowedSorts('nombre', 'created_at')
             ->with('cliente:id,nombre')
             ->withCount(['tareas as tareas_abiertas_count' => fn ($consulta) => $consulta->activas()])
-            ->paginate(25)
+            ->paginate(EstadoDeTabla::porPagina($request))
             ->withQueryString()
             ->through(fn (Proyecto $proyecto): array => [
                 'id' => $proyecto->id,
@@ -59,15 +62,18 @@ class ProyectoController extends Controller
                 'estado' => $proyecto->estado->value,
                 'cliente' => $proyecto->cliente?->only(['id', 'nombre']),
                 'tareas_abiertas_count' => $proyecto->tareas_abiertas_count,
+                'creado' => $proyecto->created_at?->toDateString(),
             ]);
 
         return Inertia::render('proyectos/Index', [
             'proyectos' => $proyectos,
-            'filtros' => [
-                'nombre' => $request->input('filter.nombre'),
-                'estado' => $request->input('filter.estado'),
-            ],
+            'filtros' => EstadoDeTabla::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, 'nombre'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
             'estados' => $this->estadosDisponibles(),
+            // Para el filtro de columna. Es un catálogo corto y no crece con
+            // las filas: mandarlo entero evita un endpoint de búsqueda aparte.
+            'clientes' => $this->clientesAsignables(),
             'puede' => ['crear' => Gate::allows('create', Proyecto::class)],
         ]);
     }
@@ -132,6 +138,10 @@ class ProyectoController extends Controller
                 'miembros_count' => $proyecto->miembros_count,
             ],
             'resumen' => $this->resumen($proyecto),
+            // La pestaña activa viaja en la URL, no solo en el estado de Vue:
+            // así se puede compartir un enlace a la bitácora de un proyecto y
+            // volver a la misma pestaña tras recargar.
+            'seccion' => $this->seccionActiva($request),
             'miRol' => ResolverRolProyecto::para($usuario, $proyecto)?->value,
             'puede' => [
                 'editar' => $usuario->can('update', $proyecto),
@@ -243,6 +253,18 @@ class ProyectoController extends Controller
      *
      * @return array<int, array{id: int, nombre: string}>
      */
+    /**
+     * Pestaña abierta del concentrador. Se valida contra la lista: un
+     * `?seccion=` inventado abre el resumen en vez de dejar la página en blanco.
+     */
+    private function seccionActiva(Request $request): string
+    {
+        $secciones = ['resumen', 'modulos', 'equipo', 'tareas', 'periodos', 'bitacora', 'reportes'];
+        $pedida = (string) $request->input('seccion', 'resumen');
+
+        return in_array($pedida, $secciones, true) ? $pedida : 'resumen';
+    }
+
     private function clientesAsignables(?int $incluir = null): array
     {
         return Cliente::query()
