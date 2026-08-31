@@ -9,6 +9,10 @@ import type { TipoTarea } from '@/types/tareas';
  *
  * Darle color competiría con el badge de estado y la pantalla dejaría de decir
  * dónde mirar.
+ *
+ * Los cinco iconos se distinguen por silueta, no por detalle: llave/corchetes,
+ * insecto, salvavidas, destellos y matraz no se parecen entre sí a 16px, que es
+ * el tamaño al que se van a ver siempre.
  */
 const props = defineProps<{ tipo: TipoTarea }>();
 
@@ -21,12 +25,15 @@ const iconosPorTipo = {
 } as const;
 
 const icono = computed(() => iconosPorTipo[props.tipo] ?? Code);
+const etiqueta = computed(() => `enums.tipo_tarea.${props.tipo}`);
 </script>
 
 <template>
     <component
         :is="icono"
-        class="size-4 shrink-0 text-muted-foreground"
-        :aria-label="$t(`enums.tipo_tarea.${props.tipo}`)"
+        class="size-4 shrink-0 text-texto-suave"
+        role="img"
+        :title="$t(etiqueta)"
+        :aria-label="$t(etiqueta)"
     />
 </template>

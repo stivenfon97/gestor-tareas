@@ -37,15 +37,19 @@ const clasesPorEstado: Record<EstadoTarea, string> = {
 };
 
 // Reserva neutra: un estado inesperado del servidor no deja el badge sin estilo.
-const clases = computed(() => clasesPorEstado[props.estado] ?? clasesPorEstado.en_espera);
+const clases = computed(
+    () => clasesPorEstado[props.estado] ?? clasesPorEstado.en_espera,
+);
 </script>
 
 <template>
     <span
         :class="
             cn(
-                'inline-flex shrink-0 items-center rounded-md border font-medium whitespace-nowrap',
-                props.tamano === 'pequeno' ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-0.5 text-sm',
+                'inline-flex shrink-0 items-center rounded-sm border font-medium whitespace-nowrap',
+                props.tamano === 'pequeno'
+                    ? 'px-fino py-[1px] text-micro'
+                    : 'px-ajustado py-minimo text-fino',
                 clases,
             )
         "

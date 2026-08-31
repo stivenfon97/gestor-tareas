@@ -10,7 +10,9 @@ use App\Models\Cliente;
 use App\Models\Periodo;
 use App\Models\Proyecto;
 use App\Models\Tarea;
+use App\Services\EstadoDeTabla;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,27 +29,24 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class ClienteController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Cliente::class);
 
-        /*
-         * El listado ya sale por query-builder aunque la tabla de la fase 05
-         * sea simple: la fase 07 sustituye solo la capa Vue por el componente
-         * de TanStack, sin tocar el servidor.
-         */
         $clientes = QueryBuilder::for(Cliente::class)
             ->allowedFilters(
                 AllowedFilter::partial('nombre'),
                 AllowedFilter::exact('activo'),
             )
             ->defaultSort('nombre')
+            // Varios campos separados por coma (`sort=-created_at,nombre`) son
+            // orden multicolumna: la lista es la prioridad del desempate.
             ->allowedSorts('nombre', 'created_at')
             ->withCount([
                 'proyectos',
                 'proyectos as proyectos_activos_count' => fn ($consulta) => $consulta->activos(),
             ])
-            ->paginate(25)
+            ->paginate(EstadoDeTabla::porPagina($request))
             ->withQueryString()
             ->through(fn (Cliente $cliente): array => [
                 'id' => $cliente->id,
@@ -61,10 +60,9 @@ class ClienteController extends Controller
 
         return Inertia::render('clientes/Index', [
             'clientes' => $clientes,
-            'filtros' => [
-                'nombre' => request()->input('filter.nombre'),
-                'activo' => request()->input('filter.activo'),
-            ],
+            'filtros' => EstadoDeTabla::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, 'nombre'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
             'puede' => ['crear' => Gate::allows('create', Cliente::class)],
         ]);
     }

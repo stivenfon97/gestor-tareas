@@ -26,6 +26,8 @@ return [
     'buscar' => 'Buscar por nombre',
     'todos_los_estados' => 'Todos los estados',
     'tareas_abiertas' => 'Tareas abiertas',
+    'sin_proyectos_ayuda' => 'Los proyectos en los que participes aparecerán aquí.',
+    'fecha_creacion' => 'Alta',
     'sin_proyectos' => 'Todavía no participas en ningún proyecto.',
 
     'validacion' => [

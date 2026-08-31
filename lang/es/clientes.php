@@ -14,6 +14,8 @@ return [
     'desactivar' => 'Desactivar',
     'activo' => 'Activo',
     'inactivo' => 'Inactivo',
+    'sin_clientes' => 'Todavía no hay clientes.',
+    'sin_clientes_ayuda' => 'Los clientes que des de alta aparecerán aquí, con sus proyectos.',
     'nota_desactivar' => 'Los clientes no se borran: se desactivan. Un cliente inactivo no aparece al crear proyectos, pero conserva sus proyectos, periodos y pagos.',
 
     'contacto_nombre' => 'Persona de contacto',

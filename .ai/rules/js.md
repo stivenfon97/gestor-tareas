@@ -30,3 +30,12 @@ Las transiciones disponibles llegan del servidor con cada tarea (`transiciones`,
 Cada transición trae `requiere_motivo` con **el nombre del campo** (`motivo_espera` o `motivo_cancelacion`), no un booleano: son campos distintos y el formulario debe enviar el correcto.
 
 Para los tres ejes visuales, las clases de color van en un **mapa estático con las clases escritas enteras** (`BadgeEstado.vue`, `BarraPrioridad.vue`). Nunca `bg-estado-${estado}-fondo`: el escáner de Tailwind lee el código como texto, la utilidad no se genera y el badge sale **sin color solo en el build de producción**. Da siempre una reserva neutra por si el servidor envía un valor inesperado.
+
+## El estado de un listado va en la URL, no en memoria
+Toda vista de listado refleja su estado —orden, página, filtros y columnas visibles— en la URL. Un listado cuyo estado solo vive en memoria no se puede compartir ni recuperar tras recargar: «las tareas en espera del proyecto X» deja de ser un enlace y pasa a ser una instrucción de siete pasos. Las vistas guardadas de la fase 08 son literalmente eso: una cadena de consulta con nombre.
+
+Lo resuelve `composables/useEstadoDeTabla.ts`, que vive **fuera** de `components/TablaDatos/` porque el Kanban comparte filtros y orden con el listado aunque no comparta la forma.
+
+El flujo es de un solo sentido: URL → servidor → props → lo que se pinta, y las acciones del composable vuelven a la URL. El composable **no guarda copia del estado**, lo lee de getters que apuntan a las props; con una copia local, una petición fallida o el botón «atrás» dejan las dos fuentes separadas.
+
+La excepción es la densidad de fila (`useDensidad`), que va a `localStorage`: es una preferencia de quien mira, no parte de lo que se comparte. Mismo criterio para la pestaña activa de una página con secciones, que sí va en la URL (`?seccion=tareas`).

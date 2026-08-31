@@ -1,7 +1,8 @@
 # Módulo: Tareas
 
 > Modelo de datos y reglas de negocio escritos en la **fase 03**; rutas, controladores,
-> permisos, captura rápida y flujo de interfaz completados en la **fase 06**.
+> permisos, captura rápida y flujo de interfaz completados en la **fase 06**; el listado
+> pasó al componente `TablaDatos` en la **fase 07**.
 
 ## Propósito
 
@@ -132,7 +133,34 @@ Todo por `spatie/laravel-query-builder`, con `Tarea::scopeVisiblesPara()` aplica
 | `texto` | Parcial sobre `nombre`, `codigo` y `descripcion` a la vez |
 
 `sort`: `codigo`, `nombre`, `estado`, `prioridad`, `fecha_fin`, `updated_at`. Prefijo `-`
-para descendente. Paginación de 30 del lado del servidor.
+para descendente, y **varios campos separados por coma** (`sort=-prioridad,codigo`): la
+posición en la lista es la prioridad del desempate. Paginación del lado del servidor, de
+30 por defecto y acotada a 15, 30, 50 o 100 por `por_pagina`.
+
+### La pantalla del listado (fase 07)
+
+El listado usa **`TablaDatos`** —ver [`tabla-de-datos.md`](tabla-de-datos.md)— y ya no una
+tabla propia. Lo que aporta la declaración de columnas de `tareas/Index.vue`:
+
+| Columna | Ordena | Filtra | Notas |
+|---|---|---|---|
+| Código | ✔ | — | Monoespaciada, **anclada** a la izquierda y no ocultable. Lleva pegada la barra de prioridad |
+| Tipo | — | ✔ | Icono monocromo |
+| Nombre | ✔ | ✔ (texto libre) | El filtro busca a la vez en nombre, código y descripción |
+| Módulo | — | ✔ | **Ruta completa**: «Clientes › Facturación», no solo el último tramo |
+| Estado | ✔ | ✔ | Badge con relleno de color |
+| Prioridad | ✔ | ✔ | Barra + etiqueta; se entiende sin color |
+| Periodo | — | ✔ | |
+| Fecha de fin | ✔ | — | Monoespaciada |
+| Arrastrada | — | ✔ | **Nace oculta**: importa al cerrar un periodo, no todos los días |
+
+Es el único listado **seleccionable** de la fase. Su acción en lote —copiar los códigos
+de las filas marcadas al portapapeles— no necesita servidor y es lo que se hace de verdad
+al armar un correo o un reporte; mover tareas de periodo en bloque es trabajo posterior.
+
+La ruta del módulo se resuelve con `ArbolDeModulos::rutasDe()`, **una consulta por página**
+y no una por fila. `Modulo::rutaCompleta()` sigue existiendo para el detalle, donde hay
+una sola tarea y el coste es irrelevante.
 
 ## Captura rápida
 

@@ -26,6 +26,8 @@ return [
     'buscar' => 'Search by name',
     'todos_los_estados' => 'All statuses',
     'tareas_abiertas' => 'Open tasks',
+    'sin_proyectos_ayuda' => 'Projects you take part in will show up here.',
+    'fecha_creacion' => 'Created',
     'sin_proyectos' => 'You do not take part in any project yet.',
 
     'validacion' => [

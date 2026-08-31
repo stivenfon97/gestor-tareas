@@ -12,7 +12,8 @@ Si vienes por primera vez, en este orden:
 3. **[`01-arquitectura.md`](01-arquitectura.md)** — cómo está construido.
 4. **[`03-dominio.md`](03-dominio.md)** — las reglas de negocio que lo gobiernan.
 5. **[`04-control-de-versiones.md`](04-control-de-versiones.md)** — cómo se trabaja con Git aquí.
-6. El módulo concreto que vayas a tocar, en [`modulos/`](modulos/).
+6. **[`05-identidad-visual.md`](05-identidad-visual.md)** — si vas a tocar cualquier cosa que se vea.
+7. El módulo concreto que vayas a tocar, en [`modulos/`](modulos/).
 
 ## Índice
 
@@ -25,6 +26,7 @@ Si vienes por primera vez, en este orden:
 | [`02-modelo-de-datos.md`](02-modelo-de-datos.md) | ERD y diccionario de datos | ✅ |
 | [`03-dominio.md`](03-dominio.md) | Reglas de negocio e invariantes, numeradas | ✅ |
 | [`04-control-de-versiones.md`](04-control-de-versiones.md) | Ramas, commits, qué se versiona y cómo revertir una fase | ✅ |
+| [`05-identidad-visual.md`](05-identidad-visual.md) | Plan de diseño, autocrítica e inventario de tokens | ✅ |
 
 ### Módulos
 
@@ -36,6 +38,7 @@ Si vienes por primera vez, en este orden:
 | [Módulos](modulos/modulos.md) | ✅ | [Archivos](modulos/archivos.md) | fase 10 |
 | [Tareas](modulos/tareas.md) | ✅ | [Reportes](modulos/reportes.md) | fase 11 |
 | [Vistas guardadas](modulos/vistas.md) | fase 08 | [Dashboard](modulos/dashboard.md) | fase 12 |
+| [Tabla de datos](modulos/tabla-de-datos.md) | ✅ | | |
 
 ### Diagramas
 

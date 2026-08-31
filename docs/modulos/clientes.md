@@ -70,8 +70,13 @@ flowchart LR
 | PUT | `clientes/{cliente}/estado` | `EstadoClienteController@update` | `clientes.crear` |
 
 El listado se sirve con **`spatie/laravel-query-builder`** (`filter[nombre]` parcial,
-`filter[activo]` exacto, orden por `nombre` o `created_at`), aunque la tabla de esta fase
-sea simple: la fase 07 sustituye solo la capa Vue.
+`filter[activo]` exacto, orden por `nombre` o `created_at`, y **varios campos a la vez**
+con `sort=nombre,-created_at`).
+
+Desde la fase 07 lo pinta **`TablaDatos`** —ver [`tabla-de-datos.md`](tabla-de-datos.md)—
+con el nombre anclado a la izquierda y la columna de correo oculta por defecto: ocupa
+mucho y casi nunca se lee desde el listado. La acción de activar y desactivar vive en su
+propia columna, porque un cliente **nunca se borra, se desactiva**.
 
 ## Permisos
 

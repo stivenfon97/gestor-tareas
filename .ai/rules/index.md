@@ -8,9 +8,10 @@ Before planning or editing, find the row whose globs match the file's path and r
 | resources/js/components/** | .ai/rules/components.md |
 | config/** | .ai/rules/config.md |
 | app/Http/Controllers/** | .ai/rules/controllers.md |
+| resources/css/** | .ai/rules/css.md |
 | docker/** | .ai/rules/docker.md |
 | app/Enums/** | .ai/rules/enums.md |
-| docker-compose.yml, .env*, .gitignore, ** | .ai/rules/general.md |
+| docker-compose.yml, .env*, .gitignore | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
 | lang/** | .ai/rules/lang.md |
 | database/migrations/** | .ai/rules/migrations.md |
@@ -20,4 +21,5 @@ Before planning or editing, find the row whose globs match the file's path and r
 | resources/lang/** | .ai/rules/resources-lang.md |
 | routes/** | .ai/rules/routes.md |
 | app/Services/**, app/Services/CambiarEstadoTarea.php | .ai/rules/services.md |
+| resources/js/components/TablaDatos/** | .ai/rules/tabla-datos.md |
 | tests/** | .ai/rules/tests.md |

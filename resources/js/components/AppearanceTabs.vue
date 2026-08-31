@@ -1,33 +1,55 @@
 <script setup lang="ts">
 import { Monitor, Moon, Sun } from '@lucide/vue';
 import { useAppearance } from '@/composables/useAppearance';
+import { cn } from '@/lib/utils';
 
+/**
+ * Conmutador de tema de **tres posiciones**: claro, oscuro y sistema.
+ *
+ * Las tres son necesarias. Con solo dos, elegir «claro» a mediodía deja la
+ * aplicación en claro por la noche aunque el sistema entero haya cambiado.
+ * «Sistema» es una elección, no la ausencia de elección, y por eso ocupa su
+ * propio botón.
+ *
+ * La preferencia la persiste `useAppearance` en `localStorage` (cliente) y en
+ * una cookie (para que el servidor pinte ya la clase `.dark` y no haya
+ * destello en la primera carga).
+ */
 const { appearance, updateAppearance } = useAppearance();
 
-const tabs = [
-    { value: 'light', Icon: Sun, label: 'Light' },
-    { value: 'dark', Icon: Moon, label: 'Dark' },
-    { value: 'system', Icon: Monitor, label: 'System' },
+const opciones = [
+    { valor: 'light', Icono: Sun, clave: 'comun.tema.claro' },
+    { valor: 'dark', Icono: Moon, clave: 'comun.tema.oscuro' },
+    { valor: 'system', Icono: Monitor, clave: 'comun.tema.sistema' },
 ] as const;
+
+withDefaults(defineProps<{ compacto?: boolean }>(), { compacto: false });
 </script>
 
 <template>
     <div
-        class="inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800"
+        class="inline-flex gap-minimo rounded-md border border-borde bg-panel-cabecera p-minimo"
+        role="group"
+        :aria-label="$t('comun.tema.titulo')"
     >
         <button
-            v-for="{ value, Icon, label } in tabs"
-            :key="value"
-            @click="updateAppearance(value)"
-            :class="[
-                'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
-                appearance === value
-                    ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100'
-                    : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
-            ]"
+            v-for="{ valor, Icono, clave } in opciones"
+            :key="valor"
+            type="button"
+            :aria-pressed="appearance === valor"
+            :title="$t(clave)"
+            :class="
+                cn(
+                    'flex items-center gap-fino rounded-sm px-ajustado py-fino text-fino transition-colors',
+                    appearance === valor
+                        ? 'bg-panel text-texto'
+                        : 'text-texto-suave hover:bg-fila-hover hover:text-texto',
+                )
+            "
+            @click="updateAppearance(valor)"
         >
-            <component :is="Icon" class="-ml-1 h-4 w-4" />
-            <span class="ml-1.5 text-sm">{{ label }}</span>
+            <component :is="Icono" class="size-4" aria-hidden="true" />
+            <span :class="compacto ? 'sr-only' : ''">{{ $t(clave) }}</span>
         </button>
     </div>
 </template>

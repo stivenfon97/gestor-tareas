@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppearanceTabs from '@/components/AppearanceTabs.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem } from '@/types';
@@ -23,5 +24,12 @@ withDefaults(
                 <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </template>
         </div>
+
+        <!--
+            El conmutador vive en la cabecera y no solo en ajustes: cambiar de
+            tema es cosa de la luz de la habitación, no de la configuración de
+            la cuenta, y pasa varias veces al día.
+        -->
+        <AppearanceTabs compacto class="ml-auto" />
     </header>
 </template>
