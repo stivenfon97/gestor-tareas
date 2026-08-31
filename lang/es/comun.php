@@ -67,6 +67,6 @@ return [
         'sin_resultados_cuerpo' => 'Hay datos, pero ninguno cumple lo que has pedido. Prueba a quitar algún filtro.',
         'error_titulo' => 'No se pudo cargar el listado',
         'reintentar' => 'Reintentar',
-        'ayuda_teclado' => 'Usa las flechas para moverte entre filas y Intro para abrir la seleccionada.',
+        'ayuda_teclado' => 'Usa las flechas para moverte entre filas, Intro para abrir la enfocada y Espacio para marcarla.',
     ],
 ];

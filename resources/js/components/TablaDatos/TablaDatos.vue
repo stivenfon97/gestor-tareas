@@ -141,15 +141,6 @@ watch(
     { immediate: true, deep: true },
 );
 
-// Una página nueva es un conjunto de filas nuevo: conservar la selección
-// llevaría a aplicar una acción en lote a filas que ya no se ven.
-watch(
-    () => props.filas,
-    () => {
-        seleccion.value = {};
-    },
-);
-
 const columnasTanstack = computed((): ColumnDef<T>[] =>
     props.columnas.map((columna) => ({
         id: columna.id,
@@ -282,6 +273,43 @@ const enfocarFila = (indice: number): void => {
     elementosDeFila.value[acotado]?.focus();
 };
 
+const FOCALIZABLES = 'a, button, input, select, textarea, [tabindex]';
+
+/**
+ * Saca del recorrido de Tab todo lo interactivo que hay **dentro** de una fila.
+ *
+ * Sin esto el tabulador itinerante no sirve de nada: con dos enlaces por fila y
+ * treinta filas, llegar al pie de la tabla costaría sesenta pulsaciones y las
+ * flechas serían un adorno. Con esto, Tab va de la cabecera a la primera fila y
+ * de ahí al pie, y dentro de la tabla se navega con las flechas.
+ *
+ * Los enlaces siguen ahí para el ratón y para los lectores de pantalla: se
+ * quitan del orden de tabulación, no del árbol de accesibilidad.
+ */
+const sacarDelTabulador = (): void => {
+    elementosDeFila.value.forEach((fila) => {
+        fila?.querySelectorAll<HTMLElement>(FOCALIZABLES).forEach((elemento) => {
+            elemento.tabIndex = -1;
+        });
+    });
+};
+
+onMounted(sacarDelTabulador);
+
+watch(
+    () => props.filas,
+    () => {
+        // Una página nueva es un conjunto de filas nuevo: conservar la
+        // selección llevaría a aplicar una acción en lote a filas que ya no se
+        // ven.
+        seleccion.value = {};
+        filaActiva.value = 0;
+        nextTick(sacarDelTabulador);
+    },
+);
+
+watch(columnasVisiblesEnOrden, () => nextTick(sacarDelTabulador));
+
 /**
  * Tabulador itinerante: solo la fila activa es alcanzable con Tab, y dentro de
  * la tabla se navega con las flechas. Con `tabindex="0"` en las treinta filas,
@@ -298,6 +326,13 @@ const alPulsarTecla = (
         Home: () => enfocarFila(0),
         End: () => enfocarFila(props.filas.length - 1),
         Enter: () => emit('abrir', fila),
+        // Espacio marca y desmarca, que es lo que hace en cualquier lista con
+        // casillas. Sin esto la selección solo existiría para el ratón.
+        ' ': () => {
+            if (props.seleccionable) {
+                tabla.getRow(String(props.clave(fila)))?.toggleSelected();
+            }
+        },
     };
 
     const accion = teclas[evento.key];
@@ -456,7 +491,7 @@ const alternarColumna = (id: string, visible: boolean): void => {
 
         <!-- Panel de la tabla -->
         <div
-            class="overflow-auto rounded-md border border-borde-fuerte bg-panel"
+            class="min-w-0 overflow-auto rounded-md border border-borde-fuerte bg-panel"
             :style="{ maxHeight: props.altoMaximo }"
         >
             <table class="w-full border-collapse text-cuerpo">

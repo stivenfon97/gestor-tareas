@@ -62,6 +62,6 @@ return [
         'sin_resultados_cuerpo' => 'There is data, but none of it matches what you asked for. Try removing a filter.',
         'error_titulo' => 'The list could not be loaded',
         'reintentar' => 'Retry',
-        'ayuda_teclado' => 'Use the arrow keys to move between rows and Enter to open the selected one.',
+        'ayuda_teclado' => 'Use the arrow keys to move between rows, Enter to open the focused one and Space to select it.',
     ],
 ];

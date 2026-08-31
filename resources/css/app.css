@@ -258,7 +258,7 @@
 
     --texto: hsl(24 10% 10%);
     --texto-suave: hsl(25 5% 40%);
-    --texto-tenue: hsl(25 5% 45%);
+    --texto-tenue: hsl(25 5% 41%);
 
     /* Puente hacia los tokens de shadcn: mismos valores, otro nombre. */
     --background: var(--fondo);
@@ -358,7 +358,7 @@
 
     --texto: hsl(60 9% 96%);
     --texto-suave: hsl(24 5% 68%);
-    --texto-tenue: hsl(24 5% 52%);
+    --texto-tenue: hsl(24 5% 60%);
 
     --background: var(--fondo);
     --foreground: var(--texto);
