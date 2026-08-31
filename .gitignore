@@ -1,0 +1,45 @@
+/.phpunit.cache
+/bootstrap/ssr
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
+/vendor
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+
+# Regenerados por Laravel Boost
+/.mcp.json
+/CLAUDE.md
+/AGENTS.md
+/boost.json
+
+# Traducciones compiladas por laravel-vue-i18n
+/lang/php_*.json
+
+# Configuracion local de Claude Code y skills instaladas por Boost.
+# La fuente de verdad de las skills de dominio es .ai/skills/, que si se versiona;
+# .claude/skills/ solo contiene enlaces simbolicos a ella mas las skills de
+# framework que Boost reinstala con `php artisan boost:install`.
+/.claude/settings.local.json
+/.claude/skills

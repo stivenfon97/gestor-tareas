@@ -1,0 +1,92 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+import { Building2, BookOpen, FolderGit2, LayoutGrid, Users, UsersRound } from '@lucide/vue';
+import { computed } from 'vue';
+import AppLogo from '@/components/AppLogo.vue';
+import NavFooter from '@/components/NavFooter.vue';
+import NavMain from '@/components/NavMain.vue';
+import NavUser from '@/components/NavUser.vue';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { usePermisos } from '@/composables/usePermisos';
+import { dashboard } from '@/routes';
+import { index as clientesIndex } from '@/routes/clientes';
+import { index as equiposIndex } from '@/routes/equipos';
+import { index as proyectosIndex } from '@/routes/proyectos';
+import { index as usuariosIndex } from '@/routes/usuarios';
+import type { NavItem } from '@/types';
+
+const { puede, esSoloLectura } = usePermisos();
+
+/*
+ * Ocultar una entrada del menú no es un permiso: la ruta la protege su policy
+ * o su middleware igualmente. Esto solo evita enseñar puertas cerradas.
+ */
+const mainNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        { title: 'nav.dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'nav.proyectos', href: proyectosIndex(), icon: FolderGit2 },
+    ];
+
+    // El catálogo de clientes es interno: `ClientePolicy@viewAny` lo niega al
+    // rol global `invitado`, así que tampoco se le enseña la puerta.
+    if (! esSoloLectura.value) {
+        items.push({ title: 'nav.clientes', href: clientesIndex(), icon: Building2 });
+    }
+
+    if (puede('usuarios.gestionar')) {
+        items.push(
+            { title: 'nav.usuarios', href: usuariosIndex(), icon: Users },
+            { title: 'nav.equipos', href: equiposIndex(), icon: UsersRound },
+        );
+    }
+
+    return items;
+});
+
+const footerNavItems: NavItem[] = [
+    {
+        title: 'nav.repositorio',
+        href: 'https://github.com/laravel/vue-starter-kit',
+        icon: FolderGit2,
+    },
+    {
+        title: 'nav.documentacion',
+        href: 'https://laravel.com/docs/starter-kits#vue',
+        icon: BookOpen,
+    },
+];
+</script>
+
+<template>
+    <Sidebar collapsible="icon" variant="inset">
+        <SidebarHeader>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton size="lg" as-child>
+                        <Link :href="dashboard()">
+                            <AppLogo />
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarHeader>
+
+        <SidebarContent>
+            <NavMain :items="mainNavItems" />
+        </SidebarContent>
+
+        <SidebarFooter>
+            <NavFooter :items="footerNavItems" />
+            <NavUser />
+        </SidebarFooter>
+    </Sidebar>
+    <slot />
+</template>

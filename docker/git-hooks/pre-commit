@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+#
+# Hook pre-commit: verifica el formato del codigo PHP con Pint y aborta si falla.
+#
+# Instalalo con `make hooks`. Es necesario hacerlo a mano porque .git/hooks no se
+# versiona: Git no clona hooks, asi que el archivo vive aqui y se copia.
+#
+# Solo corre Pint, nunca la suite completa. Un hook que tarda un minuto se acaba
+# esquivando con --no-verify, y un hook que se esquiva es un hook que no existe.
+# La suite se ejecuta antes de fusionar la fase a main, no antes de cada commit.
+
+set -e
+
+if ! docker compose ps --status running --services 2>/dev/null | grep -qx app; then
+    echo "pre-commit: el servicio 'app' no esta levantado. Ejecuta 'make up'." >&2
+    exit 1
+fi
+
+echo "pre-commit: verificando el formato con Pint..."
+
+if ! docker compose exec -T app vendor/bin/pint --test; then
+    echo "" >&2
+    echo "pre-commit: Pint encontro problemas de formato. Corrige con 'make pint' y vuelve a intentarlo." >&2
+    exit 1
+fi

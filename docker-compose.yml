@@ -1,0 +1,125 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: gestor-tareas-app
+    user: "${UID:-1000}:${GID:-1000}"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      # El bind mount del codigo va primero; el volumen nombrado de storage/app
+      # va despues para que no lo sobrescriba y los archivos subidos persistan.
+      - .:/var/www/html
+      - archivos-storage:/var/www/html/storage/app
+      - dependencias-node:/var/www/html/node_modules
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-gestor-tareas.ini:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php -v > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      app:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/up || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    # mysqld escucha en 3308 dentro de la red de Compose, no en 3306, para que
+    # este proyecto no comparta puerto ni servidor con el otro stack de MySQL.
+    command: ["--port=3308"]
+    expose:
+      - "3308"
+    ports:
+      # 3309 en el host: el 3307 ya lo ocupa el MySQL de otro proyecto.
+      - "3309:3308"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-gestor_tareas}
+      MYSQL_USER: ${DB_USERNAME:-gestor}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    volumes:
+      - datos-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3308", "-uroot", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  node:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    image: gestor-tareas-node
+    restart: unless-stopped
+    working_dir: /var/www/html
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/var/www/html
+      - dependencias-node:/var/www/html/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    healthcheck:
+      # Vite no sirve nada en "/" en un proyecto Laravel (el HTML lo sirve
+      # Laravel): "/" devuelve 404 aunque el dev server este sano.
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5173/@vite/client || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: gestor-tareas-app
+    user: "${UID:-1000}:${GID:-1000}"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work --tries=3 --timeout=120 --sleep=3
+    volumes:
+      - .:/var/www/html
+      - archivos-storage:/var/www/html/storage/app
+      - dependencias-node:/var/www/html/node_modules
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-gestor-tareas.ini:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'queue:work' > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  datos-mysql:
+  archivos-storage:
+  dependencias-node:
