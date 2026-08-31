@@ -10,7 +10,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Http/Controllers/** | .ai/rules/controllers.md |
 | docker/** | .ai/rules/docker.md |
 | app/Enums/** | .ai/rules/enums.md |
-| docker-compose.yml, .env* | .ai/rules/general.md |
+| docker-compose.yml, .env*, .gitignore, ** | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
 | lang/** | .ai/rules/lang.md |
 | database/migrations/** | .ai/rules/migrations.md |
