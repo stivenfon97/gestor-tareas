@@ -12,6 +12,7 @@ return [
     'eliminar' => 'Delete task',
     'eliminar_confirmar' => 'Delete “:codigo”? The delete is soft: the code is never reused and the history is kept.',
     'sin_tareas' => 'No tasks to show yet.',
+    'sin_tareas_ayuda' => 'Tasks you create in this project will show up here.',
 
     'codigo' => 'Code',
     'modulo' => 'Module',
@@ -116,5 +117,10 @@ return [
         'motivo_espera_obligatorio' => 'Moving to “Waiting” requires explaining what is missing.',
         'motivo_cancelacion_obligatorio' => 'Cancelling requires explaining why.',
         'transicion_no_permitida' => 'Cannot move from “:desde” to “:hacia”.',
+    ],
+
+    'lote' => [
+        'copiar_codigos' => 'Copy codes',
+        'codigos_copiados' => ':total codes copied to the clipboard.',
     ],
 ];

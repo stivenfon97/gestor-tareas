@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { trans } from 'laravel-vue-i18n';
+import { computed } from 'vue';
+import { toast } from 'vue-sonner';
 import Heading from '@/components/Heading.vue';
-import Paginacion from '@/components/Paginacion.vue';
+import { TablaDatos } from '@/components/TablaDatos';
+import type { ColumnaDeTabla } from '@/components/TablaDatos';
+import type { OrdenDeColumna } from '@/components/TablaDatos';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create, index } from '@/routes/proyectos/tareas';
 import { create as capturaRapida } from '@/routes/proyectos/tareas/rapida';
@@ -18,259 +20,309 @@ import type { RespuestaPaginada } from '@/types/paginacion';
 import type { FilaTarea, OpcionesDeTarea } from '@/types/tareas';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     tareas: RespuestaPaginada<FilaTarea>;
     filtros: Record<string, string>;
-    orden: string | null;
+    orden: OrdenDeColumna[];
+    columnasVisibles: string[] | null;
     opciones: OpcionesDeTarea;
     puede: { crear: boolean };
 }>();
 
-const filtro = ref({
-    texto: props.filtros.texto ?? '',
-    estado: props.filtros.estado ?? '',
-    tipo: props.filtros.tipo ?? '',
-    prioridad: props.filtros.prioridad ?? '',
-    modulo_id: props.filtros.modulo_id ?? '',
-    periodo_id: props.filtros.periodo_id ?? '',
-    arrastradas: props.filtros.arrastradas ?? '',
-});
-
-const orden = ref(props.orden ?? 'codigo');
-
 /*
- * Todo viaja como `filter[…]` y `sort` porque el servidor lo resuelve con
- * spatie/laravel-query-builder. La fase 07 sustituye esta tabla por TanStack sin
- * tocar el controlador.
+ * Las columnas se declaran **aquí**, no dentro de `TablaDatos`: el componente no
+ * sabe qué es una tarea, y así el mismo componente sirve a clientes, proyectos y
+ * a lo que venga.
+ *
+ * `ordenPor` tiene que coincidir con un `allowedSorts` de `TareaController`, y
+ * `filtro.clave` con un `allowedFilters`.
  */
-let temporizador: ReturnType<typeof setTimeout> | undefined;
+const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
+    {
+        id: 'codigo',
+        etiqueta: trans('tareas.codigo'),
+        valor: (tarea) => tarea.codigo,
+        ordenPor: 'codigo',
+        anclada: true,
+        fija: true,
+        mono: true,
+        anchoMinimo: '10rem',
+    },
+    {
+        id: 'tipo',
+        etiqueta: trans('tareas.tipo'),
+        valor: (tarea) => tarea.tipo,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'tipo',
+            opciones: props.opciones.tipos.map((opcion) => ({
+                valor: opcion.valor,
+                etiqueta: trans(opcion.etiqueta),
+            })),
+        },
+        anchoMinimo: '4rem',
+    },
+    {
+        id: 'nombre',
+        etiqueta: trans('comun.nombre'),
+        valor: (tarea) => tarea.nombre,
+        ordenPor: 'nombre',
+        filtro: {
+            tipo: 'texto',
+            clave: 'texto',
+            marcador: trans('comun.buscar'),
+        },
+        anchoMinimo: '18rem',
+    },
+    {
+        id: 'modulo',
+        etiqueta: trans('tareas.modulo'),
+        valor: (tarea) => tarea.modulo,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'modulo_id',
+            opciones: props.opciones.modulos.map((modulo) => ({
+                valor: String(modulo.id),
+                etiqueta: modulo.ruta,
+            })),
+        },
+        anchoMinimo: '14rem',
+    },
+    {
+        id: 'estado',
+        etiqueta: trans('comun.estado'),
+        valor: (tarea) => tarea.estado,
+        ordenPor: 'estado',
+        filtro: {
+            tipo: 'opciones',
+            clave: 'estado',
+            opciones: props.opciones.estados.map((opcion) => ({
+                valor: opcion.valor,
+                etiqueta: trans(opcion.etiqueta),
+            })),
+        },
+        anchoMinimo: '8rem',
+    },
+    {
+        id: 'prioridad',
+        etiqueta: trans('tareas.prioridad'),
+        valor: (tarea) => tarea.prioridad,
+        ordenPor: 'prioridad',
+        filtro: {
+            tipo: 'opciones',
+            clave: 'prioridad',
+            opciones: props.opciones.prioridades.map((opcion) => ({
+                valor: opcion.valor,
+                etiqueta: trans(opcion.etiqueta),
+            })),
+        },
+        anchoMinimo: '6rem',
+    },
+    {
+        id: 'periodo',
+        etiqueta: trans('tareas.periodo'),
+        valor: (tarea) => tarea.periodo,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'periodo_id',
+            opciones: props.opciones.periodos.map((periodo) => ({
+                valor: String(periodo.id),
+                etiqueta: String(periodo.consecutivo),
+            })),
+        },
+        anchoMinimo: '6rem',
+    },
+    {
+        id: 'fecha_fin',
+        etiqueta: trans('tareas.fecha_fin'),
+        valor: (tarea) => tarea.fecha_fin,
+        ordenPor: 'fecha_fin',
+        mono: true,
+        anchoMinimo: '7rem',
+    },
+    {
+        id: 'arrastrada',
+        etiqueta: trans('tareas.arrastrada'),
+        valor: (tarea) => tarea.arrastrada,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'arrastradas',
+            opciones: [
+                {
+                    valor: '1',
+                    etiqueta: trans('tareas.filtros.solo_arrastradas'),
+                },
+            ],
+        },
+        // Nace oculta: importa al cerrar un periodo, no todos los días.
+        ocultaPorDefecto: true,
+        anchoMinimo: '7rem',
+    },
+]);
 
-const aplicar = (): void => {
-    const activos = Object.fromEntries(
-        Object.entries(filtro.value).filter(([, valor]) => valor !== ''),
-    );
-
-    router.get(
-        index(props.proyecto.id).url,
-        { filter: activos, sort: orden.value },
-        { preserveState: true, replace: true },
-    );
+const abrir = (tarea: FilaTarea): void => {
+    router.visit(show(tarea.id).url);
 };
 
-watch(
-    filtro,
-    () => {
-        clearTimeout(temporizador);
-        temporizador = setTimeout(aplicar, 300);
-    },
-    { deep: true },
-);
+/*
+ * La única acción en lote de esta fase. No inventa un endpoint nuevo —mover
+ * tareas en bloque es trabajo de la fase 08— pero tampoco deja la selección de
+ * adorno: copiar los códigos de una tanda es lo que se hace de verdad al armar
+ * un correo o un reporte.
+ */
+const accionesEnLote = computed(() => [
+    { id: 'copiar_codigos', etiqueta: trans('tareas.lote.copiar_codigos') },
+]);
 
-watch(orden, aplicar);
+const enLote = async (
+    accion: string,
+    claves: Array<string | number>,
+): Promise<void> => {
+    if (accion !== 'copiar_codigos') {
+        return;
+    }
 
-const hayFiltros = computed(() => Object.values(filtro.value).some((valor) => valor !== ''));
+    const codigos = props.tareas.data
+        .filter((tarea) => claves.includes(tarea.id))
+        .map((tarea) => tarea.codigo);
 
-const limpiar = (): void => {
-    filtro.value = {
-        texto: '',
-        estado: '',
-        tipo: '',
-        prioridad: '',
-        modulo_id: '',
-        periodo_id: '',
-        arrastradas: '',
-    };
+    await navigator.clipboard.writeText(codigos.join('\n'));
+
+    toast.success(
+        trans('tareas.lote.codigos_copiados', {
+            total: String(codigos.length),
+        }),
+    );
 };
 </script>
 
 <template>
     <Head :title="$t('tareas.titulo')" />
 
-    <div class="flex flex-col gap-6">
-        <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col gap-seccion">
+        <div class="flex items-start justify-between gap-bloque">
             <Heading
                 variant="small"
                 :title="$t('tareas.titulo')"
                 :description="props.proyecto.nombre"
             />
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-corto">
                 <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{ $t('comun.volver') }}</Link>
+                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
+                        $t('comun.volver')
+                    }}</Link>
                 </Button>
                 <template v-if="props.puede.crear">
                     <Button as-child variant="secondary" size="sm">
-                        <Link :href="capturaRapida(props.proyecto.id)">{{ $t('tareas.rapida.titulo') }}</Link>
+                        <Link :href="capturaRapida(props.proyecto.id)">
+                            {{ $t('tareas.rapida.titulo') }}
+                        </Link>
                     </Button>
                     <Button as-child size="sm">
-                        <Link :href="create(props.proyecto.id)">{{ $t('tareas.crear') }}</Link>
+                        <Link :href="create(props.proyecto.id)">{{
+                            $t('tareas.crear')
+                        }}</Link>
                     </Button>
                 </template>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-end gap-3">
-            <div class="grid gap-2">
-                <Label for="texto">{{ $t('tareas.filtros.texto') }}</Label>
-                <Input id="texto" v-model="filtro.texto" type="search" class="w-72" />
-            </div>
+        <TablaDatos
+            :url="index(props.proyecto.id).url"
+            :filas="props.tareas.data"
+            :columnas="columnas"
+            :clave="(tarea) => tarea.id"
+            :orden="props.orden"
+            :filtros="props.filtros"
+            :columnas-visibles="props.columnasVisibles"
+            :paginacion="props.tareas"
+            :etiqueta="$t('tareas.titulo')"
+            :vacio="{
+                titulo: $t('tareas.sin_tareas'),
+                cuerpo: $t('tareas.sin_tareas_ayuda'),
+            }"
+            seleccionable
+            :acciones-en-lote="accionesEnLote"
+            @abrir="abrir"
+            @en-lote="enLote"
+        >
+            <template #vacio-acciones>
+                <Button v-if="props.puede.crear" as-child size="sm">
+                    <Link :href="create(props.proyecto.id)">{{
+                        $t('tareas.crear')
+                    }}</Link>
+                </Button>
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="estado">{{ $t('comun.estado') }}</Label>
-                <select
-                    id="estado"
-                    v-model="filtro.estado"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            <!-- Barra = prioridad, icono = tipo, badge = estado. Cada eje por su
+                 canal visual; si los tres llevaran relleno sería ilegible. -->
+            <template #celda-codigo="{ fila }">
+                <div class="flex items-stretch gap-corto">
+                    <BarraPrioridad :prioridad="fila.prioridad" />
+                    <Link
+                        :href="show(fila.id)"
+                        class="underline-offset-4 hover:underline"
+                    >
+                        {{ fila.codigo }}
+                    </Link>
+                </div>
+            </template>
+
+            <template #celda-tipo="{ fila }">
+                <IconoTipo :tipo="fila.tipo" />
+            </template>
+
+            <template #celda-nombre="{ fila }">
+                <Link
+                    :href="show(fila.id)"
+                    class="underline-offset-4 hover:underline"
                 >
-                    <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                    <option v-for="opcion in props.opciones.estados" :key="opcion.valor" :value="opcion.valor">
-                        {{ $t(opcion.etiqueta) }}
-                    </option>
-                </select>
-            </div>
+                    {{ fila.nombre }}
+                </Link>
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="tipo">{{ $t('tareas.tipo') }}</Label>
-                <select
-                    id="tipo"
-                    v-model="filtro.tipo"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                    <option v-for="opcion in props.opciones.tipos" :key="opcion.valor" :value="opcion.valor">
-                        {{ $t(opcion.etiqueta) }}
-                    </option>
-                </select>
-            </div>
+            <template #celda-modulo="{ fila }">
+                <span class="text-texto-suave">{{
+                    fila.modulo ?? $t('tareas.sin_modulo')
+                }}</span>
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="prioridad">{{ $t('tareas.prioridad') }}</Label>
-                <select
-                    id="prioridad"
-                    v-model="filtro.prioridad"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                    <option v-for="opcion in props.opciones.prioridades" :key="opcion.valor" :value="opcion.valor">
-                        {{ $t(opcion.etiqueta) }}
-                    </option>
-                </select>
-            </div>
+            <template #celda-estado="{ fila }">
+                <BadgeEstado :estado="fila.estado" tamano="pequeno" />
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="modulo_id">{{ $t('tareas.modulo') }}</Label>
-                <select
-                    id="modulo_id"
-                    v-model="filtro.modulo_id"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                    :title="$t('tareas.filtros.modulo_incluye_hijos')"
-                >
-                    <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                    <option v-for="modulo in props.opciones.modulos" :key="modulo.id" :value="modulo.id">
-                        {{ modulo.ruta }}
-                    </option>
-                </select>
-            </div>
+            <template #celda-prioridad="{ fila }">
+                <span class="flex items-center gap-corto">
+                    <BarraPrioridad :prioridad="fila.prioridad" />
+                    <span class="text-texto-suave">
+                        {{ $t(`enums.prioridad_tarea.${fila.prioridad}`) }}
+                    </span>
+                </span>
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="periodo_id">{{ $t('tareas.periodo') }}</Label>
-                <select
-                    id="periodo_id"
-                    v-model="filtro.periodo_id"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                    <option v-for="periodo in props.opciones.periodos" :key="periodo.id" :value="periodo.id">
-                        {{ periodo.consecutivo }}
-                    </option>
-                </select>
-            </div>
+            <template #celda-periodo="{ fila }">
+                <span class="text-texto-suave">{{
+                    fila.periodo ?? $t('tareas.sin_periodo')
+                }}</span>
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="arrastradas">{{ $t('tareas.arrastrada') }}</Label>
-                <select
-                    id="arrastradas"
-                    v-model="filtro.arrastradas"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                    <option value="1">{{ $t('tareas.filtros.solo_arrastradas') }}</option>
-                </select>
-            </div>
+            <template #celda-fecha_fin="{ fila }">
+                <span class="text-texto-suave">{{
+                    fila.fecha_fin ?? '—'
+                }}</span>
+            </template>
 
-            <div class="grid gap-2">
-                <Label for="orden">{{ $t('tareas.orden.titulo') }}</Label>
-                <select
-                    id="orden"
-                    v-model="orden"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="codigo">{{ $t('tareas.orden.codigo') }}</option>
-                    <option value="nombre">{{ $t('tareas.orden.nombre') }}</option>
-                    <option value="estado">{{ $t('tareas.orden.estado') }}</option>
-                    <option value="-prioridad">{{ $t('tareas.orden.prioridad') }}</option>
-                    <option value="-fecha_fin">{{ $t('tareas.orden.fecha_fin') }}</option>
-                    <option value="-updated_at">{{ $t('tareas.orden.updated_at') }}</option>
-                </select>
-            </div>
-
-            <Button v-if="hayFiltros" variant="ghost" size="sm" @click="limpiar">
-                {{ $t('tareas.filtros.limpiar') }}
-            </Button>
-        </div>
-
-        <div class="overflow-x-auto rounded-lg border border-border">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-muted text-muted-foreground">
-                    <tr>
-                        <th class="px-4 py-2 font-medium">{{ $t('tareas.codigo') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.nombre') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('tareas.modulo') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.estado') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('tareas.periodo') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="tarea in props.tareas.data" :key="tarea.id" class="border-t border-border">
-                        <td class="px-4 py-2">
-                            <div class="flex items-stretch gap-2">
-                                <!-- Barra = prioridad, icono = tipo, badge = estado. -->
-                                <BarraPrioridad :prioridad="tarea.prioridad" />
-                                <IconoTipo :tipo="tarea.tipo" />
-                                <Link
-                                    :href="show(tarea.id)"
-                                    class="font-mono underline-offset-4 hover:underline"
-                                >
-                                    {{ tarea.codigo }}
-                                </Link>
-                            </div>
-                        </td>
-                        <td class="px-4 py-2">
-                            <Link :href="show(tarea.id)" class="underline-offset-4 hover:underline">
-                                {{ tarea.nombre }}
-                            </Link>
-                            <Badge v-if="tarea.arrastrada" variant="outline" class="ml-2">
-                                {{ $t('tareas.arrastrada') }}
-                            </Badge>
-                        </td>
-                        <td class="px-4 py-2 text-muted-foreground">
-                            {{ tarea.modulo ?? $t('tareas.sin_modulo') }}
-                        </td>
-                        <td class="px-4 py-2">
-                            <BadgeEstado :estado="tarea.estado" tamano="pequeno" />
-                        </td>
-                        <td class="px-4 py-2 text-muted-foreground">
-                            {{ tarea.periodo ?? $t('tareas.sin_periodo') }}
-                        </td>
-                    </tr>
-                    <tr v-if="props.tareas.data.length === 0">
-                        <td colspan="5" class="px-4 py-6 text-center text-muted-foreground">
-                            {{ $t('tareas.sin_tareas') }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <Paginacion :enlaces="props.tareas.links" />
+            <template #celda-arrastrada="{ fila }">
+                <Badge v-if="fila.arrastrada" variant="outline">
+                    {{ $t('tareas.arrastrada') }}
+                </Badge>
+                <span v-else class="text-texto-tenue">—</span>
+            </template>
+        </TablaDatos>
     </div>
 </template>

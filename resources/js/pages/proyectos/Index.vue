@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { trans } from 'laravel-vue-i18n';
+import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
-import Paginacion from '@/components/Paginacion.vue';
+import { TablaDatos } from '@/components/TablaDatos';
+import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { create, index, show } from '@/routes/proyectos';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
@@ -17,102 +17,150 @@ type Proyecto = {
     estado: string;
     cliente: { id: number; nombre: string } | null;
     tareas_abiertas_count: number;
+    creado: string | null;
 };
 
 const props = defineProps<{
     proyectos: RespuestaPaginada<Proyecto>;
-    filtros: { nombre: string | null; estado: string | null };
+    filtros: Record<string, string>;
+    orden: OrdenDeColumna[];
+    columnasVisibles: string[] | null;
     estados: Array<{ valor: string; etiqueta: string }>;
+    clientes: Array<{ id: number; nombre: string }>;
     puede: { crear: boolean };
 }>();
 
-const nombre = ref(props.filtros.nombre ?? '');
-const estado = ref(props.filtros.estado ?? '');
+const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
+    {
+        id: 'nombre',
+        etiqueta: trans('comun.nombre'),
+        valor: (proyecto) => proyecto.nombre,
+        ordenPor: 'nombre',
+        fija: true,
+        anclada: true,
+        filtro: {
+            tipo: 'texto',
+            clave: 'nombre',
+            marcador: trans('comun.buscar'),
+        },
+        anchoMinimo: '16rem',
+    },
+    {
+        id: 'cliente',
+        etiqueta: trans('proyectos.cliente'),
+        valor: (proyecto) => proyecto.cliente?.nombre ?? null,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'cliente_id',
+            opciones: props.clientes.map((cliente) => ({
+                valor: String(cliente.id),
+                etiqueta: cliente.nombre,
+            })),
+        },
+        anchoMinimo: '12rem',
+    },
+    {
+        id: 'prefijo',
+        etiqueta: trans('proyectos.prefijo'),
+        valor: (proyecto) => proyecto.prefijo_tarea,
+        mono: true,
+        anchoMinimo: '6rem',
+    },
+    {
+        id: 'tareas_abiertas',
+        etiqueta: trans('proyectos.tareas_abiertas'),
+        valor: (proyecto) => proyecto.tareas_abiertas_count,
+        alineacion: 'derecha',
+        anchoMinimo: '8rem',
+    },
+    {
+        id: 'estado',
+        etiqueta: trans('comun.estado'),
+        valor: (proyecto) => proyecto.estado,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'estado',
+            opciones: props.estados.map((opcion) => ({
+                valor: opcion.valor,
+                etiqueta: trans(opcion.etiqueta),
+            })),
+        },
+        anchoMinimo: '8rem',
+    },
+    {
+        id: 'creado',
+        etiqueta: trans('proyectos.fecha_creacion'),
+        valor: (proyecto) => proyecto.creado,
+        ordenPor: 'created_at',
+        mono: true,
+        // Nace oculta: solo interesa al ordenar por antigüedad.
+        ocultaPorDefecto: true,
+        anchoMinimo: '8rem',
+    },
+]);
 
-let temporizador: ReturnType<typeof setTimeout> | undefined;
-
-watch([nombre, estado], () => {
-    clearTimeout(temporizador);
-    temporizador = setTimeout(() => {
-        router.get(
-            index().url,
-            {
-                filter: {
-                    ...(nombre.value ? { nombre: nombre.value } : {}),
-                    ...(estado.value ? { estado: estado.value } : {}),
-                },
-            },
-            { preserveState: true, replace: true },
-        );
-    }, 300);
-});
+const abrir = (proyecto: Proyecto): void => {
+    router.visit(show(proyecto.id).url);
+};
 </script>
 
 <template>
     <Head :title="$t('proyectos.titulo')" />
 
-    <div class="flex flex-col gap-6">
-        <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col gap-seccion">
+        <div class="flex items-start justify-between gap-bloque">
             <Heading variant="small" :title="$t('proyectos.titulo')" />
             <Button v-if="props.puede.crear" as-child size="sm">
                 <Link :href="create()">{{ $t('proyectos.crear') }}</Link>
             </Button>
         </div>
 
-        <div class="flex flex-wrap items-end gap-4">
-            <div class="grid gap-2">
-                <Label for="buscar">{{ $t('proyectos.buscar') }}</Label>
-                <Input id="buscar" v-model="nombre" type="search" class="w-64" />
-            </div>
-            <div class="grid gap-2">
-                <Label for="estado">{{ $t('comun.estado') }}</Label>
-                <select
-                    id="estado"
-                    v-model="estado"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+        <TablaDatos
+            :url="index().url"
+            :filas="props.proyectos.data"
+            :columnas="columnas"
+            :clave="(proyecto) => proyecto.id"
+            :orden="props.orden"
+            :filtros="props.filtros"
+            :columnas-visibles="props.columnasVisibles"
+            :paginacion="props.proyectos"
+            :etiqueta="$t('proyectos.titulo')"
+            :vacio="{
+                titulo: $t('proyectos.sin_proyectos'),
+                cuerpo: $t('proyectos.sin_proyectos_ayuda'),
+            }"
+            @abrir="abrir"
+        >
+            <template #vacio-acciones>
+                <Button v-if="props.puede.crear" as-child size="sm">
+                    <Link :href="create()">{{ $t('proyectos.crear') }}</Link>
+                </Button>
+            </template>
+
+            <template #celda-nombre="{ fila }">
+                <Link
+                    :href="show(fila.id)"
+                    class="underline-offset-4 hover:underline"
                 >
-                    <option value="">{{ $t('proyectos.todos_los_estados') }}</option>
-                    <option v-for="opcion in props.estados" :key="opcion.valor" :value="opcion.valor">
-                        {{ $t(opcion.etiqueta) }}
-                    </option>
-                </select>
-            </div>
-        </div>
+                    {{ fila.nombre }}
+                </Link>
+            </template>
 
-        <div class="overflow-x-auto rounded-lg border border-border">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-muted text-muted-foreground">
-                    <tr>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.nombre') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('proyectos.cliente') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('proyectos.prefijo') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('proyectos.tareas_abiertas') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.estado') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="proyecto in props.proyectos.data" :key="proyecto.id" class="border-t border-border">
-                        <td class="px-4 py-2">
-                            <Link :href="show(proyecto.id)" class="underline-offset-4 hover:underline">
-                                {{ proyecto.nombre }}
-                            </Link>
-                        </td>
-                        <td class="px-4 py-2 text-muted-foreground">{{ proyecto.cliente?.nombre }}</td>
-                        <td class="px-4 py-2">
-                            <Badge variant="outline">{{ proyecto.prefijo_tarea }}</Badge>
-                        </td>
-                        <td class="px-4 py-2">{{ proyecto.tareas_abiertas_count }}</td>
-                        <td class="px-4 py-2">{{ $t(`enums.estado_proyecto.${proyecto.estado}`) }}</td>
-                    </tr>
-                    <tr v-if="props.proyectos.data.length === 0">
-                        <td colspan="5" class="px-4 py-6 text-center text-muted-foreground">
-                            {{ $t('proyectos.sin_proyectos') }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <template #celda-cliente="{ fila }">
+                <span class="text-texto-suave">{{
+                    fila.cliente?.nombre ?? '—'
+                }}</span>
+            </template>
 
-        <Paginacion :enlaces="props.proyectos.links" />
+            <template #celda-prefijo="{ fila }">
+                <Badge variant="outline">{{ fila.prefijo_tarea }}</Badge>
+            </template>
+
+            <template #celda-estado="{ fila }">
+                <span class="text-texto-suave">
+                    {{ $t(`enums.estado_proyecto.${fila.estado}`) }}
+                </span>
+            </template>
+        </TablaDatos>
     </div>
 </template>

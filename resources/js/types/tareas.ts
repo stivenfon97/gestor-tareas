@@ -6,7 +6,8 @@ export type EstadoTarea =
     | 'entregada'
     | 'cancelada';
 
-export type TipoTarea = 'desarrollo' | 'correccion' | 'soporte' | 'mejora' | 'investigacion';
+export type TipoTarea =
+    'desarrollo' | 'correccion' | 'soporte' | 'mejora' | 'investigacion';
 
 export type PrioridadTarea = 'baja' | 'media' | 'alta' | 'critica';
 
@@ -32,6 +33,8 @@ export type FilaTarea = {
     estado: EstadoTarea;
     tipo: TipoTarea;
     prioridad: PrioridadTarea;
+    modulo_id: number | null;
+    /** Ruta completa del módulo («Clientes › Facturación»), no solo su nombre. */
     modulo: string | null;
     periodo: number | null;
     arrastrada: boolean;

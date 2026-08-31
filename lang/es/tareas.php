@@ -12,6 +12,7 @@ return [
     'eliminar' => 'Eliminar tarea',
     'eliminar_confirmar' => '¿Eliminar «:codigo»? El borrado es suave: el código no se reutiliza y el historial se conserva.',
     'sin_tareas' => 'Todavía no hay tareas que mostrar.',
+    'sin_tareas_ayuda' => 'Las tareas que crees en este proyecto aparecerán aquí.',
 
     'codigo' => 'Código',
     'modulo' => 'Módulo',
@@ -116,5 +117,10 @@ return [
         'motivo_espera_obligatorio' => 'Pasar a «En espera» exige explicar qué falta.',
         'motivo_cancelacion_obligatorio' => 'Cancelar exige explicar por qué.',
         'transicion_no_permitida' => 'No se puede pasar de «:desde» a «:hacia».',
+    ],
+
+    'lote' => [
+        'copiar_codigos' => 'Copiar códigos',
+        'codigos_copiados' => ':total códigos copiados al portapapeles.',
     ],
 ];

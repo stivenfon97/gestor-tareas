@@ -14,6 +14,8 @@ return [
     'desactivar' => 'Deactivate',
     'activo' => 'Active',
     'inactivo' => 'Inactive',
+    'sin_clientes' => 'No clients yet.',
+    'sin_clientes_ayuda' => 'Clients you add will show up here, along with their projects.',
     'nota_desactivar' => 'Clients are never deleted, only deactivated. An inactive client no longer shows up when creating projects, but keeps its projects, periods and payments.',
 
     'contacto_nombre' => 'Contact person',

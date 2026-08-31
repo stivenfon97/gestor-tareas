@@ -25,4 +25,48 @@ return [
     'descripcion' => 'Descripción',
     'rol' => 'Rol',
     'estado' => 'Estado',
+
+    'tema' => [
+        'titulo' => 'Tema',
+        'claro' => 'Claro',
+        'oscuro' => 'Oscuro',
+        'sistema' => 'Sistema',
+    ],
+
+    /*
+     * Textos del componente TablaDatos. Viven en `comun` y no en el archivo de
+     * cada recurso porque el componente no conoce ningún dominio: los mismos
+     * textos sirven al listado de clientes y al de tareas.
+     */
+    'tabla' => [
+        'columnas' => 'Columnas',
+        'columnas_ayuda' => 'Elige qué columnas se muestran.',
+        'restablecer_columnas' => 'Restablecer columnas',
+        'densidad' => 'Densidad',
+        'densidad_comoda' => 'Cómoda',
+        'densidad_compacta' => 'Compacta',
+        'ordenar_por' => 'Ordenar por :columna',
+        'orden_ascendente' => 'ascendente',
+        'orden_descendente' => 'descendente',
+        'orden_posicion' => 'posición :posicion del orden',
+        'orden_multiple_ayuda' => 'Mantén Mayús al pulsar una cabecera para ordenar por varias columnas.',
+        'limpiar_orden' => 'Limpiar orden',
+        'filtrar_por' => 'Filtrar por :columna',
+        'filtros_activos' => ':total filtros activos',
+        'limpiar_filtros' => 'Limpiar filtros',
+        'todos' => 'Todos',
+        'seleccionar_fila' => 'Seleccionar esta fila',
+        'seleccionar_pagina' => 'Seleccionar todas las filas de la página',
+        'seleccionadas' => ':total seleccionadas',
+        'limpiar_seleccion' => 'Quitar la selección',
+        'cargando' => 'Cargando resultados',
+        'por_pagina' => 'Por página',
+        'pagina_de' => 'Página :actual de :total',
+        'total_resultados' => ':total resultados',
+        'sin_resultados_titulo' => 'Ningún resultado con estos filtros',
+        'sin_resultados_cuerpo' => 'Hay datos, pero ninguno cumple lo que has pedido. Prueba a quitar algún filtro.',
+        'error_titulo' => 'No se pudo cargar el listado',
+        'reintentar' => 'Reintentar',
+        'ayuda_teclado' => 'Usa las flechas para moverte entre filas y Intro para abrir la seleccionada.',
+    ],
 ];
