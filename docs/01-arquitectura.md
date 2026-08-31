@@ -115,6 +115,43 @@ discrepan, manda la policy y lo que hay en el composable es un bug de presentaci
 agujero—. Ese reparto es lo que permite cambiar la interfaz sin auditar la seguridad otra
 vez.
 
+## La capa de presentación (fase 07)
+
+Hasta la fase 06 cada página resolvía su propio listado: su tabla, sus filtros, su
+paginación. Con seis pantallas repitiendo lo mismo y seis más por venir, la fase 07
+extrae la pieza compartida y le da al sistema su identidad visual.
+
+```
+Página Vue  (declara columnas, filtros y acciones — sabe de dominio)
+    │
+    ▼
+TablaDatos  (pinta, ordena y navega — no sabe de dominio)
+    │
+    ├──► useEstadoDeTabla  ──►  la URL  ──►  el servidor
+    │                                            │
+    │                                    EstadoDeTabla (PHP)
+    │                                            │
+    └──────────────── props ◄────────────────────┘
+```
+
+Tres decisiones que gobiernan esta capa:
+
+**El componente genérico no conoce ningún dominio.** Columnas, filtros y acciones se
+declaran desde la página. Es lo que permite que el mismo componente sirva a clientes,
+proyectos y tareas hoy, y a periodos, pagos y reuniones en las fases 09 a 11. Detalle
+completo en [`modulos/tabla-de-datos.md`](modulos/tabla-de-datos.md).
+
+**El estado del listado vive en la URL, no en memoria.** Orden, página, filtros y
+columnas visibles viajan como parámetros. Un listado cuyo estado solo vive en Vue no se
+puede compartir ni recuperar tras recargar, y las vistas guardadas de la fase 08 son
+literalmente eso: una cadena de consulta con nombre.
+
+**El color solo existe como token semántico.** Ni un hex ni una utilidad cruda de paleta
+en ningún componente, y ningún nombre de clase construido en tiempo de ejecución: el
+escáner de Tailwind 4 lee el código como texto y una clase interpolada falla **solo en el
+build de producción**. El plan de diseño, con su autocrítica y el inventario de tokens,
+está en [`05-identidad-visual.md`](05-identidad-visual.md).
+
 ## Convenciones transversales
 
 Están registradas en `.ai/rules/`, que es lo que un agente carga al editar cada archivo.
@@ -129,6 +166,7 @@ Las que más se notan:
 | El rol se resuelve desde el pivote; gana el más restrictivo | `app/Policies/**` |
 | Ningún texto visible dentro del componente | `resources/js/**` |
 | Ningún color literal | `resources/js/components/**` |
+| La tabla no conoce dominio; su estado va en la URL | `resources/js/components/TablaDatos/**` |
 | Toda clave de español existe también en inglés | `lang/**` |
 
 Ver [`README.md`](README.md#dónde-vive-cada-cosa) para el reparto entre `.ai/` y `docs/`.

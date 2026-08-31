@@ -61,13 +61,25 @@ flowchart TD
     listado["Listado de proyectos<br/>(acotado al pivote)"] --> detalle["Concentrador del proyecto"]
     crear["Nuevo proyecto<br/>(solo administrador)"] --> detalle
 
-    detalle --> resumen["Resumen: tareas por estado,<br/>periodo abierto, última reunión"]
-    detalle --> modulos["Módulos (fase 05)"]
-    detalle --> equipo["Equipo (fase 04)"]
-    detalle --> pendientes["Tareas · Periodos · Pagos<br/>Bitácora · Archivos · Reportes"]
+    detalle --> resumen["Pestaña Resumen: tareas por estado,<br/>periodo abierto, última reunión"]
+    detalle --> modulos["Pestaña Módulos (fase 05)"]
+    detalle --> equipo["Pestaña Equipo (fase 04)"]
+    detalle --> tareas["Pestaña Tareas (fase 06)"]
+    detalle --> pendientes["Pestañas Periodos · Bitácora · Reportes"]
 
-    pendientes -.->|"secciones vacías,<br/>marcadas con su fase"| futuro["Fases 06 a 11"]
+    pendientes -.->|"secciones vacías,<br/>marcadas con su fase"| futuro["Fases 09 a 11"]
 ```
+
+### El concentrador va por pestañas (fase 07)
+
+Siete pestañas —resumen, módulos, equipo, tareas, periodos, bitácora y reportes— y **la
+activa viaja en la URL** (`?seccion=tareas`), no solo en estado de Vue: se quiere poder
+compartir un enlace a la bitácora de un proyecto y volver a la misma pestaña tras
+recargar. `ProyectoController@show` la valida contra la lista, así que un `?seccion=`
+inventado abre el resumen en vez de dejar la página en blanco.
+
+Las pestañas de bitácora y reportes solo se listan si el rol las permite, pero eso es
+cosmética: quien manda sigue siendo la policy de cada ruta.
 
 ## Rutas y controladores
 
@@ -89,6 +101,10 @@ flowchart TD
 El listado va por **query-builder** (`filter[nombre]`, `filter[estado]`,
 `filter[cliente_id]`) y, para quien no es administrador, se acota a los proyectos donde
 tiene fila en el pivote **antes** de cualquier filtro.
+
+Desde la fase 07 lo pinta **`TablaDatos`** —ver [`tabla-de-datos.md`](tabla-de-datos.md)—
+con orden multicolumna (`sort=nombre,-created_at`) sobre `nombre` y `created_at`, y la
+columna de alta oculta por defecto: solo interesa cuando se ordena por antigüedad.
 
 ## Permisos
 
@@ -122,6 +138,14 @@ prefijos mezclados, que es lo mismo que no tener convención.
 La comprobación vive en el observer y no en el formulario a propósito: un comando de
 consola, una acción masiva o un `tinker` no pueden saltársela. La prueba
 `rechaza cambiar el prefijo llamando al modelo directamente` es la que lo fija.
+
+### El resumen no son tres tarjetas
+
+Tareas por estado, periodo abierto y última reunión no son tres objetos del mismo tipo:
+son **tres hechos sobre un mismo proyecto**. Tres cajas idénticas con borde y sombra
+dicen lo contrario, y a cambio meten 2px de línea y 32px de relleno por cada una. Se leen
+de corrido, separados por divisores. Es el primer punto de la autocrítica de
+[`../05-identidad-visual.md`](../05-identidad-visual.md) §7.1.
 
 ### El concentrador no lleva datos de relleno
 
