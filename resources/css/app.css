@@ -2,21 +2,127 @@
 
 @import 'tw-animate-css';
 
+/*
+ * Fuentes autoalojadas. **Nada de Google Fonts ni Bunny Fonts**: la aplicación
+ * corre en local y no debe depender de una petición externa para pintar texto.
+ *
+ * Solo el subconjunto `latin` y solo los pesos que la escala usa (400, 500 y
+ * 600 de interfaz; 400 y 500 de monoespaciada). Importar la familia entera
+ * mete catorce archivos y trece no se usan nunca.
+ */
+@import '@fontsource/plus-jakarta-sans/latin-400.css';
+@import '@fontsource/plus-jakarta-sans/latin-500.css';
+@import '@fontsource/plus-jakarta-sans/latin-600.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    /*
+     * Tipografías. La de interfaz es Plus Jakarta Sans; la monoespaciada,
+     * JetBrains Mono, y solo se usa en códigos de tarea, fechas, montos y
+     * prefijos de proyecto: valores que se comparan verticalmente entre filas.
+     */
     --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-mono:
+        'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
+    /*
+     * Escala tipográfica: seis pasos, cada uno con su uso asignado. Los nombres
+     * no chocan con la escala numérica de Tailwind a propósito — así conviven
+     * las pantallas ya migradas y las que quedan por migrar sin que cambiar un
+     * token mueva media aplicación de golpe.
+     *
+     * El cuerpo es 13px, no 14 ni 16: a 16px caben trece filas por pantalla, a
+     * 13px caben veinte. Ver docs/05-identidad-visual.md §2.
+     */
+    --text-micro: 0.6875rem; /* 11px — cabeceras de tabla, metadatos */
+    --text-micro--line-height: 1rem;
+    --text-micro--letter-spacing: 0.04em;
+
+    --text-fino: 0.75rem; /* 12px — texto secundario, ayudas */
+    --text-fino--line-height: 1rem;
+    --text-fino--letter-spacing: 0.01em;
+
+    --text-cuerpo: 0.8125rem; /* 13px — tabla, formularios, casi todo */
+    --text-cuerpo--line-height: 1.25rem;
+
+    --text-medio: 0.9375rem; /* 15px — títulos de sección */
+    --text-medio--line-height: 1.375rem;
+    --text-medio--letter-spacing: -0.005em;
+
+    --text-alto: 1.125rem; /* 18px — título de página */
+    --text-alto--line-height: 1.625rem;
+    --text-alto--letter-spacing: -0.01em;
+
+    --text-cima: 1.5rem; /* 24px — pantallas de una sola cosa */
+    --text-cima--line-height: 2rem;
+    --text-cima--letter-spacing: -0.015em;
+
+    /*
+     * Espaciado. La unidad base sigue siendo 4px (la de Tailwind); lo que
+     * aporta el proyecto son los nueve pasos permitidos, con nombre, para que
+     * `px-celda` diga por qué vale 12px y `px-3` no diga nada.
+     */
+    --spacing-minimo: 0.125rem; /* 2px */
+    --spacing-fino: 0.25rem; /* 4px */
+    --spacing-ajustado: 0.375rem; /* 6px */
+    --spacing-corto: 0.5rem; /* 8px */
+    --spacing-celda: 0.75rem; /* 12px */
+    --spacing-bloque: 1rem; /* 16px */
+    --spacing-seccion: 1.5rem; /* 24px */
+    --spacing-pagina: 2rem; /* 32px */
+    --spacing-vacio: 3rem; /* 48px */
+
+    /*
+     * Densidad de fila. Son tokens y no clases sueltas porque el alto y el
+     * padding tienen que moverse juntos: cambiar uno sin el otro descuadra la
+     * cabecera fija respecto al cuerpo.
+     */
+    --spacing-fila-comoda: 2.25rem; /* 36px */
+    --spacing-fila-compacta: 1.75rem; /* 28px */
+
+    /*
+     * Radios pequeños: es el lenguaje de un instrumento, no de una tarjeta de
+     * producto. No hay radio grande.
+     */
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
 
+    /* Marca. Esmeralda, y solo en acciones primarias. */
+    --color-marca: var(--marca);
+    --color-marca-fuerte: var(--marca-fuerte);
+    --color-marca-contraste: var(--marca-contraste);
+    --color-marca-suave: var(--marca-suave);
+
+    /*
+     * Jerarquía de superficies. En modo oscuro las sombras no se ven sobre un
+     * fondo casi negro: lo que sustituye a la elevación es el valor de la
+     * superficie, unos tres puntos de luminosidad por escalón.
+     */
+    --color-fondo: var(--fondo);
+    --color-panel: var(--panel);
+    --color-panel-cabecera: var(--panel-cabecera);
+    --color-panel-flotante: var(--panel-flotante);
+    --color-fila-hover: var(--fila-hover);
+    --color-fila-activa: var(--fila-activa);
+
+    --color-borde: var(--borde);
+    --color-borde-fuerte: var(--borde-fuerte);
+
+    --color-texto: var(--texto);
+    --color-texto-suave: var(--texto-suave);
+    --color-texto-tenue: var(--texto-tenue);
+
+    /* Compatibilidad con los componentes de shadcn ya instalados. */
     --color-background: var(--background);
     --color-foreground: var(--foreground);
 
@@ -113,55 +219,81 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
-    }
-}
-
-@layer utilities {
-    body,
-    html {
-        --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+        border-color: var(--borde, currentColor);
     }
 }
 
 :root {
-    --background: hsl(0 0% 100%);
-    --foreground: hsl(0 0% 3.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(0 0% 3.9%);
-    --primary: hsl(0 0% 9%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 92.1%);
-    --secondary-foreground: hsl(0 0% 9%);
-    --muted: hsl(0 0% 96.1%);
-    --muted-foreground: hsl(0 0% 45.1%);
-    --accent: hsl(0 0% 96.1%);
-    --accent-foreground: hsl(0 0% 9%);
-    --destructive: hsl(0 84.2% 60.2%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 92.8%);
-    --input: hsl(0 0% 89.8%);
-    --ring: hsl(0 0% 3.9%);
-    --chart-1: hsl(12 76% 61%);
-    --chart-2: hsl(173 58% 39%);
-    --chart-3: hsl(197 37% 24%);
-    --chart-4: hsl(43 74% 66%);
-    --chart-5: hsl(27 87% 67%);
-    --radius: 0.5rem;
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(0 0% 10%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(0 0% 94%);
-    --sidebar-accent-foreground: hsl(0 0% 30%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(0 0% 98%);
+    --radius: 0.375rem; /* 6px: paneles y menús. Los campos bajan a 4px. */
+
+    /*
+     * Marca esmeralda. `--marca` es fondo de acción primaria y color de enlace;
+     * `--marca-contraste` es lo que va encima. El par supera 7:1 en claro.
+     *
+     * El esmeralda **no se usa como color de estado**: si `terminada` fuera
+     * esmeralda, un badge sería indistinguible de un botón y la gente haría
+     * clic en él.
+     */
+    --marca: hsl(161 94% 26%);
+    --marca-fuerte: hsl(163 94% 20%);
+    --marca-contraste: hsl(0 0% 100%);
+    --marca-suave: hsl(152 76% 95%);
+
+    /* Superficies: stone, de fondo de página a capa flotante. */
+    --fondo: hsl(60 9% 98%);
+    --panel: hsl(0 0% 100%);
+    --panel-cabecera: hsl(60 6% 97%);
+    --panel-flotante: hsl(0 0% 100%);
+    --fila-hover: hsl(60 5% 95%);
+    --fila-activa: hsl(24 6% 91%);
+
+    /*
+     * Dos pesos de borde. El fuerte es solo para el canto exterior del panel,
+     * la costura de la columna anclada y el borde de las capas flotantes en
+     * oscuro. Los divisores de fila van con el suave, a bajo contraste: un
+     * divisor que se ve mucho compite con los datos.
+     */
+    --borde: hsl(24 6% 90%);
+    --borde-fuerte: hsl(24 6% 80%);
+
+    --texto: hsl(24 10% 10%);
+    --texto-suave: hsl(25 5% 40%);
+    --texto-tenue: hsl(25 5% 45%);
+
+    /* Puente hacia los tokens de shadcn: mismos valores, otro nombre. */
+    --background: var(--fondo);
+    --foreground: var(--texto);
+    --card: var(--panel);
+    --card-foreground: var(--texto);
+    --popover: var(--panel-flotante);
+    --popover-foreground: var(--texto);
+    --primary: var(--marca);
+    --primary-foreground: var(--marca-contraste);
+    --secondary: hsl(60 5% 94%);
+    --secondary-foreground: var(--texto);
+    --muted: hsl(60 5% 96%);
+    --muted-foreground: var(--texto-suave);
+    --accent: var(--fila-hover);
+    --accent-foreground: var(--texto);
+    --destructive: hsl(0 72% 41%);
+    --destructive-foreground: hsl(0 0% 100%);
+    --border: var(--borde);
+    --input: var(--borde-fuerte);
+    --ring: var(--marca);
+    --chart-1: hsl(161 94% 30%);
+    --chart-2: hsl(213 94% 48%);
+    --chart-3: hsl(43 96% 46%);
+    --chart-4: hsl(269 75% 55%);
+    --chart-5: hsl(25 95% 45%);
+    --sidebar-background: var(--panel-cabecera);
+    --sidebar-foreground: var(--texto-suave);
+    --sidebar-primary: var(--marca);
+    --sidebar-primary-foreground: var(--marca-contraste);
+    --sidebar-accent: var(--fila-hover);
+    --sidebar-accent-foreground: var(--texto);
+    --sidebar-border: var(--borde);
+    --sidebar-ring: var(--marca);
+    --sidebar: var(--panel-cabecera);
 
     /*
      * Estados. Solo el estado lleva relleno de color: el tipo va como icono
@@ -204,39 +336,63 @@
 }
 
 .dark {
-    --background: hsl(0 0% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(0 0% 3.9%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(0 0% 3.9%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(0 0% 9%);
-    --secondary: hsl(0 0% 14.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 16.08%);
-    --muted-foreground: hsl(0 0% 63.9%);
-    --accent: hsl(0 0% 14.9%);
-    --accent-foreground: hsl(0 0% 98%);
+    /*
+     * Esmeralda al revés: en oscuro el relleno se aclara y el texto de encima
+     * se oscurece. Un esmeralda oscuro sobre fondo oscuro no se ve.
+     */
+    --marca: hsl(158 64% 45%);
+    --marca-fuerte: hsl(158 64% 52%);
+    --marca-contraste: hsl(163 90% 8%);
+    --marca-suave: hsl(163 55% 14%);
+
+    /* Stone casi negro, cálido. Cuanto más adelante, más claro. */
+    --fondo: hsl(30 8% 7%);
+    --panel: hsl(30 6% 10%);
+    --panel-cabecera: hsl(30 6% 13%);
+    --panel-flotante: hsl(30 6% 16%);
+    --fila-hover: hsl(30 5% 14%);
+    --fila-activa: hsl(30 5% 18%);
+
+    --borde: hsl(30 5% 18%);
+    --borde-fuerte: hsl(30 5% 28%);
+
+    --texto: hsl(60 9% 96%);
+    --texto-suave: hsl(24 5% 68%);
+    --texto-tenue: hsl(24 5% 52%);
+
+    --background: var(--fondo);
+    --foreground: var(--texto);
+    --card: var(--panel);
+    --card-foreground: var(--texto);
+    --popover: var(--panel-flotante);
+    --popover-foreground: var(--texto);
+    --primary: var(--marca);
+    --primary-foreground: var(--marca-contraste);
+    --secondary: var(--panel-cabecera);
+    --secondary-foreground: var(--texto);
+    --muted: var(--panel-cabecera);
+    --muted-foreground: var(--texto-suave);
+    --accent: var(--fila-hover);
+    --accent-foreground: var(--texto);
     --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 14.9%);
-    --input: hsl(0 0% 14.9%);
-    --ring: hsl(0 0% 83.1%);
-    --chart-1: hsl(220 70% 50%);
-    --chart-2: hsl(160 60% 45%);
-    --chart-3: hsl(30 80% 55%);
-    --chart-4: hsl(280 65% 60%);
-    --chart-5: hsl(340 75% 55%);
-    --sidebar-background: hsl(0 0% 7%);
-    --sidebar-foreground: hsl(0 0% 95.9%);
-    --sidebar-primary: hsl(360, 100%, 100%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(0 0% 15.9%);
-    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-border: hsl(0 0% 15.9%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(240 5.9% 10%);
+    --destructive-foreground: hsl(0 0% 100%);
+    --border: var(--borde);
+    --input: var(--borde-fuerte);
+    --ring: var(--marca);
+    --chart-1: hsl(158 64% 52%);
+    --chart-2: hsl(213 97% 72%);
+    --chart-3: hsl(43 96% 62%);
+    --chart-4: hsl(269 97% 78%);
+    --chart-5: hsl(25 95% 62%);
+    --sidebar-background: var(--panel-cabecera);
+    --sidebar-foreground: var(--texto-suave);
+    --sidebar-primary: var(--marca);
+    --sidebar-primary-foreground: var(--marca-contraste);
+    --sidebar-accent: var(--fila-hover);
+    --sidebar-accent-foreground: var(--texto);
+    --sidebar-border: var(--borde);
+    --sidebar-ring: var(--marca);
+    --sidebar: var(--panel-cabecera);
 
     /* Mismas familias, invertidas: fondo oscuro desaturado y texto claro. */
     --estado-pendiente-fondo: hsl(28 40% 18%);
@@ -273,7 +429,20 @@
     * {
         @apply border-border outline-ring/50;
     }
+
     body {
-        @apply bg-background text-foreground;
+        @apply bg-fondo text-texto;
+        font-synthesis-weight: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /*
+     * El foco tiene que verse siempre: esta aplicación se recorre con el
+     * teclado durante horas y un foco invisible convierte la navegación en
+     * adivinanza. Nunca `outline: none` sin sustituto.
+     */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-marca;
     }
 }

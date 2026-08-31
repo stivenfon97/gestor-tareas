@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import i18n from 'laravel-vue-i18n/vite';
-import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -12,11 +11,9 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
+            // Sin `fonts:`. Las tipografías se autoalojan con @fontsource desde
+            // resources/css/app.css: la aplicación corre en local y no debe
+            // depender de Bunny ni de Google para pintar texto.
         }),
         // Compila lang/{es,en}/*.php a lang/php_{es,en}.json para el cliente.
         i18n(),
