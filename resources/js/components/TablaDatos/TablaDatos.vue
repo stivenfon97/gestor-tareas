@@ -330,7 +330,7 @@ const alPulsarTecla = (
         // casillas. Sin esto la selección solo existiría para el ratón.
         ' ': () => {
             if (props.seleccionable) {
-                tabla.getRow(String(props.clave(fila)))?.toggleSelected();
+                tabla.getRowModel().rows[indice]?.toggleSelected();
             }
         },
     };
@@ -352,6 +352,17 @@ const alPulsarTecla = (
 };
 
 /* ------------------------------------------------------------ vacíos y pie */
+
+/** Valor de `aria-sort` de una columna: lo que anuncia el lector de pantalla. */
+const ordenDeColumna = (columna: ColumnaDeTabla<T>): 'ascending' | 'descending' | 'none' => {
+    const entrada = props.orden.find((registro) => registro.campo === columna.ordenPor);
+
+    if (entrada === undefined) {
+        return 'none';
+    }
+
+    return entrada.direccion === 'asc' ? 'ascending' : 'descending';
+};
 
 const hayFiltrosActivos = computed(() =>
     Object.values(props.filtros).some(
@@ -535,20 +546,7 @@ const alternarColumna = (id: string, visible: boolean): void => {
                             :key="columna.id"
                             scope="col"
                             :data-columna="columna.id"
-                            :aria-sort="
-                                props.orden.find(
-                                    (entrada) =>
-                                        entrada.campo === columna.ordenPor,
-                                )
-                                    ? props.orden.find(
-                                          (entrada) =>
-                                              entrada.campo ===
-                                              columna.ordenPor,
-                                      )!.direccion === 'asc'
-                                        ? 'ascending'
-                                        : 'descending'
-                                    : 'none'
-                            "
+                            :aria-sort="ordenDeColumna(columna)"
                             :style="estiloAnclado(columna)"
                             :class="
                                 cn(
