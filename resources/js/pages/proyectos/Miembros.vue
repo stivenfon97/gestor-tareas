@@ -36,12 +36,19 @@ const props = defineProps<{
             >
                 <span>
                     {{ miembro.name }}
-                    <span class="text-muted-foreground">· {{ miembro.email }}</span>
+                    <span class="text-muted-foreground"
+                        >· {{ miembro.email }}</span
+                    >
                 </span>
 
                 <div class="flex items-center gap-2">
                     <Form
-                        v-bind="ProyectoUsuarioController.update.form([props.proyecto.id, miembro.id])"
+                        v-bind="
+                            ProyectoUsuarioController.update.form([
+                                props.proyecto.id,
+                                miembro.id,
+                            ])
+                        "
                         class="flex items-center gap-2"
                         v-slot="{ processing }"
                     >
@@ -59,28 +66,49 @@ const props = defineProps<{
                                 {{ $t(rol.etiqueta) }}
                             </option>
                         </select>
-                        <Button type="submit" size="sm" variant="secondary" :disabled="processing">
+                        <Button
+                            type="submit"
+                            size="sm"
+                            variant="secondary"
+                            :disabled="processing"
+                        >
                             {{ $t('comun.guardar') }}
                         </Button>
                     </Form>
 
                     <Form
-                        v-bind="ProyectoUsuarioController.destroy.form([props.proyecto.id, miembro.id])"
+                        v-bind="
+                            ProyectoUsuarioController.destroy.form([
+                                props.proyecto.id,
+                                miembro.id,
+                            ])
+                        "
                         v-slot="{ processing }"
                     >
-                        <Button type="submit" size="sm" variant="ghost" :disabled="processing">
+                        <Button
+                            type="submit"
+                            size="sm"
+                            variant="ghost"
+                            :disabled="processing"
+                        >
                             {{ $t('comun.quitar') }}
                         </Button>
                     </Form>
                 </div>
             </li>
-            <li v-if="props.miembros.length === 0" class="px-4 py-6 text-center text-sm text-muted-foreground">
+            <li
+                v-if="props.miembros.length === 0"
+                class="px-4 py-6 text-center text-sm text-muted-foreground"
+            >
                 {{ $t('comun.sin_resultados') }}
             </li>
         </ul>
 
         <section class="flex flex-col gap-3">
-            <Heading variant="small" :title="$t('proyectos.miembros.asignar')" />
+            <Heading
+                variant="small"
+                :title="$t('proyectos.miembros.asignar')"
+            />
 
             <Form
                 v-bind="ProyectoUsuarioController.store.form(props.proyecto.id)"
@@ -95,7 +123,11 @@ const props = defineProps<{
                         required
                         class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
                     >
-                        <option v-for="persona in props.candidatos" :key="persona.id" :value="persona.id">
+                        <option
+                            v-for="persona in props.candidatos"
+                            :key="persona.id"
+                            :value="persona.id"
+                        >
                             {{ persona.name }} · {{ persona.email }}
                         </option>
                     </select>
@@ -108,12 +140,18 @@ const props = defineProps<{
                         required
                         class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                     >
-                        <option v-for="rol in props.roles" :key="rol.valor" :value="rol.valor">
+                        <option
+                            v-for="rol in props.roles"
+                            :key="rol.valor"
+                            :value="rol.valor"
+                        >
                             {{ $t(rol.etiqueta) }}
                         </option>
                     </select>
                 </div>
-                <Button type="submit" :disabled="processing">{{ $t('comun.agregar') }}</Button>
+                <Button type="submit" :disabled="processing">{{
+                    $t('comun.agregar')
+                }}</Button>
             </Form>
         </section>
 
@@ -125,19 +163,29 @@ const props = defineProps<{
             />
 
             <Form
-                v-bind="AsignarEquipoAProyectoController.store.form(props.proyecto.id)"
+                v-bind="
+                    AsignarEquipoAProyectoController.store.form(
+                        props.proyecto.id,
+                    )
+                "
                 class="flex flex-wrap items-end gap-3"
                 v-slot="{ processing }"
             >
                 <div class="grid flex-1 gap-2">
-                    <Label for="equipo_id">{{ $t('gestion.equipos.titulo') }}</Label>
+                    <Label for="equipo_id">{{
+                        $t('gestion.equipos.titulo')
+                    }}</Label>
                     <select
                         id="equipo_id"
                         name="equipo_id"
                         required
                         class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
                     >
-                        <option v-for="equipo in props.equipos" :key="equipo.id" :value="equipo.id">
+                        <option
+                            v-for="equipo in props.equipos"
+                            :key="equipo.id"
+                            :value="equipo.id"
+                        >
                             {{ equipo.nombre }}
                         </option>
                     </select>
@@ -150,12 +198,20 @@ const props = defineProps<{
                         required
                         class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                     >
-                        <option v-for="rol in props.roles" :key="rol.valor" :value="rol.valor">
+                        <option
+                            v-for="rol in props.roles"
+                            :key="rol.valor"
+                            :value="rol.valor"
+                        >
                             {{ $t(rol.etiqueta) }}
                         </option>
                     </select>
                 </div>
-                <Button type="submit" variant="secondary" :disabled="processing">
+                <Button
+                    type="submit"
+                    variant="secondary"
+                    :disabled="processing"
+                >
                     {{ $t('comun.agregar') }}
                 </Button>
             </Form>

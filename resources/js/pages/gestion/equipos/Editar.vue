@@ -35,18 +35,29 @@ const props = defineProps<{
         >
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <Input id="nombre" name="nombre" :default-value="props.equipo.nombre" required />
+                <Input
+                    id="nombre"
+                    name="nombre"
+                    :default-value="props.equipo.nombre"
+                    required
+                />
                 <InputError :message="errors.nombre" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="descripcion">{{ $t('comun.descripcion') }}</Label>
-                <Input id="descripcion" name="descripcion" :default-value="props.equipo.descripcion ?? ''" />
+                <Input
+                    id="descripcion"
+                    name="descripcion"
+                    :default-value="props.equipo.descripcion ?? ''"
+                />
                 <InputError :message="errors.descripcion" />
             </div>
 
             <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">{{ $t('comun.guardar') }}</Button>
+                <Button type="submit" :disabled="processing">{{
+                    $t('comun.guardar')
+                }}</Button>
                 <Button as-child variant="ghost">
                     <Link :href="index()">{{ $t('comun.cancelar') }}</Link>
                 </Button>
@@ -64,18 +75,33 @@ const props = defineProps<{
                 >
                     <span>
                         {{ miembro.name }}
-                        <span class="text-muted-foreground">· {{ miembro.email }}</span>
+                        <span class="text-muted-foreground"
+                            >· {{ miembro.email }}</span
+                        >
                     </span>
                     <Form
-                        v-bind="MiembroEquipoController.destroy.form([props.equipo.id, miembro.id])"
+                        v-bind="
+                            MiembroEquipoController.destroy.form([
+                                props.equipo.id,
+                                miembro.id,
+                            ])
+                        "
                         v-slot="{ processing }"
                     >
-                        <Button variant="ghost" size="sm" type="submit" :disabled="processing">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            type="submit"
+                            :disabled="processing"
+                        >
                             {{ $t('comun.quitar') }}
                         </Button>
                     </Form>
                 </li>
-                <li v-if="props.miembros.length === 0" class="px-4 py-6 text-center text-sm text-muted-foreground">
+                <li
+                    v-if="props.miembros.length === 0"
+                    class="px-4 py-6 text-center text-sm text-muted-foreground"
+                >
                     {{ $t('comun.sin_resultados') }}
                 </li>
             </ul>
@@ -93,12 +119,20 @@ const props = defineProps<{
                         required
                         class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                     >
-                        <option v-for="persona in props.candidatos" :key="persona.id" :value="persona.id">
+                        <option
+                            v-for="persona in props.candidatos"
+                            :key="persona.id"
+                            :value="persona.id"
+                        >
                             {{ persona.name }} · {{ persona.email }}
                         </option>
                     </select>
                 </div>
-                <Button type="submit" variant="secondary" :disabled="processing">
+                <Button
+                    type="submit"
+                    variant="secondary"
+                    :disabled="processing"
+                >
                     {{ $t('comun.agregar') }}
                 </Button>
             </Form>

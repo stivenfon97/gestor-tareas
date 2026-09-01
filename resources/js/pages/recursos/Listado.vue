@@ -25,19 +25,34 @@ const props = defineProps<{
             <table class="w-full text-left text-sm">
                 <thead class="bg-muted text-muted-foreground">
                     <tr>
-                        <th v-for="columna in props.columnas" :key="columna" class="px-4 py-2 font-medium">
+                        <th
+                            v-for="columna in props.columnas"
+                            :key="columna"
+                            class="px-4 py-2 font-medium"
+                        >
                             {{ $t(`recursos.columnas.${columna}`) }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(fila, indice) in props.filas" :key="indice" class="border-t border-border">
-                        <td v-for="columna in props.columnas" :key="columna" class="px-4 py-2">
+                    <tr
+                        v-for="(fila, indice) in props.filas"
+                        :key="indice"
+                        class="border-t border-border"
+                    >
+                        <td
+                            v-for="columna in props.columnas"
+                            :key="columna"
+                            class="px-4 py-2"
+                        >
                             {{ fila[columna] }}
                         </td>
                     </tr>
                     <tr v-if="props.filas.length === 0">
-                        <td :colspan="props.columnas.length" class="px-4 py-6 text-center text-muted-foreground">
+                        <td
+                            :colspan="props.columnas.length"
+                            class="px-4 py-6 text-center text-muted-foreground"
+                        >
                             {{ $t('comun.sin_resultados') }}
                         </td>
                     </tr>

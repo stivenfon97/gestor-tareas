@@ -12,10 +12,12 @@ import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
+// Las claves viajan como layout props y las resuelve `AuthSimpleLayout`:
+// `defineOptions` se evalúa al importar el módulo, antes de que i18n exista.
 defineOptions({
     layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
+        title: 'auth.acceso.titulo',
+        description: 'auth.acceso.descripcion',
     },
 });
 
@@ -26,7 +28,7 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head :title="$t('auth.acceso.titulo')" />
 
     <div
         v-if="status"
@@ -45,7 +47,7 @@ defineProps<{
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">{{ $t('auth.acceso.correo') }}</Label>
                 <Input
                     id="email"
                     type="email"
@@ -54,21 +56,23 @@ defineProps<{
                     autofocus
                     :tabindex="1"
                     autocomplete="email"
-                    placeholder="email@example.com"
+                    :placeholder="$t('auth.acceso.correo_marcador')"
                 />
                 <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
                 <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
+                    <Label for="password">{{
+                        $t('auth.acceso.contrasena')
+                    }}</Label>
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"
                         class="text-sm"
                         :tabindex="5"
                     >
-                        Forgot your password?
+                        {{ $t('auth.acceso.olvidaste') }}
                     </TextLink>
                 </div>
                 <PasswordInput
@@ -77,7 +81,7 @@ defineProps<{
                     required
                     :tabindex="2"
                     autocomplete="current-password"
-                    placeholder="Password"
+                    :placeholder="$t('auth.acceso.contrasena_marcador')"
                 />
                 <InputError :message="errors.password" />
             </div>
@@ -85,7 +89,7 @@ defineProps<{
             <div class="flex items-center justify-between">
                 <Label for="remember" class="flex items-center space-x-3">
                     <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
+                    <span>{{ $t('auth.acceso.recordarme') }}</span>
                 </Label>
             </div>
 
@@ -97,7 +101,7 @@ defineProps<{
                 data-test="login-button"
             >
                 <Spinner v-if="processing" />
-                Log in
+                {{ $t('auth.acceso.entrar') }}
             </Button>
         </div>
     </Form>

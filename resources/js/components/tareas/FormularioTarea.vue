@@ -5,7 +5,11 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { OpcionesDeTarea, PrioridadTarea, TipoTarea } from '@/types/tareas';
+import type {
+    OpcionesDeTarea,
+    PrioridadTarea,
+    TipoTarea,
+} from '@/types/tareas';
 import type { RouteDefinition } from '@/wayfinder';
 
 /**
@@ -56,17 +60,19 @@ const form = useForm({
 watch(
     () => form.tipo,
     (tipo) => {
-        if (! esEdicion.value && props.prioridadPorTipo?.[tipo]) {
+        if (!esEdicion.value && props.prioridadPorTipo?.[tipo]) {
             form.prioridad = props.prioridadPorTipo[tipo] as PrioridadTarea;
         }
     },
 );
 
 // `tarea_origen_id` solo tiene sentido en corrección y soporte.
-const admiteOrigen = computed(() => ['correccion', 'soporte'].includes(form.tipo));
+const admiteOrigen = computed(() =>
+    ['correccion', 'soporte'].includes(form.tipo),
+);
 
 watch(admiteOrigen, (admite) => {
-    if (! admite) {
+    if (!admite) {
         form.tarea_origen_id = '';
     }
 });
@@ -104,11 +110,17 @@ const enviar = (): void => {
                 required
                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
-                <option v-for="opcion in props.opciones.tipos" :key="opcion.valor" :value="opcion.valor">
+                <option
+                    v-for="opcion in props.opciones.tipos"
+                    :key="opcion.valor"
+                    :value="opcion.valor"
+                >
                     {{ $t(opcion.etiqueta) }}
                 </option>
             </select>
-            <p class="text-xs text-muted-foreground">{{ $t('tareas.tipo_no_cambia') }}</p>
+            <p class="text-xs text-muted-foreground">
+                {{ $t('tareas.tipo_no_cambia') }}
+            </p>
             <InputError :message="form.errors.tipo" />
         </div>
 
@@ -120,7 +132,11 @@ const enviar = (): void => {
                 required
                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
-                <option v-for="opcion in props.opciones.prioridades" :key="opcion.valor" :value="opcion.valor">
+                <option
+                    v-for="opcion in props.opciones.prioridades"
+                    :key="opcion.valor"
+                    :value="opcion.valor"
+                >
                     {{ $t(opcion.etiqueta) }}
                 </option>
             </select>
@@ -135,7 +151,11 @@ const enviar = (): void => {
                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
                 <option value="">{{ $t('tareas.sin_modulo') }}</option>
-                <option v-for="modulo in props.opciones.modulos" :key="modulo.id" :value="modulo.id">
+                <option
+                    v-for="modulo in props.opciones.modulos"
+                    :key="modulo.id"
+                    :value="modulo.id"
+                >
                     {{ modulo.ruta }}
                 </option>
             </select>
@@ -150,7 +170,11 @@ const enviar = (): void => {
                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
                 <option value="">{{ $t('tareas.sin_periodo') }}</option>
-                <option v-for="periodo in props.opciones.periodos" :key="periodo.id" :value="periodo.id">
+                <option
+                    v-for="periodo in props.opciones.periodos"
+                    :key="periodo.id"
+                    :value="periodo.id"
+                >
                     {{ periodo.consecutivo }}
                 </option>
             </select>
@@ -165,16 +189,24 @@ const enviar = (): void => {
                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
                 <option value="">{{ $t('tareas.filtros.todos') }}</option>
-                <option v-for="candidata in props.tareasDeOrigen" :key="candidata.id" :value="candidata.id">
+                <option
+                    v-for="candidata in props.tareasDeOrigen"
+                    :key="candidata.id"
+                    :value="candidata.id"
+                >
                     {{ candidata.codigo }} — {{ candidata.nombre }}
                 </option>
             </select>
-            <p class="text-xs text-muted-foreground">{{ $t('tareas.origen_ayuda') }}</p>
+            <p class="text-xs text-muted-foreground">
+                {{ $t('tareas.origen_ayuda') }}
+            </p>
             <InputError :message="form.errors.tarea_origen_id" />
         </div>
 
         <div class="flex items-center gap-3">
-            <Button type="submit" :disabled="form.processing">{{ $t('comun.guardar') }}</Button>
+            <Button type="submit" :disabled="form.processing">{{
+                $t('comun.guardar')
+            }}</Button>
             <Button as-child variant="ghost">
                 <Link :href="props.volverA">{{ $t('comun.cancelar') }}</Link>
             </Button>

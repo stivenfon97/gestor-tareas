@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronRight, GripVertical, Plus, Trash2 } from '@lucide/vue';
+import {
+    ChevronDown,
+    ChevronRight,
+    GripVertical,
+    Plus,
+    Trash2,
+} from '@lucide/vue';
 import { computed, nextTick, ref } from 'vue';
 import draggable from 'vuedraggable';
 import { Button } from '@/components/ui/button';
@@ -46,7 +52,7 @@ const anadiendo = ref(false);
 const nombreHijo = ref('');
 
 const abrirEdicion = async (): Promise<void> => {
-    if (! props.puedeGestionar) {
+    if (!props.puedeGestionar) {
         return;
     }
 
@@ -86,19 +92,25 @@ const etiquetaTareas = computed(() => {
         return 'modulos.tareas_contador_cero';
     }
 
-    return props.nodo.tareas_totales === 1 ? 'modulos.tareas_contador_una' : 'modulos.tareas_contador';
+    return props.nodo.tareas_totales === 1
+        ? 'modulos.tareas_contador_una'
+        : 'modulos.tareas_contador';
 });
 </script>
 
 <template>
     <li class="flex flex-col">
-        <div class="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent/50">
+        <div
+            class="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent/50"
+        >
             <button
                 v-if="tieneHijos"
                 type="button"
                 class="text-muted-foreground"
-                :aria-label="colapsado ? $t('modulos.expandir') : $t('modulos.colapsar')"
-                :aria-expanded="! colapsado"
+                :aria-label="
+                    colapsado ? $t('modulos.expandir') : $t('modulos.colapsar')
+                "
+                :aria-expanded="!colapsado"
                 @click="emit('alternar', props.nodo.id)"
             >
                 <ChevronRight v-if="colapsado" class="size-4" />
@@ -125,8 +137,12 @@ const etiquetaTareas = computed(() => {
                 v-else
                 type="button"
                 class="truncate text-left text-sm"
-                :class="props.puedeGestionar ? 'hover:underline' : 'cursor-default'"
-                :title="props.puedeGestionar ? $t('modulos.renombrar') : undefined"
+                :class="
+                    props.puedeGestionar ? 'hover:underline' : 'cursor-default'
+                "
+                :title="
+                    props.puedeGestionar ? $t('modulos.renombrar') : undefined
+                "
                 @click="abrirEdicion"
             >
                 {{ props.nodo.nombre }}
@@ -136,7 +152,11 @@ const etiquetaTareas = computed(() => {
                 class="ml-auto shrink-0 text-xs text-muted-foreground"
                 :title="$t('modulos.tareas_incluye_hijos')"
             >
-                {{ $t(etiquetaTareas, { total: String(props.nodo.tareas_totales) }) }}
+                {{
+                    $t(etiquetaTareas, {
+                        total: String(props.nodo.tareas_totales),
+                    })
+                }}
             </span>
 
             <template v-if="props.puedeGestionar">
@@ -145,7 +165,7 @@ const etiquetaTareas = computed(() => {
                     size="icon"
                     class="size-7"
                     :aria-label="$t('modulos.crear_hijo')"
-                    @click="anadiendo = ! anadiendo"
+                    @click="anadiendo = !anadiendo"
                 >
                     <Plus class="size-4" />
                 </Button>
@@ -175,12 +195,12 @@ const etiquetaTareas = computed(() => {
         </div>
 
         <draggable
-            v-show="! colapsado"
+            v-show="!colapsado"
             v-model="hijos"
             :group="{ name: 'modulos' }"
             item-key="id"
             handle=".tirador"
-            :disabled="! props.puedeGestionar"
+            :disabled="!props.puedeGestionar"
             tag="ul"
             class="ml-4 flex flex-col border-l border-border pl-2"
             @change="emit('reordenar')"

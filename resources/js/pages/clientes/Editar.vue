@@ -25,7 +25,11 @@ const props = defineProps<{
     <Head :title="$t('clientes.editar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading variant="small" :title="$t('clientes.editar')" :description="props.cliente.nombre" />
+        <Heading
+            variant="small"
+            :title="$t('clientes.editar')"
+            :description="props.cliente.nombre"
+        />
 
         <Form
             v-bind="ClienteController.update.form(props.cliente.id)"
@@ -34,12 +38,19 @@ const props = defineProps<{
         >
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <Input id="nombre" name="nombre" required :default-value="props.cliente.nombre" />
+                <Input
+                    id="nombre"
+                    name="nombre"
+                    required
+                    :default-value="props.cliente.nombre"
+                />
                 <InputError :message="errors.nombre" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="contacto_nombre">{{ $t('clientes.contacto_nombre') }}</Label>
+                <Label for="contacto_nombre">{{
+                    $t('clientes.contacto_nombre')
+                }}</Label>
                 <Input
                     id="contacto_nombre"
                     name="contacto_nombre"
@@ -49,7 +60,9 @@ const props = defineProps<{
             </div>
 
             <div class="grid gap-2">
-                <Label for="contacto_email">{{ $t('clientes.contacto_email') }}</Label>
+                <Label for="contacto_email">{{
+                    $t('clientes.contacto_email')
+                }}</Label>
                 <Input
                     id="contacto_email"
                     name="contacto_email"
@@ -60,7 +73,9 @@ const props = defineProps<{
             </div>
 
             <div class="grid gap-2">
-                <Label for="contacto_telefono">{{ $t('clientes.contacto_telefono') }}</Label>
+                <Label for="contacto_telefono">{{
+                    $t('clientes.contacto_telefono')
+                }}</Label>
                 <Input
                     id="contacto_telefono"
                     name="contacto_telefono"
@@ -78,14 +93,20 @@ const props = defineProps<{
                     class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                     :value="props.cliente.notas ?? ''"
                 />
-                <p class="text-xs text-muted-foreground">{{ $t('clientes.notas_ayuda') }}</p>
+                <p class="text-xs text-muted-foreground">
+                    {{ $t('clientes.notas_ayuda') }}
+                </p>
                 <InputError :message="errors.notas" />
             </div>
 
             <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">{{ $t('comun.guardar') }}</Button>
+                <Button type="submit" :disabled="processing">{{
+                    $t('comun.guardar')
+                }}</Button>
                 <Button as-child variant="ghost">
-                    <Link :href="show(props.cliente.id)">{{ $t('comun.cancelar') }}</Link>
+                    <Link :href="show(props.cliente.id)">{{
+                        $t('comun.cancelar')
+                    }}</Link>
                 </Button>
             </div>
         </Form>

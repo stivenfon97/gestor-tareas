@@ -30,6 +30,17 @@ function ficherosDeInterfaz(): Finder
         ->name(['*.vue', '*.ts']);
 }
 
+/*
+ * Grupos que resuelve **Laravel**, no el código del proyecto: los publica
+ * `php artisan lang:publish` y los busca el validador, el paginador y el
+ * gestor de contraseñas por su cuenta.
+ *
+ * Siguen entrando en la comprobación de que `es` y `en` tienen las mismas
+ * claves —ahí sí importan—, pero quedan fuera del informe de huérfanas: sus
+ * ciento ochenta claves lo llenarían de ruido y nadie volvería a leerlo.
+ */
+const GRUPOS_DEL_FRAMEWORK = ['validation', 'passwords', 'pagination'];
+
 /** Los grupos que existen: un fichero por grupo en `lang/es`. */
 function gruposDeTraduccion(): array
 {
@@ -202,6 +213,10 @@ it('informa de las claves definidas que nadie usa', function () {
     $prefijos = array_keys(prefijosDinamicos());
 
     $huerfanas = collect(clavesDefinidas('es'))
+        // Las del framework: las resuelve él, y son la mayoría del archivo.
+        ->reject(fn (string $clave): bool => in_array(
+            explode('.', $clave)[0], GRUPOS_DEL_FRAMEWORK, true,
+        ))
         ->reject(fn (string $clave): bool => in_array($clave, $usadas, true))
         // Las compuestas en ejecución cuentan como usadas.
         ->reject(fn (string $clave): bool => collect($prefijos)

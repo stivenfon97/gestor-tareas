@@ -51,16 +51,34 @@ const props = defineProps<{
                 <Button as-child variant="ghost" size="sm">
                     <Link :href="index()">{{ $t('comun.volver') }}</Link>
                 </Button>
-                <Button v-if="props.puede.editar" as-child size="sm" variant="secondary">
-                    <Link :href="edit(props.cliente.id)">{{ $t('comun.editar') }}</Link>
+                <Button
+                    v-if="props.puede.editar"
+                    as-child
+                    size="sm"
+                    variant="secondary"
+                >
+                    <Link :href="edit(props.cliente.id)">{{
+                        $t('comun.editar')
+                    }}</Link>
                 </Button>
                 <Form
                     v-if="props.puede.editar"
-                    v-bind="EstadoClienteController.update.form(props.cliente.id)"
+                    v-bind="
+                        EstadoClienteController.update.form(props.cliente.id)
+                    "
                     v-slot="{ processing }"
                 >
-                    <Button variant="outline" size="sm" type="submit" :disabled="processing">
-                        {{ props.cliente.activo ? $t('clientes.desactivar') : $t('clientes.activar') }}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        type="submit"
+                        :disabled="processing"
+                    >
+                        {{
+                            props.cliente.activo
+                                ? $t('clientes.desactivar')
+                                : $t('clientes.activar')
+                        }}
                     </Button>
                 </Form>
             </div>
@@ -68,34 +86,59 @@ const props = defineProps<{
 
         <div class="flex flex-wrap items-center gap-3 text-sm">
             <Badge :variant="props.cliente.activo ? 'secondary' : 'outline'">
-                {{ props.cliente.activo ? $t('clientes.activo') : $t('clientes.inactivo') }}
+                {{
+                    props.cliente.activo
+                        ? $t('clientes.activo')
+                        : $t('clientes.inactivo')
+                }}
             </Badge>
-            <span v-if="props.cliente.contacto_email" class="text-muted-foreground">
+            <span
+                v-if="props.cliente.contacto_email"
+                class="text-muted-foreground"
+            >
                 {{ props.cliente.contacto_email }}
             </span>
-            <span v-if="props.cliente.contacto_telefono" class="text-muted-foreground">
+            <span
+                v-if="props.cliente.contacto_telefono"
+                class="text-muted-foreground"
+            >
                 {{ props.cliente.contacto_telefono }}
             </span>
         </div>
 
         <section class="grid gap-4 sm:grid-cols-3">
             <div class="rounded-lg border border-border p-4">
-                <p class="text-sm text-muted-foreground">{{ $t('clientes.resumen.proyectos_activos') }}</p>
-                <p class="text-2xl font-semibold">{{ props.resumen.proyectos_activos }}</p>
+                <p class="text-sm text-muted-foreground">
+                    {{ $t('clientes.resumen.proyectos_activos') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ props.resumen.proyectos_activos }}
+                </p>
             </div>
             <div class="rounded-lg border border-border p-4">
-                <p class="text-sm text-muted-foreground">{{ $t('clientes.resumen.tareas_abiertas') }}</p>
-                <p class="text-2xl font-semibold">{{ props.resumen.tareas_abiertas }}</p>
+                <p class="text-sm text-muted-foreground">
+                    {{ $t('clientes.resumen.tareas_abiertas') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ props.resumen.tareas_abiertas }}
+                </p>
             </div>
             <div class="rounded-lg border border-border p-4">
                 <p class="text-sm text-muted-foreground">
                     {{ $t('clientes.resumen.ultimo_periodo_cerrado') }}
                 </p>
-                <p v-if="props.resumen.ultimo_periodo_cerrado" class="text-sm font-medium">
+                <p
+                    v-if="props.resumen.ultimo_periodo_cerrado"
+                    class="text-sm font-medium"
+                >
                     {{
                         $t('clientes.resumen.periodo', {
-                            consecutivo: String(props.resumen.ultimo_periodo_cerrado.consecutivo),
-                            proyecto: props.resumen.ultimo_periodo_cerrado.proyecto,
+                            consecutivo: String(
+                                props.resumen.ultimo_periodo_cerrado
+                                    .consecutivo,
+                            ),
+                            proyecto:
+                                props.resumen.ultimo_periodo_cerrado.proyecto,
                         })
                     }}
                     <span class="block text-muted-foreground">
@@ -109,19 +152,31 @@ const props = defineProps<{
         </section>
 
         <section class="flex flex-col gap-3">
-            <h3 class="text-base font-medium">{{ $t('clientes.proyectos') }}</h3>
+            <h3 class="text-base font-medium">
+                {{ $t('clientes.proyectos') }}
+            </h3>
 
             <div class="overflow-x-auto rounded-lg border border-border">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-muted text-muted-foreground">
                         <tr>
-                            <th class="px-4 py-2 font-medium">{{ $t('comun.nombre') }}</th>
-                            <th class="px-4 py-2 font-medium">{{ $t('proyectos.prefijo') }}</th>
-                            <th class="px-4 py-2 font-medium">{{ $t('comun.estado') }}</th>
+                            <th class="px-4 py-2 font-medium">
+                                {{ $t('comun.nombre') }}
+                            </th>
+                            <th class="px-4 py-2 font-medium">
+                                {{ $t('proyectos.prefijo') }}
+                            </th>
+                            <th class="px-4 py-2 font-medium">
+                                {{ $t('comun.estado') }}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="proyecto in props.proyectos" :key="proyecto.id" class="border-t border-border">
+                        <tr
+                            v-for="proyecto in props.proyectos"
+                            :key="proyecto.id"
+                            class="border-t border-border"
+                        >
                             <td class="px-4 py-2">
                                 <Link
                                     :href="mostrarProyecto(proyecto.id)"
@@ -130,13 +185,22 @@ const props = defineProps<{
                                     {{ proyecto.nombre }}
                                 </Link>
                             </td>
-                            <td class="px-4 py-2">{{ proyecto.prefijo_tarea }}</td>
                             <td class="px-4 py-2">
-                                {{ $t(`enums.estado_proyecto.${proyecto.estado}`) }}
+                                {{ proyecto.prefijo_tarea }}
+                            </td>
+                            <td class="px-4 py-2">
+                                {{
+                                    $t(
+                                        `enums.estado_proyecto.${proyecto.estado}`,
+                                    )
+                                }}
                             </td>
                         </tr>
                         <tr v-if="props.proyectos.length === 0">
-                            <td colspan="3" class="px-4 py-6 text-center text-muted-foreground">
+                            <td
+                                colspan="3"
+                                class="px-4 py-6 text-center text-muted-foreground"
+                            >
                                 {{ $t('clientes.sin_proyectos') }}
                             </td>
                         </tr>
@@ -147,7 +211,9 @@ const props = defineProps<{
 
         <section v-if="props.cliente.notas" class="flex flex-col gap-2">
             <h3 class="text-base font-medium">{{ $t('clientes.notas') }}</h3>
-            <p class="max-w-3xl whitespace-pre-line text-sm text-muted-foreground">
+            <p
+                class="max-w-3xl text-sm whitespace-pre-line text-muted-foreground"
+            >
                 {{ props.cliente.notas }}
             </p>
         </section>
