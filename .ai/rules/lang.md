@@ -11,3 +11,10 @@ Español (`es`) es el idioma base y el fallback. Inglés (`en`) está preparado 
 **Toda clave añadida en español debe existir también en inglés**, aunque sea sin traducir todavía (se admite el texto en español como valor provisional). Una clave que solo existe en `es` produce la clave cruda en pantalla (`periodos.cerrar`) cuando alguien cambia de idioma, y nadie lo detecta hasta que un cliente lo ve.
 
 Los archivos viven en `lang/{es,en}/`. Si trabajas en `resources/lang/**`, aplica lo mismo.
+
+## Una clave que no resuelve se pinta como su ruta y no la ve ninguna prueba de servidor
+`laravel-vue-i18n` devuelve **la clave misma** cuando no encuentra la traducción, así que un fallo se pinta como texto normal: `nav.dashboard`. `npm run build` compila igual de bien y ninguna prueba de feature mira el texto. Así se cerraron dos fases en verde con la aplicación sin un solo texto.
+
+Trampa concreta: el plugin de Vite genera `lang/php_{es,en}.json` en `buildStart` y **los borra en `buildEnd`**. `npm run build` deja sin diccionario a un dev server que ya estuviera corriendo. Lo repone `regenerarTraducciones()` en `vite.config.ts`; no lo quites.
+
+Al añadir una clave: ponla en `lang/es` **y** en `lang/en` en el mismo commit (se admite el texto en español como valor provisional en `en`), y corre `php artisan test --filter=CoberturaDeClaves`.

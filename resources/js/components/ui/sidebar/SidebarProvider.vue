@@ -19,7 +19,10 @@ const emits = defineEmits<{
   "update:open": [open: boolean]
 }>()
 
-const isMobile = useMediaQuery("(max-width: 768px)")
+// 767.98, no 768: `md:` de Tailwind empieza en 768px. Con el corte en
+// 768 hay un ancho exacto en el que el cajón ya está activo y las
+// utilidades `md:` también, y la barra desaparece sin sustituto.
+const isMobile = useMediaQuery("(max-width: 767.98px)")
 const openMobile = ref(false)
 
 const open = useVModel(props, "open", emits, {

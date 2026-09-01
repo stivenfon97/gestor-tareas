@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { trans } from 'laravel-vue-i18n';
 import { computed } from 'vue';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import SeccionPendiente from '@/components/SeccionPendiente.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { trans } from '@/lib/i18n';
 import { destroy, edit, show } from '@/routes/proyectos';
 import { index as miembrosIndex } from '@/routes/proyectos/miembros';
 import { index as modulosIndex } from '@/routes/proyectos/modulos';
@@ -116,13 +116,13 @@ const eliminar = (): void => {
     <Head :title="props.proyecto.nombre" />
 
     <div class="flex flex-col gap-seccion">
-        <div class="flex items-start justify-between gap-bloque">
-            <Heading
-                variant="small"
-                :title="props.proyecto.nombre"
-                :description="props.proyecto.cliente.nombre"
-            />
-            <div class="flex items-center gap-corto">
+        <CabeceraDePagina
+            :titulo="props.proyecto.nombre"
+            :descripcion="
+                props.proyecto.descripcion ?? props.proyecto.cliente.nombre
+            "
+        >
+            <template #acciones>
                 <Button
                     v-if="props.puede.editar"
                     as-child
@@ -141,32 +141,32 @@ const eliminar = (): void => {
                 >
                     {{ $t('proyectos.eliminar') }}
                 </Button>
-            </div>
-        </div>
+            </template>
 
-        <div class="flex flex-wrap items-center gap-celda text-cuerpo">
-            <Badge variant="outline" class="font-mono">{{
-                props.proyecto.prefijo_tarea
-            }}</Badge>
-            <Badge variant="secondary">
-                {{ $t(`enums.estado_proyecto.${props.proyecto.estado}`) }}
-            </Badge>
-            <span v-if="props.miRol" class="text-texto-suave">
-                {{ $t('proyectos.mi_rol') }}:
-                {{ $t(`enums.rol_proyecto.${props.miRol}`) }}
-            </span>
-        </div>
+            <template #meta>
+                <Badge variant="outline" class="font-mono">{{
+                    props.proyecto.prefijo_tarea
+                }}</Badge>
+                <Badge variant="secondary">
+                    {{ $t(`enums.estado_proyecto.${props.proyecto.estado}`) }}
+                </Badge>
+                <span class="text-cuerpo text-texto-suave">{{
+                    props.proyecto.cliente.nombre
+                }}</span>
+                <span v-if="props.miRol" class="text-cuerpo text-texto-suave">
+                    {{ $t('proyectos.mi_rol') }}:
+                    {{ $t(`enums.rol_proyecto.${props.miRol}`) }}
+                </span>
+            </template>
+        </CabeceraDePagina>
 
-        <p
-            v-if="props.proyecto.descripcion"
-            class="max-w-3xl text-cuerpo text-texto-suave"
-        >
-            {{ props.proyecto.descripcion }}
-        </p>
-
-        <!-- Pestañas -->
+        <!--
+            Pestañas. Se desplazan a lo ancho en móvil en lugar de partirse en
+            tres filas: siete pestañas envueltas ocupan más que el contenido
+            que anuncian.
+        -->
         <nav
-            class="flex flex-wrap gap-fino border-b border-borde"
+            class="-mx-bloque flex gap-fino overflow-x-auto border-b border-borde px-bloque md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
             :aria-label="props.proyecto.nombre"
         >
             <Link
@@ -177,7 +177,7 @@ const eliminar = (): void => {
                 :aria-current="
                     props.seccion === pestana.id ? 'page' : undefined
                 "
-                class="-mb-px border-b-2 px-celda py-corto text-cuerpo"
+                class="-mb-px shrink-0 border-b-2 px-celda py-corto text-cuerpo"
                 :class="
                     props.seccion === pestana.id
                         ? 'border-marca font-medium text-texto'
@@ -327,16 +327,18 @@ const eliminar = (): void => {
         <!-- Tareas: contenido real desde la fase 06 -->
         <section
             v-else-if="props.seccion === 'tareas'"
-            class="flex flex-col gap-corto"
+            class="flex flex-col items-start gap-corto"
         >
             <p class="text-cuerpo text-texto-suave">
                 {{ $t('proyectos.tareas_abiertas') }}:
                 {{ props.proyecto.tareas_abiertas_count }} /
                 {{ props.proyecto.tareas_count }}
             </p>
-            <Button as-child variant="outline" size="sm" class="self-start">
+            <!-- Primaria, no `outline`: es el destino de la pestaña, no una
+                 opción más entre varias. -->
+            <Button as-child size="sm">
                 <Link :href="tareasIndex(props.proyecto.id)">{{
-                    $t('comun.ver')
+                    $t('proyectos.ver_tareas')
                 }}</Link>
             </Button>
         </section>

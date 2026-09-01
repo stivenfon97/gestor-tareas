@@ -5,7 +5,7 @@ DC := docker compose
 EXEC := $(DC) exec app
 
 .DEFAULT_GOAL := help
-.PHONY: help up down build fresh test pint shell logs migrate hooks
+.PHONY: help up down build fresh test pint shell logs migrate hooks humo
 
 help: ## Muestra esta ayuda
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -28,6 +28,18 @@ migrate: ## Ejecuta las migraciones pendientes
 
 test: ## Ejecuta la suite de pruebas
 	$(EXEC) php artisan test
+
+# Corre contra los assets compilados, no contra el dev server: la URL que Vite
+# escribe en public/hot es localhost:5173, que dentro de la red de Compose es el
+# propio contenedor de la comprobacion. Ademas es la version que vale, porque el
+# escaner de Tailwind solo falla en el build de produccion.
+humo: ## Comprobacion de humo con Playwright (necesita los servicios arriba)
+	$(DC) exec -T node npm run build
+	@mv public/hot public/hot.pausado 2>/dev/null || true; \
+		$(DC) --profile humo run --rm humo; estado=$$?; \
+		mv public/hot.pausado public/hot 2>/dev/null || true; \
+		echo "Capturas en storage/humo/capturas/"; \
+		exit $$estado
 
 pint: ## Formatea el codigo PHP
 	$(EXEC) vendor/bin/pint

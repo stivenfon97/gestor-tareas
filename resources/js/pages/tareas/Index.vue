@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { trans } from 'laravel-vue-i18n';
 import { computed } from 'vue';
 import { toast } from 'vue-sonner';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import type { OrdenDeColumna } from '@/components/TablaDatos';
@@ -12,20 +11,30 @@ import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { trans } from '@/lib/i18n';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create, index } from '@/routes/proyectos/tareas';
 import { create as capturaRapida } from '@/routes/proyectos/tareas/rapida';
-import { show } from '@/routes/tareas';
+import { index as listado, show } from '@/routes/tareas';
 import type { RespuestaPaginada } from '@/types/paginacion';
 import type { FilaTarea, OpcionesDeTarea } from '@/types/tareas';
 
+/**
+ * Sirve a los dos alcances: el listado de un proyecto
+ * (`proyectos.tareas.index`) y el listado global de todas las tareas visibles
+ * (`tareas.index`). Lo que los distingue es `proyecto`: cuando llega `null` no
+ * hay proyecto y aparece la columna «Proyecto» en su lugar.
+ *
+ * Es el mismo listado con distinto alcance, así que es la misma página: dos
+ * copias divergirían en la primera columna que alguien añadiera.
+ */
 const props = defineProps<{
     proyecto: {
         id: number;
         nombre: string;
         slug: string;
         prefijo_tarea: string;
-    };
+    } | null;
     tareas: RespuestaPaginada<FilaTarea>;
     filtros: Record<string, string>;
     orden: OrdenDeColumna[];
@@ -42,6 +51,8 @@ const props = defineProps<{
  * `ordenPor` tiene que coincidir con un `allowedSorts` de `TareaController`, y
  * `filtro.clave` con un `allowedFilters`.
  */
+const esGlobal = computed(() => props.proyecto === null);
+
 const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
     {
         id: 'codigo',
@@ -51,6 +62,8 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
         anclada: true,
         fija: true,
         mono: true,
+        // Titular de la tarjeta en móvil: es lo que identifica la tarea.
+        principal: true,
         anchoMinimo: '10rem',
     },
     {
@@ -77,20 +90,51 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
             clave: 'texto',
             marcador: trans('comun.buscar'),
         },
+        // En la tarjeta va arriba, junto al código y sin etiqueta: es el
+        // texto que se lee, y ponerle «Nombre:» delante solo gasta ancho.
+        principal: true,
         anchoMinimo: '18rem',
     },
+    // El proyecto solo aparece en el listado global: dentro de un proyecto la
+    // columna repetiría lo mismo en todas las filas.
+    ...(esGlobal.value
+        ? [
+              {
+                  id: 'proyecto',
+                  etiqueta: trans('tareas.proyecto'),
+                  valor: (tarea: FilaTarea) => tarea.proyecto?.nombre ?? null,
+                  filtro: {
+                      tipo: 'opciones' as const,
+                      clave: 'proyecto_id',
+                      opciones: (props.opciones.proyectos ?? []).map(
+                          (proyecto) => ({
+                              valor: String(proyecto.id),
+                              etiqueta: proyecto.nombre,
+                          }),
+                      ),
+                  },
+                  prioritaria: true,
+                  anchoMinimo: '14rem',
+              },
+          ]
+        : []),
     {
         id: 'modulo',
         etiqueta: trans('tareas.modulo'),
         valor: (tarea) => tarea.modulo,
-        filtro: {
-            tipo: 'opciones',
-            clave: 'modulo_id',
-            opciones: props.opciones.modulos.map((modulo) => ({
-                valor: String(modulo.id),
-                etiqueta: modulo.ruta,
-            })),
-        },
+        // El filtro por módulo recorre el árbol de **un** proyecto; en el
+        // listado global no hay un árbol, hay tantos como proyectos.
+        filtro: esGlobal.value
+            ? undefined
+            : {
+                  tipo: 'opciones',
+                  clave: 'modulo_id',
+                  opciones: props.opciones.modulos.map((modulo) => ({
+                      valor: String(modulo.id),
+                      etiqueta: modulo.ruta,
+                  })),
+              },
+        prioritaria: !esGlobal.value,
         anchoMinimo: '14rem',
     },
     {
@@ -106,6 +150,7 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
                 etiqueta: trans(opcion.etiqueta),
             })),
         },
+        prioritaria: true,
         anchoMinimo: '8rem',
     },
     {
@@ -123,20 +168,25 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
         },
         anchoMinimo: '6rem',
     },
-    {
-        id: 'periodo',
-        etiqueta: trans('tareas.periodo'),
-        valor: (tarea) => tarea.periodo,
-        filtro: {
-            tipo: 'opciones',
-            clave: 'periodo_id',
-            opciones: props.opciones.periodos.map((periodo) => ({
-                valor: String(periodo.id),
-                etiqueta: String(periodo.consecutivo),
-            })),
-        },
-        anchoMinimo: '6rem',
-    },
+    // El periodo es del proyecto: en el listado global no dice nada.
+    ...(esGlobal.value
+        ? []
+        : [
+              {
+                  id: 'periodo',
+                  etiqueta: trans('tareas.periodo'),
+                  valor: (tarea: FilaTarea) => tarea.periodo,
+                  filtro: {
+                      tipo: 'opciones' as const,
+                      clave: 'periodo_id',
+                      opciones: props.opciones.periodos.map((periodo) => ({
+                          valor: String(periodo.id),
+                          etiqueta: String(periodo.consecutivo),
+                      })),
+                  },
+                  anchoMinimo: '6rem',
+              },
+          ]),
     {
         id: 'fecha_fin',
         etiqueta: trans('tareas.fecha_fin'),
@@ -202,16 +252,18 @@ const enLote = async (
 </script>
 
 <template>
-    <Head :title="$t('tareas.titulo')" />
+    <Head :title="esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')" />
 
     <div class="flex flex-col gap-seccion">
-        <div class="flex items-start justify-between gap-bloque">
-            <Heading
-                variant="small"
-                :title="$t('tareas.titulo')"
-                :description="props.proyecto.nombre"
-            />
-            <div class="flex items-center gap-corto">
+        <CabeceraDePagina
+            :titulo="esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')"
+            :descripcion="
+                esGlobal
+                    ? $t('tareas.todas.descripcion')
+                    : (props.proyecto?.nombre ?? null)
+            "
+        >
+            <template v-if="props.proyecto" #acciones>
                 <Button as-child variant="ghost" size="sm">
                     <Link :href="mostrarProyecto(props.proyecto.id)">{{
                         $t('comun.volver')
@@ -229,11 +281,11 @@ const enLote = async (
                         }}</Link>
                     </Button>
                 </template>
-            </div>
-        </div>
+            </template>
+        </CabeceraDePagina>
 
         <TablaDatos
-            :url="index(props.proyecto.id).url"
+            :url="props.proyecto ? index(props.proyecto.id).url : listado().url"
             :filas="props.tareas.data"
             :columnas="columnas"
             :clave="(tarea) => tarea.id"
@@ -241,10 +293,14 @@ const enLote = async (
             :filtros="props.filtros"
             :columnas-visibles="props.columnasVisibles"
             :paginacion="props.tareas"
-            :etiqueta="$t('tareas.titulo')"
+            :etiqueta="
+                esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')
+            "
             :vacio="{
                 titulo: $t('tareas.sin_tareas'),
-                cuerpo: $t('tareas.sin_tareas_ayuda'),
+                cuerpo: esGlobal
+                    ? $t('tareas.todas.sin_tareas_ayuda')
+                    : $t('tareas.sin_tareas_ayuda'),
             }"
             seleccionable
             :acciones-en-lote="accionesEnLote"
@@ -252,7 +308,11 @@ const enLote = async (
             @en-lote="enLote"
         >
             <template #vacio-acciones>
-                <Button v-if="props.puede.crear" as-child size="sm">
+                <Button
+                    v-if="props.puede.crear && props.proyecto"
+                    as-child
+                    size="sm"
+                >
                     <Link :href="create(props.proyecto.id)">{{
                         $t('tareas.crear')
                     }}</Link>
@@ -284,6 +344,17 @@ const enLote = async (
                 >
                     {{ fila.nombre }}
                 </Link>
+            </template>
+
+            <template #celda-proyecto="{ fila }">
+                <Link
+                    v-if="fila.proyecto"
+                    :href="mostrarProyecto(fila.proyecto.id)"
+                    class="underline-offset-4 hover:underline"
+                >
+                    {{ fila.proyecto.nombre }}
+                </Link>
+                <span v-else class="text-texto-tenue">—</span>
             </template>
 
             <template #celda-modulo="{ fila }">

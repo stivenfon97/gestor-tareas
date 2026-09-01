@@ -6,6 +6,7 @@ import type {
     RowSelectionState,
     VisibilityState,
 } from '@tanstack/vue-table';
+import { useMediaQuery } from '@vueuse/core';
 import {
     computed,
     nextTick,
@@ -23,6 +24,9 @@ import EsqueletoDeTabla from './EsqueletoDeTabla.vue';
 import EstadoVacio from './EstadoVacio.vue';
 import FiltroDeColumna from './FiltroDeColumna.vue';
 import MenuColumnas from './MenuColumnas.vue';
+import MenuCompacto from './MenuCompacto.vue';
+import PanelDeFiltros from './PanelDeFiltros.vue';
+import TarjetaDeFila from './TarjetaDeFila.vue';
 import type {
     AccionEnLote,
     ColumnaDeTabla,
@@ -86,6 +90,20 @@ const emit = defineEmits<{
     abrir: [fila: T];
     enLote: [accion: string, claves: Array<string | number>];
 }>();
+
+/* ------------------------------------------------------------------ tamaño */
+
+/**
+ * Por debajo de `md` la tabla **deja de ser una tabla** y se apila en tarjetas.
+ *
+ * Se decide con una media query y no con `hidden md:table`, porque pintar las
+ * dos formas duplicaría cada fila en el DOM y el tabulador itinerante acabaría
+ * moviéndose por filas que nadie ve.
+ *
+ * El corte es el mismo que el del menú lateral (`SidebarProvider`): 767.98px,
+ * que es justo antes de donde empieza `md:` en Tailwind.
+ */
+const esMovil = useMediaQuery('(max-width: 767.98px)');
 
 /* ---------------------------------------------------------------- densidad */
 
@@ -201,6 +219,47 @@ const filasSeleccionadas = computed(() =>
     tabla.getSelectedRowModel().rows.map((fila) => props.clave(fila.original)),
 );
 
+/* ------------------------------------------------- reparto de la tarjeta */
+
+/**
+ * Titular de la tarjeta. Lo declara el listado con `principal`; si no lo
+ * declara se usa la columna que identifica la fila (`fija`), que es la que
+ * lleva el enlace. Adivinarlo por posición daría «Tipo» en tareas.
+ */
+const columnasPrincipales = computed(() => {
+    const declaradas = columnasVisiblesEnOrden.value.filter(
+        (columna) => columna.principal,
+    );
+
+    if (declaradas.length > 0) {
+        return declaradas;
+    }
+
+    // Sin declaración, la que identifica la fila (`fija`), que es la que lleva
+    // el enlace. Adivinarla por posición daría «Tipo» en el listado de tareas.
+    const reserva =
+        columnasVisiblesEnOrden.value.find((columna) => columna.fija) ??
+        columnasVisiblesEnOrden.value[0];
+
+    return reserva === undefined ? [] : [reserva];
+});
+
+const esPrincipal = (columna: ColumnaDeTabla<T>): boolean =>
+    columnasPrincipales.value.some((otra) => otra.id === columna.id);
+
+const columnasPrioritarias = computed(() =>
+    columnasVisiblesEnOrden.value.filter(
+        (columna) => columna.prioritaria === true && !esPrincipal(columna),
+    ),
+);
+
+/** Lo que queda va detrás de «ver más». Nada se pierde, solo se pliega. */
+const columnasRestantes = computed(() =>
+    columnasVisiblesEnOrden.value.filter(
+        (columna) => columna.prioritaria !== true && !esPrincipal(columna),
+    ),
+);
+
 /* ------------------------------------------------- anclaje de columnas */
 
 /**
@@ -288,9 +347,11 @@ const FOCALIZABLES = 'a, button, input, select, textarea, [tabindex]';
  */
 const sacarDelTabulador = (): void => {
     elementosDeFila.value.forEach((fila) => {
-        fila?.querySelectorAll<HTMLElement>(FOCALIZABLES).forEach((elemento) => {
-            elemento.tabIndex = -1;
-        });
+        fila?.querySelectorAll<HTMLElement>(FOCALIZABLES).forEach(
+            (elemento) => {
+                elemento.tabIndex = -1;
+            },
+        );
     });
 };
 
@@ -309,6 +370,32 @@ watch(
 );
 
 watch(columnasVisiblesEnOrden, () => nextTick(sacarDelTabulador));
+
+/*
+ * Al cruzar el corte de `md` la tabla se monta o se desmonta entera: las
+ * referencias a la cabecera y a las filas son otras. Sin esto, al pasar de
+ * tarjetas a tabla las columnas ancladas se quedan pegadas a la izquierda —el
+ * desplazamiento medido era el de una cabecera que ya no existe— y todos los
+ * enlaces de las filas vuelven al recorrido de Tab.
+ */
+watch(esMovil, () =>
+    nextTick(() => {
+        observador?.disconnect();
+        observador = undefined;
+
+        if (esMovil.value) {
+            return;
+        }
+
+        medirAnclajes();
+        sacarDelTabulador();
+
+        if (typeof ResizeObserver !== 'undefined' && cabecera.value !== null) {
+            observador = new ResizeObserver(() => medirAnclajes());
+            observador.observe(cabecera.value);
+        }
+    }),
+);
 
 /**
  * Tabulador itinerante: solo la fila activa es alcanzable con Tab, y dentro de
@@ -354,8 +441,12 @@ const alPulsarTecla = (
 /* ------------------------------------------------------------ vacíos y pie */
 
 /** Valor de `aria-sort` de una columna: lo que anuncia el lector de pantalla. */
-const ordenDeColumna = (columna: ColumnaDeTabla<T>): 'ascending' | 'descending' | 'none' => {
-    const entrada = props.orden.find((registro) => registro.campo === columna.ordenPor);
+const ordenDeColumna = (
+    columna: ColumnaDeTabla<T>,
+): 'ascending' | 'descending' | 'none' => {
+    const entrada = props.orden.find(
+        (registro) => registro.campo === columna.ordenPor,
+    );
 
     if (entrada === undefined) {
         return 'none';
@@ -400,7 +491,7 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 <slot name="acciones" />
 
                 <Button
-                    v-if="hayFiltrosActivos"
+                    v-if="hayFiltrosActivos && !esMovil"
                     variant="ghost"
                     size="sm"
                     class="gap-fino text-texto-suave"
@@ -418,7 +509,25 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 </Button>
             </div>
 
-            <div class="flex items-center gap-corto">
+            <!-- En móvil los cuatro controles se agrupan en un solo menú: en
+                 360px no caben en una fila y desbordan o se parten en tres. -->
+            <MenuCompacto
+                v-if="esMovil"
+                :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
+                :visibles="visiblesPedidas"
+                :densidad="densidad"
+                :hay-filtros-activos="hayFiltrosActivos"
+                :hay-orden-multiple="props.orden.length > 1"
+                @alternar-columna="alternarColumna"
+                @restablecer-columnas="
+                    estado.fijarColumnas(columnasPorDefecto, columnasPorDefecto)
+                "
+                @fijar-densidad="fijarDensidad"
+                @limpiar-filtros="estado.limpiarFiltros()"
+                @limpiar-orden="estado.limpiarOrden()"
+            />
+
+            <div v-else class="flex items-center gap-corto">
                 <Button
                     v-if="props.orden.length > 1"
                     variant="ghost"
@@ -500,233 +609,416 @@ const alternarColumna = (id: string, visible: boolean): void => {
             </Button>
         </div>
 
-        <!-- Panel de la tabla -->
+        <!-- En la tabla los filtros van bajo la cabecera; con tarjetas no hay
+             cabecera, así que van aquí. Sin esto no se puede filtrar desde el
+             teléfono, que es justo donde más falta hace. -->
+        <PanelDeFiltros
+            v-if="esMovil"
+            :columnas="columnasVisiblesEnOrden"
+            :filtros="props.filtros"
+            :total="totalFiltros"
+            @aplicar="estado.aplicarFiltro"
+            @limpiar="estado.limpiarFiltros()"
+        />
+
+        <!--
+            Panel: cabecera, cuerpo y pie del mismo objeto. El pie va dentro del
+            borde para que se lea como parte de la tabla y no como un texto
+            suelto debajo.
+        -->
         <div
-            class="min-w-0 overflow-auto rounded-md border border-borde-fuerte bg-panel"
-            :style="{ maxHeight: props.altoMaximo }"
+            class="flex min-w-0 flex-col overflow-hidden rounded-md border border-borde-fuerte bg-panel"
         >
-            <table class="w-full border-collapse text-cuerpo">
-                <caption class="sr-only">
-                    {{
-                        props.etiqueta
-                    }}
-                    —
-                    {{
-                        $t('comun.tabla.ayuda_teclado')
-                    }}
-                    {{
-                        $t('comun.tabla.orden_multiple_ayuda')
-                    }}
-                </caption>
-
-                <thead class="sticky top-0 z-20 bg-panel-cabecera">
-                    <tr ref="cabecera" class="bg-panel-cabecera text-left">
-                        <th
-                            v-if="props.seleccionable"
-                            scope="col"
-                            data-columna="__seleccion"
-                            class="sticky left-0 z-10 w-9 bg-inherit px-celda"
-                        >
-                            <input
-                                type="checkbox"
-                                class="size-3.5 accent-marca"
-                                :aria-label="
-                                    $t('comun.tabla.seleccionar_pagina')
-                                "
-                                :checked="tabla.getIsAllPageRowsSelected()"
-                                :indeterminate="
-                                    tabla.getIsSomePageRowsSelected()
-                                "
-                                @change="tabla.toggleAllPageRowsSelected()"
-                            />
-                        </th>
-
-                        <th
-                            v-for="columna in columnasVisiblesEnOrden"
-                            :key="columna.id"
-                            scope="col"
-                            :data-columna="columna.id"
-                            :aria-sort="ordenDeColumna(columna)"
-                            :style="estiloAnclado(columna)"
-                            :class="
-                                cn(
-                                    'bg-inherit px-celda pt-corto pb-fino text-micro font-medium whitespace-nowrap text-texto-suave uppercase',
-                                    columna.alineacion === 'derecha' &&
-                                        'text-right',
-                                    columna.anclada &&
-                                        'sticky z-10 border-r border-borde-fuerte',
-                                )
-                            "
-                        >
-                            <CabeceraDeColumna
-                                :columna="columna as ColumnaDeTabla<unknown>"
-                                :orden="props.orden"
-                                @alternar="
-                                    (acumular: boolean) =>
-                                        estado.alternarOrden(
-                                            columna.ordenPor!,
-                                            acumular,
-                                        )
-                                "
-                            />
-                        </th>
-                    </tr>
-
-                    <!-- Fila de filtros por columna, aparte de los globales. -->
-                    <tr
-                        v-if="
-                            columnasVisiblesEnOrden.some(
-                                (columna) => columna.filtro,
-                            )
-                        "
-                        class="bg-panel-cabecera"
+            <!-- Tarjetas apiladas: por debajo de `md` la tabla deja de ser tabla. -->
+            <!-- Sin alto máximo en móvil: un contenedor con su propio scroll
+             dentro de una página que también rueda es un pulgar peleándose con
+             dos ejes, y corta la última tarjeta por la mitad. -->
+            <div v-if="esMovil" class="min-w-0">
+                <!-- Esqueleto propio: el de la tabla pinta `<tr>`, que fuera de
+                 un `<table>` no es válido. -->
+                <div v-if="props.cargando" aria-hidden="true">
+                    <div
+                        v-for="tarjeta in Math.min(
+                            props.paginacion.per_page,
+                            5,
+                        )"
+                        :key="tarjeta"
+                        class="flex flex-col gap-corto border-t border-borde px-celda py-corto first:border-t-0"
                     >
-                        <th
-                            v-if="props.seleccionable"
-                            class="sticky left-0 z-10 bg-inherit"
+                        <span
+                            class="block h-2 w-1/2 animate-pulse rounded-full bg-borde"
                         />
-                        <th
-                            v-for="columna in columnasVisiblesEnOrden"
-                            :key="columna.id"
-                            :style="estiloAnclado(columna)"
-                            :class="
-                                cn(
-                                    'bg-inherit px-celda pb-corto font-normal',
-                                    columna.anclada &&
-                                        'sticky z-10 border-r border-borde-fuerte',
-                                )
-                            "
-                        >
-                            <FiltroDeColumna
-                                v-if="columna.filtro"
-                                :filtro="columna.filtro"
-                                :etiqueta="columna.etiqueta"
-                                :valor="
-                                    props.filtros[columna.filtro.clave] ?? ''
-                                "
-                                @cambiar="
-                                    (valor: string, retrasar: boolean) =>
-                                        estado.aplicarFiltro(
-                                            columna.filtro!.clave,
-                                            valor,
-                                            retrasar,
-                                        )
-                                "
-                            />
-                        </th>
-                    </tr>
-                </thead>
+                        <span
+                            v-for="linea in columnasPrioritarias.length || 2"
+                            :key="linea"
+                            class="block h-2 animate-pulse rounded-full bg-borde"
+                        />
+                    </div>
+                </div>
 
-                <tbody>
-                    <EsqueletoDeTabla
-                        v-if="props.cargando"
-                        :columnas="
-                            columnasVisiblesEnOrden.length +
-                            (props.seleccionable ? 1 : 0)
-                        "
-                        :filas="Math.min(props.paginacion.per_page, 8)"
-                        :alto-de-fila="altoDeFila"
-                    />
-
-                    <tr
-                        v-for="(fila, indice) in tabla.getRowModel().rows"
-                        v-else
+                <template v-else>
+                    <TarjetaDeFila
+                        v-for="fila in tabla.getRowModel().rows"
                         :key="fila.id"
-                        ref="elementosDeFila"
-                        :tabindex="indice === filaActiva ? 0 : -1"
-                        :aria-selected="
-                            props.seleccionable
-                                ? fila.getIsSelected()
-                                : undefined
-                        "
-                        :class="
-                            cn(
-                                'border-t border-borde bg-panel outline-none hover:bg-fila-hover focus-visible:bg-fila-hover',
-                                fila.getIsSelected() && 'bg-fila-activa',
-                                altoDeFila,
-                            )
-                        "
-                        @focus="filaActiva = indice"
-                        @keydown="alPulsarTecla($event, indice, fila.original)"
-                        @dblclick="emit('abrir', fila.original)"
+                        :fila="fila.original"
+                        :principales="columnasPrincipales"
+                        :prioritarias="columnasPrioritarias"
+                        :restantes="columnasRestantes"
+                        :seleccionable="props.seleccionable"
+                        :seleccionada="fila.getIsSelected()"
+                        :etiqueta-seleccion="$t('comun.tabla.seleccionar_fila')"
+                        :ver-mas="$t('comun.tabla.ver_mas')"
+                        @alternar-seleccion="fila.toggleSelected()"
                     >
-                        <td
-                            v-if="props.seleccionable"
-                            class="sticky left-0 z-10 w-9 bg-inherit px-celda"
+                        <!-- Las celdas las sigue pintando la página: la tarjeta
+                         cambia la forma, no quién sabe pintar cada valor. -->
+                        <template
+                            v-for="(_, nombre) in $slots"
+                            :key="nombre"
+                            #[nombre]="datos"
                         >
-                            <input
-                                type="checkbox"
-                                class="size-3.5 accent-marca"
-                                :aria-label="$t('comun.tabla.seleccionar_fila')"
-                                :checked="fila.getIsSelected()"
-                                @change="fila.toggleSelected()"
-                            />
-                        </td>
+                            <slot :name="nombre" v-bind="datos ?? {}" />
+                        </template>
+                    </TarjetaDeFila>
 
-                        <td
-                            v-for="columna in columnasVisiblesEnOrden"
-                            :key="columna.id"
-                            :style="estiloAnclado(columna)"
-                            :class="
-                                cn(
-                                    'bg-inherit px-celda align-middle',
-                                    columna.alineacion === 'derecha' &&
-                                        'text-right',
-                                    columna.mono && 'font-mono text-fino',
-                                    columna.anclada &&
-                                        'sticky z-10 border-r border-borde-fuerte',
+                    <div v-if="sinFilas" class="px-celda py-corto">
+                        <EstadoVacio
+                            v-if="hayFiltrosActivos"
+                            :titulo="$t('comun.tabla.sin_resultados_titulo')"
+                            :cuerpo="$t('comun.tabla.sin_resultados_cuerpo')"
+                        >
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                @click="estado.limpiarFiltros()"
+                            >
+                                {{ $t('comun.tabla.limpiar_filtros') }}
+                            </Button>
+                        </EstadoVacio>
+
+                        <EstadoVacio
+                            v-else
+                            :titulo="props.vacio.titulo"
+                            :cuerpo="props.vacio.cuerpo"
+                        >
+                            <slot name="vacio-acciones" />
+                        </EstadoVacio>
+                    </div>
+                </template>
+            </div>
+
+            <div
+                v-else
+                class="min-w-0 overflow-auto"
+                :style="{ maxHeight: props.altoMaximo }"
+            >
+                <table class="w-full border-collapse text-cuerpo">
+                    <caption class="sr-only">
+                        {{
+                            props.etiqueta
+                        }}
+                        —
+                        {{
+                            $t('comun.tabla.ayuda_teclado')
+                        }}
+                        {{
+                            $t('comun.tabla.orden_multiple_ayuda')
+                        }}
+                    </caption>
+
+                    <thead class="sticky top-0 z-20 bg-panel-cabecera">
+                        <tr ref="cabecera" class="bg-panel-cabecera text-left">
+                            <th
+                                v-if="props.seleccionable"
+                                scope="col"
+                                data-columna="__seleccion"
+                                class="sticky left-0 z-10 w-9 bg-inherit px-celda"
+                            >
+                                <input
+                                    type="checkbox"
+                                    class="size-3.5 accent-marca"
+                                    :aria-label="
+                                        $t('comun.tabla.seleccionar_pagina')
+                                    "
+                                    :checked="tabla.getIsAllPageRowsSelected()"
+                                    :indeterminate="
+                                        tabla.getIsSomePageRowsSelected()
+                                    "
+                                    @change="tabla.toggleAllPageRowsSelected()"
+                                />
+                            </th>
+
+                            <th
+                                v-for="columna in columnasVisiblesEnOrden"
+                                :key="columna.id"
+                                scope="col"
+                                :data-columna="columna.id"
+                                :aria-sort="ordenDeColumna(columna)"
+                                :style="estiloAnclado(columna)"
+                                :class="
+                                    cn(
+                                        'bg-inherit px-celda pt-corto pb-fino text-micro font-medium whitespace-nowrap text-texto-suave',
+                                        columna.alineacion === 'derecha' &&
+                                            'text-right',
+                                        columna.anclada &&
+                                            'sticky z-10 border-r border-borde-fuerte',
+                                    )
+                                "
+                            >
+                                <CabeceraDeColumna
+                                    :columna="
+                                        columna as ColumnaDeTabla<unknown>
+                                    "
+                                    :orden="props.orden"
+                                    @alternar="
+                                        (acumular: boolean) =>
+                                            estado.alternarOrden(
+                                                columna.ordenPor!,
+                                                acumular,
+                                            )
+                                    "
+                                />
+                            </th>
+                        </tr>
+
+                        <!-- Fila de filtros por columna, aparte de los globales. -->
+                        <tr
+                            v-if="
+                                columnasVisiblesEnOrden.some(
+                                    (columna) => columna.filtro,
                                 )
                             "
+                            class="bg-panel-cabecera"
                         >
-                            <slot
-                                :name="`celda-${columna.id}`"
-                                :fila="fila.original"
-                                :valor="columna.valor?.(fila.original) ?? null"
+                            <th
+                                v-if="props.seleccionable"
+                                class="sticky left-0 z-10 bg-inherit"
+                            />
+                            <th
+                                v-for="columna in columnasVisiblesEnOrden"
+                                :key="columna.id"
+                                :style="estiloAnclado(columna)"
+                                :class="
+                                    cn(
+                                        'bg-inherit px-celda pb-corto font-normal',
+                                        columna.anclada &&
+                                            'sticky z-10 border-r border-borde-fuerte',
+                                    )
+                                "
                             >
-                                {{ columna.valor?.(fila.original) ?? '' }}
-                            </slot>
-                        </td>
-                    </tr>
+                                <FiltroDeColumna
+                                    v-if="columna.filtro"
+                                    :filtro="columna.filtro"
+                                    :etiqueta="columna.etiqueta"
+                                    :valor="
+                                        props.filtros[columna.filtro.clave] ??
+                                        ''
+                                    "
+                                    @cambiar="
+                                        (valor: string, retrasar: boolean) =>
+                                            estado.aplicarFiltro(
+                                                columna.filtro!.clave,
+                                                valor,
+                                                retrasar,
+                                            )
+                                    "
+                                />
+                            </th>
+                        </tr>
+                    </thead>
 
-                    <tr v-if="sinFilas">
-                        <td
-                            :colspan="
+                    <tbody>
+                        <EsqueletoDeTabla
+                            v-if="props.cargando"
+                            :columnas="
                                 columnasVisiblesEnOrden.length +
                                 (props.seleccionable ? 1 : 0)
                             "
+                            :filas="Math.min(props.paginacion.per_page, 8)"
+                            :alto-de-fila="altoDeFila"
+                        />
+
+                        <tr
+                            v-for="(fila, indice) in tabla.getRowModel().rows"
+                            v-else
+                            :key="fila.id"
+                            ref="elementosDeFila"
+                            :tabindex="indice === filaActiva ? 0 : -1"
+                            :aria-selected="
+                                props.seleccionable
+                                    ? fila.getIsSelected()
+                                    : undefined
+                            "
+                            :class="
+                                cn(
+                                    'border-t border-borde bg-panel outline-none hover:bg-fila-hover focus-visible:bg-fila-hover',
+                                    fila.getIsSelected() && 'bg-fila-activa',
+                                    altoDeFila,
+                                )
+                            "
+                            @focus="filaActiva = indice"
+                            @keydown="
+                                alPulsarTecla($event, indice, fila.original)
+                            "
+                            @dblclick="emit('abrir', fila.original)"
                         >
-                            <!-- Dos vacíos distintos con salidas distintas. Cuál
+                            <td
+                                v-if="props.seleccionable"
+                                class="sticky left-0 z-10 w-9 bg-inherit px-celda"
+                            >
+                                <input
+                                    type="checkbox"
+                                    class="size-3.5 accent-marca"
+                                    :aria-label="
+                                        $t('comun.tabla.seleccionar_fila')
+                                    "
+                                    :checked="fila.getIsSelected()"
+                                    @change="fila.toggleSelected()"
+                                />
+                            </td>
+
+                            <td
+                                v-for="columna in columnasVisiblesEnOrden"
+                                :key="columna.id"
+                                :style="estiloAnclado(columna)"
+                                :class="
+                                    cn(
+                                        'bg-inherit px-celda align-middle',
+                                        columna.alineacion === 'derecha' &&
+                                            'text-right',
+                                        columna.mono && 'font-mono text-fino',
+                                        columna.anclada &&
+                                            'sticky z-10 border-r border-borde-fuerte',
+                                    )
+                                "
+                            >
+                                <slot
+                                    :name="`celda-${columna.id}`"
+                                    :fila="fila.original"
+                                    :valor="
+                                        columna.valor?.(fila.original) ?? null
+                                    "
+                                >
+                                    {{ columna.valor?.(fila.original) ?? '' }}
+                                </slot>
+                            </td>
+                        </tr>
+
+                        <tr v-if="sinFilas">
+                            <td
+                                :colspan="
+                                    columnasVisiblesEnOrden.length +
+                                    (props.seleccionable ? 1 : 0)
+                                "
+                            >
+                                <!-- Dos vacíos distintos con salidas distintas. Cuál
                                  de los dos es no se adivina: se sabe porque el
                                  servidor dijo si hay filtros activos. -->
-                            <EstadoVacio
-                                v-if="hayFiltrosActivos"
-                                :titulo="
-                                    $t('comun.tabla.sin_resultados_titulo')
-                                "
-                                :cuerpo="
-                                    $t('comun.tabla.sin_resultados_cuerpo')
-                                "
-                            >
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    @click="estado.limpiarFiltros()"
+                                <EstadoVacio
+                                    v-if="hayFiltrosActivos"
+                                    :titulo="
+                                        $t('comun.tabla.sin_resultados_titulo')
+                                    "
+                                    :cuerpo="
+                                        $t('comun.tabla.sin_resultados_cuerpo')
+                                    "
                                 >
-                                    {{ $t('comun.tabla.limpiar_filtros') }}
-                                </Button>
-                            </EstadoVacio>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        @click="estado.limpiarFiltros()"
+                                    >
+                                        {{ $t('comun.tabla.limpiar_filtros') }}
+                                    </Button>
+                                </EstadoVacio>
 
-                            <EstadoVacio
-                                v-else
-                                :titulo="props.vacio.titulo"
-                                :cuerpo="props.vacio.cuerpo"
-                            >
-                                <slot name="vacio-acciones" />
-                            </EstadoVacio>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                <EstadoVacio
+                                    v-else
+                                    :titulo="props.vacio.titulo"
+                                    :cuerpo="props.vacio.cuerpo"
+                                >
+                                    <slot name="vacio-acciones" />
+                                </EstadoVacio>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pie: parte del panel, con su propio ritmo interno. -->
+            <div
+                class="flex items-center justify-between gap-corto border-t border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
+            >
+                <span>
+                    {{
+                        $t('comun.tabla.total_resultados', {
+                            total: String(props.paginacion.total),
+                        })
+                    }}
+                </span>
+
+                <div class="flex items-center gap-corto">
+                    <!-- En móvil sobran: con el pulgar se pasa página, no se
+                     elige un tamaño ni se lee «página 2 de 9». -->
+                    <label v-if="!esMovil" class="flex items-center gap-fino">
+                        <span>{{ $t('comun.tabla.por_pagina') }}</span>
+                        <select
+                            class="h-6 rounded-sm border border-borde bg-panel px-fino text-fino text-texto"
+                            :value="props.paginacion.per_page"
+                            @change="
+                                estado.cambiarPorPagina(
+                                    Number(
+                                        ($event.target as HTMLSelectElement)
+                                            .value,
+                                    ),
+                                )
+                            "
+                        >
+                            <option :value="15">15</option>
+                            <option :value="30">30</option>
+                            <option :value="50">50</option>
+                            <option :value="100">100</option>
+                        </select>
+                    </label>
+
+                    <span v-if="!esMovil">
+                        {{
+                            $t('comun.tabla.pagina_de', {
+                                actual: String(props.paginacion.current_page),
+                                total: String(
+                                    Math.max(props.paginacion.last_page, 1),
+                                ),
+                            })
+                        }}
+                    </span>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="props.paginacion.current_page <= 1"
+                        :aria-label="$t('comun.anterior')"
+                        @click="
+                            estado.irAPagina(props.paginacion.current_page - 1)
+                        "
+                    >
+                        <ChevronLeft class="size-4" aria-hidden="true" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="
+                            props.paginacion.current_page >=
+                            props.paginacion.last_page
+                        "
+                        :aria-label="$t('comun.siguiente')"
+                        @click="
+                            estado.irAPagina(props.paginacion.current_page + 1)
+                        "
+                    >
+                        <ChevronRight class="size-4" aria-hidden="true" />
+                    </Button>
+                </div>
+            </div>
         </div>
 
         <!-- El error muestra el mensaje real del servidor: un «algo salió mal»
@@ -740,74 +1032,6 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 $t('comun.tabla.error_titulo')
             }}</span>
             <span>{{ props.error }}</span>
-        </div>
-
-        <!-- Pie: página X de Y, porque «cargar más» no dice cuánto queda. -->
-        <div
-            class="flex flex-wrap items-center justify-between gap-corto text-fino text-texto-suave"
-        >
-            <span>
-                {{
-                    $t('comun.tabla.total_resultados', {
-                        total: String(props.paginacion.total),
-                    })
-                }}
-            </span>
-
-            <div class="flex items-center gap-corto">
-                <label class="flex items-center gap-fino">
-                    <span>{{ $t('comun.tabla.por_pagina') }}</span>
-                    <select
-                        class="h-6 rounded-sm border border-borde bg-panel px-fino text-fino text-texto"
-                        :value="props.paginacion.per_page"
-                        @change="
-                            estado.cambiarPorPagina(
-                                Number(
-                                    ($event.target as HTMLSelectElement).value,
-                                ),
-                            )
-                        "
-                    >
-                        <option :value="15">15</option>
-                        <option :value="30">30</option>
-                        <option :value="50">50</option>
-                        <option :value="100">100</option>
-                    </select>
-                </label>
-
-                <span>
-                    {{
-                        $t('comun.tabla.pagina_de', {
-                            actual: String(props.paginacion.current_page),
-                            total: String(
-                                Math.max(props.paginacion.last_page, 1),
-                            ),
-                        })
-                    }}
-                </span>
-
-                <Button
-                    variant="outline"
-                    size="sm"
-                    :disabled="props.paginacion.current_page <= 1"
-                    :aria-label="$t('comun.anterior')"
-                    @click="estado.irAPagina(props.paginacion.current_page - 1)"
-                >
-                    <ChevronLeft class="size-4" aria-hidden="true" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    :disabled="
-                        props.paginacion.current_page >=
-                        props.paginacion.last_page
-                    "
-                    :aria-label="$t('comun.siguiente')"
-                    @click="estado.irAPagina(props.paginacion.current_page + 1)"
-                >
-                    <ChevronRight class="size-4" aria-hidden="true" />
-                </Button>
-            </div>
         </div>
     </div>
 </template>

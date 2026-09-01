@@ -275,13 +275,33 @@ sección, encima de cada bloque.
 **El defecto.** Es el tic de diseño de panel de administración más reconocible que
 existe, y a 11px las mayúsculas se leen apreciablemente peor que la caja mixta.
 
-**Qué se hizo.** **Se prohíbe en toda la aplicación menos en un sitio: las cabeceras
-`<th>` de tabla.** Ahí sí se justifica, y es el único caso donde la justificación es
-real: la cabecera tiene que distinguirse del cuerpo a 11px, y las dos alternativas son
-peores —subirle el peso la hace competir con el nombre de la tarea, y ponerle relleno de
-color choca con la regla de que solo el estado lleva relleno—. La caja alta hace ese
-trabajo sin gastar ni peso ni color. Las etiquetas de sección van en `--text-fino` con
-peso 500 y caja mixta.
+**Qué se hizo.** Se prohíbe en toda la aplicación. Las etiquetas de sección van en
+`--text-fino` con peso 500 y caja mixta.
+
+> **Revisado en la fase 07b — la excepción del `<th>` queda retirada.**
+>
+> La fase 07 hizo una excepción con las cabeceras `<th>`, razonada sobre la marcha: la
+> cabecera tiene que distinguirse del cuerpo a 11px, subirle el peso la hace competir con
+> el nombre de la tarea y ponerle relleno de color choca con la regla de que solo el
+> estado lleva relleno.
+>
+> El argumento no era malo. Lo que pasa es que **se tomó sin ver el resultado**: la
+> aplicación mostraba entonces las claves de traducción en crudo, y `TAREAS.MODULO` no se
+> lee ni mejor ni peor en mayúsculas. Con texto real en español la captura decide sola, y
+> decide en contra:
+>
+> - Con acentos, la caja alta grita. `MÓDULO` y `PROYECTO` a 11px con `0.04em` de
+>   tracking pesan visualmente más que el dato de la fila que anuncian, que es
+>   exactamente lo que la fase 07 quería evitar subiéndole el peso.
+> - Y sobre todo: **no se estaba aplicando a todas las cabeceras.** El `uppercase` vive en
+>   el `<th>`, pero el contenido de una columna ordenable es un `<button>`, y el agente de
+>   usuario no le hereda `text-transform`. El resultado eran seis cabeceras en dos cajas
+>   distintas —`Código`, `Nombre` y `Estado` en caja mixta; `TIPO`, `PROYECTO` y `MÓDULO`
+>   en alta— en la misma fila. Nadie lo vio en dos fases porque con las claves en crudo
+>   parecía ruido más del mismo tipo.
+>
+> Las cabeceras van en caja mixta, con `--text-micro` y peso 500. Se distinguen del cuerpo
+> por tamaño y por color (`--texto-suave` sobre `--panel-cabecera`), que ya bastaba.
 
 ### 7.3 — Monoespaciada para cualquier dato pequeño
 
@@ -399,3 +419,122 @@ conmutador tiene tres posiciones: claro, oscuro y sistema. La preferencia se gua
 Las tres posiciones son necesarias: con solo dos, elegir «claro» a mediodía deja la
 aplicación en claro por la noche aunque todo el sistema haya cambiado. «Sistema» es una
 elección, no la ausencia de elección, y por eso ocupa su propio botón.
+
+
+---
+
+## 10. Comportamiento responsive
+
+Añadido en la fase 07b. El corte es **`md` (768px)**, y es el mismo en los tres sitios:
+`SidebarProvider` usa `(max-width: 767.98px)` y `TablaDatos` la misma consulta. Los 0.02px
+no son un detalle: con el corte en `768px` exacto hay un ancho en el que el cajón ya está
+activo y las utilidades `md:` de Tailwind también, y la barra desaparece sin sustituto.
+
+### 10.1 — Menú lateral
+
+Por encima de `md` es una columna fija que se puede colapsar a iconos. Por debajo es un
+**cajón** (`Sheet`) que se abre desde el botón de la cabecera y se cierra al tocar fuera.
+Esto ya venía del starter kit; lo que la fase 07b arregló fue el corte y los textos del
+lector de pantalla, que estaban escritos en inglés dentro del componente.
+
+### 10.2 — Tabla
+
+Por debajo de `md` **la tabla deja de ser una tabla**: cada fila pasa a ser una tarjeta
+apilada. Mantener seis columnas en 360px con desplazamiento horizontal produce una tabla
+que nadie desplaza —se ve la primera columna y media segunda, y el resto no existe.
+
+Qué se ve en la tarjeta **lo declara cada listado**, no lo adivina el componente:
+
+| Marca en la columna | Dónde sale en la tarjeta |
+|---|---|
+| `principal` | Arriba, sin etiqueta, una por línea. Se admite más de una. |
+| `prioritaria` | Par etiqueta/valor, visible sin desplegar. |
+| ninguna | Detrás de «Ver más», en un `<details>`. |
+
+Sin `principal` declarada se usa la columna `fija`, que es la que lleva el enlace.
+Adivinar por posición daría «Tipo» en el listado de tareas.
+
+En tareas, `codigo` y `nombre` son las dos `principal`: el código identifica y el nombre
+es lo que se lee. Ponerle «Nombre:» delante al nombre gasta ancho y no informa de nada.
+
+La decisión entre tabla y tarjetas se toma con `useMediaQuery`, **no** con
+`hidden md:table`: pintar las dos formas duplicaría cada fila en el DOM y el tabulador
+itinerante acabaría moviéndose por filas que nadie ve. A cambio, al cruzar el corte hay
+que volver a medir los anclajes de columna y a sacar del tabulador lo que hay dentro de
+las filas, y de eso se encarga un `watch` sobre la consulta.
+
+### 10.3 — Filtros
+
+En la tabla los filtros viven en una fila bajo la cabecera. Con tarjetas no hay cabecera,
+así que aparecen en un `<details>` **encima** del panel, plegado por defecto y **abierto si
+ya hay algún filtro puesto**: al llegar por un enlace filtrado, lo primero que hay que
+poder ver es por qué faltan filas.
+
+Sin esto no se podría filtrar desde el teléfono, que es justo donde más falta hace.
+
+### 10.4 — Barra de herramientas
+
+Columnas, densidad, «limpiar filtros» y «limpiar orden» son cuatro controles que en 360px
+no caben en una fila: o desbordan o se parten en tres. Por debajo de `md` se agrupan en un
+único menú «Opciones», con las columnas en un submenú.
+
+### 10.5 — Pie de la tabla
+
+En móvil quedan el total y «anterior / siguiente». El selector de tamaño de página y el
+«página X de Y» se ocultan: con el pulgar se pasa página, no se elige un tamaño.
+
+El pie va **dentro** del borde del panel, junto a la cabecera y el cuerpo, para que se lea
+como parte del mismo objeto y no como un texto suelto debajo.
+
+Tampoco hay alto máximo en móvil: un contenedor con su propio scroll dentro de una página
+que también rueda es un pulgar peleándose con dos ejes, y corta la última tarjeta por la
+mitad.
+
+---
+
+## 11. Margen de contenedor y cabecera de página
+
+Los dos defectos que hacían que la aplicación se leyera como un esqueleto sin terminar.
+
+### 11.1 — Margen de contenedor
+
+El contenido no toca el canto del panel. El relleno vive **una sola vez**, en
+`AppSidebarLayout`, y no en cada página:
+
+```
+px-bloque py-bloque  →  16px por debajo de md
+md:px-seccion md:py-seccion  →  24px a partir de md
+```
+
+Ese contenedor lleva `min-w-0`. Es lo que permite que una tabla ancha se desplace dentro
+de su panel en lugar de empujar el documento entero: sin él, un hijo de un flex no baja de
+su ancho de contenido y el documento desborda a lo ancho.
+
+### 11.2 — Cabecera de página
+
+Un solo patrón, en `components/CabeceraDePagina.vue`, para las cinco pantallas:
+
+```
+Título                                        [acciones]
+Descripción opcional
+[meta: badges, rol, prefijo]
+──────────────────────────────────────────────────────── (borde inferior)
+```
+
+- El título es `--text-alto` con peso 600. Es un `<h1>`: hay uno por pantalla.
+- Las acciones van a la derecha y **por debajo de `sm` bajan a su propia fila**, en lugar
+  de estrujar el título.
+- El slot `meta` es para lo que acompaña al título sin ser una acción. Va bajo la
+  descripción y por encima de la línea.
+- El borde inferior es lo que dice dónde acaba la cabecera y empieza el contenido. Antes
+  el título y el botón flotaban sin nada que los separara de la tabla.
+
+### 11.3 — Marcadores honestos
+
+El tablero mostraba tres recuadros con rayas diagonales que parecían un error de carga: no
+decían que faltara nada, simulaban contenido. Hasta la fase 12 cada bloque dice **qué va a
+haber ahí**, en qué fase llega, y ofrece el camino que hoy sí existe.
+
+**Nunca datos de mentira.** Una cifra inventada se olvida, nadie la distingue de un dato
+real y acaba enseñándose a un cliente. Es la misma regla que ya seguía
+`SeccionPendiente.vue` en el concentrador de proyecto.

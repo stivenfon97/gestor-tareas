@@ -37,6 +37,8 @@ export type FilaTarea = {
     /** Ruta completa del módulo («Clientes › Facturación»), no solo su nombre. */
     modulo: string | null;
     periodo: number | null;
+    /** Solo en el listado global: en el de un proyecto ya se sabe cuál es. */
+    proyecto?: { id: number; nombre: string } | null;
     arrastrada: boolean;
     fecha_fin: string | null;
 };
@@ -47,6 +49,8 @@ export type OpcionesDeTarea = {
     prioridades: Opcion[];
     modulos: Array<{ id: number; ruta: string }>;
     periodos: Array<{ id: number; consecutivo: number; estado: string }>;
+    /** Solo en el listado global, para el filtro de la columna «Proyecto». */
+    proyectos?: Array<{ id: number; nombre: string }>;
 };
 
 /** Una fila de la previsualización de captura rápida, ya editable. */

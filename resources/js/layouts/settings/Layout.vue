@@ -29,7 +29,8 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <!-- Sin relleno propio: lo pone el contenedor de AppSidebarLayout. -->
+    <div>
         <Heading
             title="Settings"
             description="Manage your profile and account settings"

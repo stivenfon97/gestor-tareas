@@ -39,3 +39,10 @@ Lo resuelve `composables/useEstadoDeTabla.ts`, que vive **fuera** de `components
 El flujo es de un solo sentido: URL → servidor → props → lo que se pinta, y las acciones del composable vuelven a la URL. El composable **no guarda copia del estado**, lo lee de getters que apuntan a las props; con una copia local, una petición fallida o el botón «atrás» dejan las dos fuentes separadas.
 
 La excepción es la densidad de fila (`useDensidad`), que va a `localStorage`: es una preferencia de quien mira, no parte de lo que se comparte. Mismo criterio para la pestaña activa de una página con secciones, que sí va en la URL (`?seccion=tareas`).
+
+## `trans` se importa de `@/lib/i18n`, nunca del paquete
+El paquete devuelve la clave misma cuando falta la traducción y eso se pinta como texto normal. El envoltorio de `@/lib/i18n` avisa por consola y la marca en pantalla como `⟦clave⟧` en desarrollo. Hay una regla de ESLint (`no-restricted-imports`) que impide el atajo.
+
+Si añades una clave a un componente, añádela a `lang/es` y a `lang/en` en el mismo commit: `CoberturaDeClavesTest` recorre los componentes, extrae las claves y falla si falta alguna en cualquiera de los dos idiomas.
+
+Una clave que viaja como dato (`{ title: 'nav.dashboard' }` en `AppSidebar`, que `NavMain` pasa por `$t`) también la caza el extractor, pero solo entre **comillas simples**: en una plantilla Vue el valor de un atributo va entre dobles y `:alt="auth.user.name"` tiene la misma forma que una clave.

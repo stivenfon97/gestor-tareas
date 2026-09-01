@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { trans } from 'laravel-vue-i18n';
 import { computed } from 'vue';
 import EstadoClienteController from '@/actions/App/Http/Controllers/EstadoClienteController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { trans } from '@/lib/i18n';
 import { create, index, show } from '@/routes/clientes';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
@@ -42,12 +42,14 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
             clave: 'nombre',
             marcador: trans('comun.buscar'),
         },
+        principal: true,
         anchoMinimo: '16rem',
     },
     {
         id: 'contacto',
         etiqueta: trans('clientes.contacto_nombre'),
         valor: (cliente) => cliente.contacto_nombre,
+        prioritaria: true,
         anchoMinimo: '12rem',
     },
     {
@@ -64,6 +66,7 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
         valor: (cliente) =>
             `${cliente.proyectos_activos_count} / ${cliente.proyectos_count}`,
         alineacion: 'derecha',
+        prioritaria: true,
         anchoMinimo: '7rem',
     },
     {
@@ -78,6 +81,7 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
                 { valor: '0', etiqueta: trans('clientes.inactivo') },
             ],
         },
+        prioritaria: true,
         anchoMinimo: '7rem',
     },
     {
@@ -97,16 +101,16 @@ const abrir = (cliente: Cliente): void => {
     <Head :title="$t('clientes.titulo')" />
 
     <div class="flex flex-col gap-seccion">
-        <div class="flex items-start justify-between gap-bloque">
-            <Heading
-                variant="small"
-                :title="$t('clientes.titulo')"
-                :description="$t('clientes.nota_desactivar')"
-            />
-            <Button v-if="props.puede.crear" as-child size="sm">
-                <Link :href="create()">{{ $t('clientes.crear') }}</Link>
-            </Button>
-        </div>
+        <CabeceraDePagina
+            :titulo="$t('clientes.titulo')"
+            :descripcion="$t('clientes.nota_desactivar')"
+        >
+            <template v-if="props.puede.crear" #acciones>
+                <Button as-child size="sm">
+                    <Link :href="create()">{{ $t('clientes.crear') }}</Link>
+                </Button>
+            </template>
+        </CabeceraDePagina>
 
         <TablaDatos
             :url="index().url"

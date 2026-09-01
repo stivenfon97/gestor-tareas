@@ -26,6 +26,12 @@ return [
     'rol' => 'Rol',
     'estado' => 'Estado',
 
+    // El menú lateral es un cajón por debajo de `md`: estos textos los lee el
+    // lector de pantalla, y un texto que se lee es un texto visible.
+    'menu_lateral' => 'Menú lateral',
+    'menu_lateral_ayuda' => 'Navegación principal de la aplicación.',
+    'alternar_menu' => 'Abrir o cerrar el menú',
+
     'tema' => [
         'titulo' => 'Tema',
         'claro' => 'Claro',
@@ -53,6 +59,7 @@ return [
         'limpiar_orden' => 'Limpiar orden',
         'filtrar_por' => 'Filtrar por :columna',
         'filtros_activos' => ':total filtros activos',
+        'filtros' => 'Filtros',
         'limpiar_filtros' => 'Limpiar filtros',
         'todos' => 'Todos',
         'seleccionar_fila' => 'Seleccionar esta fila',
@@ -68,5 +75,9 @@ return [
         'error_titulo' => 'No se pudo cargar el listado',
         'reintentar' => 'Reintentar',
         'ayuda_teclado' => 'Usa las flechas para moverte entre filas, Intro para abrir la enfocada y Espacio para marcarla.',
+        // Por debajo de `md` la tabla se apila en tarjetas: solo el titular y
+        // las columnas prioritarias, y el resto detrás de esto.
+        'opciones' => 'Opciones',
+        'ver_mas' => 'Ver más',
     ],
 ];

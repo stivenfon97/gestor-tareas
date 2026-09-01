@@ -61,6 +61,19 @@ export type ColumnaDeTabla<T> = {
     /** No se puede ocultar. Para la columna que identifica la fila. */
     fija?: boolean;
 
+    /*
+     * Por debajo de `md` la tabla se apila como tarjetas, y ahí no caben seis
+     * columnas. Cuál es el titular y cuáles acompañan **lo declara el listado**:
+     * el componente no conoce el dominio y no puede adivinar que en tareas
+     * manda el código y en clientes el nombre.
+     */
+
+    /** Titular de la tarjeta en móvil. Solo una columna por listado. */
+    principal?: boolean;
+
+    /** Se ve en la tarjeta sin desplegar. El resto va tras «ver más». */
+    prioritaria?: boolean;
+
     alineacion?: Alineacion;
 
     /**

@@ -99,6 +99,7 @@ El detalle del cambio de estado, paso a paso, está en
 
 | Método | URI | Controlador | Permiso requerido |
 |---|---|---|---|
+| GET | `tareas` | `ListadoDeTareasController` | Ninguno: lo acota `Tarea::scopeVisiblesPara()` |
 | GET | `proyectos/{proyecto}/tareas` | `TareaController@index` | `TareaPolicy@viewAny` |
 | GET | `proyectos/{proyecto}/tareas/crear` | `TareaController@create` | `TareaPolicy@create` |
 | POST | `proyectos/{proyecto}/tareas` | `TareaController@store` | `TareaPolicy@create` |
@@ -161,6 +162,44 @@ al armar un correo o un reporte; mover tareas de periodo en bloque es trabajo po
 La ruta del módulo se resuelve con `ArbolDeModulos::rutasDe()`, **una consulta por página**
 y no una por fila. `Modulo::rutaCompleta()` sigue existiendo para el detalle, donde hay
 una sola tarea y el coste es irrelevante.
+
+### El listado global (fase 07b)
+
+`GET /tareas` sirve **todas las tareas visibles del usuario, de todos sus proyectos**.
+Existe porque hasta la fase 07b la pantalla que más se usa no era un destino: había que
+entrar a un proyecto y buscar su pestaña.
+
+Los dos listados pintan **la misma página**, `tareas/Index.vue`. Lo que los distingue es
+la prop `proyecto`: cuando llega `null` no hay proyecto, aparece la columna «Proyecto» en
+lugar de las de módulo y periodo, y desaparecen las acciones de crear. Dos copias de una
+página de 300 líneas divergirían en la primera columna que alguien añadiera.
+
+Diferencias con el listado de un proyecto:
+
+| | Proyecto | Global |
+|---|---|---|
+| Orden por defecto | `codigo` | **`-updated_at`** |
+| Columna «Proyecto» | — | ✔, filtrable |
+| Filtro por módulo | ✔, con submódulos | — |
+| Filtro por periodo | ✔ | — |
+| Módulo mostrado | Ruta completa | Solo el nombre |
+| Crear / captura rápida | ✔ | — |
+
+Las tres últimas tienen el mismo motivo: **son cosas de un proyecto**. El código
+correlativo no ordena nada útil cuando cada proyecto tiene su propia serie; el filtro por
+módulo recorre el árbol de *un* proyecto y aquí hay tantos árboles como proyectos; y
+resolver la ruta completa exigiría cargar todos esos árboles para pintar una página.
+
+**La autorización aquí es el scope, no una policy.** `TareaPolicy@viewAny` pregunta por un
+proyecto y aquí no hay uno solo; lo que acota las filas es `visiblesPara()`, que ya es
+obligatorio en todo listado de tareas. Pedir explícitamente un proyecto ajeno
+(`filter[proyecto_id]`) devuelve vacío, no sus tareas, porque el scope va antes que el
+filtro. `ListadoGlobalTest` lo comprueba.
+
+Se llega desde tres sitios: la entrada «Tareas» del menú principal, el conteo de tareas
+abiertas del listado de proyectos —que enlaza al global ya filtrado por ese proyecto y por
+los estados abiertos— y la pestaña «Tareas» del concentrador de proyecto, que lleva al
+listado del proyecto.
 
 ## Captura rápida
 

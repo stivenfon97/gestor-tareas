@@ -26,6 +26,10 @@ return [
     'rol' => 'Role',
     'estado' => 'Status',
 
+    'menu_lateral' => 'Side menu',
+    'menu_lateral_ayuda' => 'Main navigation of the application.',
+    'alternar_menu' => 'Open or close the menu',
+
     'tema' => [
         'titulo' => 'Theme',
         'claro' => 'Light',
@@ -48,6 +52,7 @@ return [
         'limpiar_orden' => 'Clear sorting',
         'filtrar_por' => 'Filter by :columna',
         'filtros_activos' => ':total active filters',
+        'filtros' => 'Filters',
         'limpiar_filtros' => 'Clear filters',
         'todos' => 'All',
         'seleccionar_fila' => 'Select this row',
@@ -63,5 +68,7 @@ return [
         'error_titulo' => 'The list could not be loaded',
         'reintentar' => 'Retry',
         'ayuda_teclado' => 'Use the arrow keys to move between rows, Enter to open the focused one and Space to select it.',
+        'opciones' => 'Options',
+        'ver_mas' => 'Show more',
     ],
 ];

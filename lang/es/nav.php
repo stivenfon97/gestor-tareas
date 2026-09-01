@@ -6,6 +6,7 @@ return [
     'plataforma' => 'Plataforma',
     'dashboard' => 'Tablero',
     'clientes' => 'Clientes',
+    'tareas' => 'Tareas',
     'proyectos' => 'Proyectos',
     'usuarios' => 'Usuarios',
     'equipos' => 'Equipos',
