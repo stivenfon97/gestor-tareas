@@ -1,13 +1,16 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
     "private": true,
+    "config": {
+        "formato": "resources/ eslint.config.js vite.config.ts tsconfig.json package.json"
+    },
     "type": "module",
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
         "dev": "vite",
-        "format": "prettier --write resources/",
-        "format:check": "prettier --check resources/",
+        "format": "prettier --write $npm_package_config_formato",
+        "format:check": "prettier --check $npm_package_config_formato",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "types:check": "vue-tsc --noEmit"

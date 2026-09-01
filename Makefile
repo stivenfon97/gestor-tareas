@@ -5,7 +5,7 @@ DC := docker compose
 EXEC := $(DC) exec app
 
 .DEFAULT_GOAL := help
-.PHONY: help up down build fresh test pint shell logs migrate hooks humo
+.PHONY: help up down build fresh test pint formato lint shell logs migrate hooks humo
 
 help: ## Muestra esta ayuda
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -43,6 +43,17 @@ humo: ## Comprobacion de humo con Playwright (necesita los servicios arriba)
 
 pint: ## Formatea el codigo PHP
 	$(EXEC) vendor/bin/pint
+
+# Pint y Prettier no se pisan: Pint solo toca .php y el alcance de Prettier son
+# .ts, .vue, .json y .css. Blade queda fuera de los dos, porque Prettier no
+# tiene parser para .blade.php.
+formato: ## Formatea el frontend (Prettier)
+	$(DC) exec node npm run format
+
+verificar: ## Comprueba formato y estilo de backend y frontend, sin tocar nada
+	$(EXEC) vendor/bin/pint --test
+	$(DC) exec -T node npm run format:check
+	$(DC) exec -T node npm run lint:check
 
 shell: ## Abre una shell dentro del contenedor app
 	$(EXEC) bash
