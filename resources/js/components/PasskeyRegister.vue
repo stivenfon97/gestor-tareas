@@ -61,11 +61,11 @@ const handleCancel = () => {
 
 <template>
     <div v-if="!isSupported" class="text-sm text-muted-foreground">
-        Passkeys are not supported in this browser.
+        {{ $t('ajustes.passkeys.no_compatible') }}
     </div>
 
     <Button v-else-if="!showForm" variant="outline" @click="showForm = true">
-        Add passkey
+        {{ $t('ajustes.passkeys.anadir') }}
     </Button>
 
     <form
@@ -74,17 +74,17 @@ const handleCancel = () => {
         class="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
     >
         <div class="grid gap-2">
-            <Label for="passkey-name">Passkey name</Label>
+            <Label for="passkey-name">{{ $t('ajustes.passkeys.nombre') }}</Label>
             <Input
                 id="passkey-name"
                 type="text"
                 v-model="name"
-                placeholder="e.g., MacBook Pro, iPhone"
+                :placeholder="$t('ajustes.passkeys.nombre_marcador')"
                 class="mt-1 block w-full border-foreground/20"
                 autofocus
             />
             <p class="text-xs text-muted-foreground">
-                A name helps you identify this passkey later.
+                {{ $t('ajustes.passkeys.nombre_ayuda') }}
             </p>
         </div>
 
@@ -92,10 +92,14 @@ const handleCancel = () => {
 
         <div class="flex gap-2">
             <Button type="submit" :disabled="isLoading || !name.trim()">
-                {{ isLoading ? 'Registering...' : 'Register passkey' }}
+                {{
+                    isLoading
+                        ? $t('comun.procesando')
+                        : $t('ajustes.passkeys.anadir')
+                }}
             </Button>
             <Button type="button" variant="ghost" @click="handleCancel">
-                Cancel
+                {{ $t('comun.cancelar') }}
             </Button>
         </div>
     </form>

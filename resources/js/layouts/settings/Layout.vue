@@ -10,17 +10,18 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 
+// Claves, no texto: las resuelve la plantilla con `$t`, igual que `nav.*`.
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'ajustes.secciones.perfil',
         href: editProfile(),
     },
     {
-        title: 'Security',
+        title: 'ajustes.secciones.seguridad',
         href: editSecurity(),
     },
     {
-        title: 'Appearance',
+        title: 'ajustes.secciones.apariencia',
         href: editAppearance(),
     },
 ];
@@ -32,15 +33,15 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
     <!-- Sin relleno propio: lo pone el contenedor de AppSidebarLayout. -->
     <div>
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            :title="$t('ajustes.titulo')"
+            :description="$t('ajustes.descripcion')"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav
                     class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
+                    :aria-label="$t('ajustes.titulo')"
                 >
                     <Button
                         v-for="item in sidebarNavItems"
@@ -54,7 +55,7 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                     >
                         <Link :href="item.href">
                             <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.title }}
+                            {{ $t(item.title) }}
                         </Link>
                     </Button>
                 </nav>
