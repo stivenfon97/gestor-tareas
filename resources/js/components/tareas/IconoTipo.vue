@@ -13,6 +13,13 @@ import type { TipoTarea } from '@/types/tareas';
  * Los cinco iconos se distinguen por silueta, no por detalle: llave/corchetes,
  * insecto, salvavidas, destellos y matraz no se parecen entre sí a 16px, que es
  * el tamaño al que se van a ver siempre.
+ *
+ * El `title` y el `aria-label` van en un `<span>` que envuelve al icono, **no
+ * en el `<svg>`**: un atributo `title` sobre un `<svg>` no produce ningún globo
+ * de ayuda en el navegador —hace falta un elemento `<title>` hijo—, así que
+ * durante la fase 07 la columna era una hilera de cinco siluetas sin ninguna
+ * forma de saber cuál era cuál. Con el envoltorio, el globo aparece; la clave
+ * de lectura completa está en la leyenda de la cabecera de la columna.
  */
 const props = defineProps<{ tipo: TipoTarea }>();
 
@@ -29,11 +36,12 @@ const etiqueta = computed(() => `enums.tipo_tarea.${props.tipo}`);
 </script>
 
 <template>
-    <component
-        :is="icono"
-        class="size-4 shrink-0 text-texto-suave"
+    <span
+        class="inline-flex text-texto-suave"
         role="img"
         :title="$t(etiqueta)"
         :aria-label="$t(etiqueta)"
-    />
+    >
+        <component :is="icono" class="size-4 shrink-0" aria-hidden="true" />
+    </span>
 </template>

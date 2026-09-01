@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
-import { ChevronLeft, ChevronRight, Rows2, Rows3, X } from '@lucide/vue';
+import { ChevronLeft, ChevronRight } from '@lucide/vue';
 import { getCoreRowModel, useVueTable } from '@tanstack/vue-table';
 import type {
     ColumnDef,
@@ -22,8 +22,8 @@ import { cn } from '@/lib/utils';
 import CabeceraDeColumna from './CabeceraDeColumna.vue';
 import EsqueletoDeTabla from './EsqueletoDeTabla.vue';
 import EstadoVacio from './EstadoVacio.vue';
-import FiltroDeColumna from './FiltroDeColumna.vue';
-import MenuColumnas from './MenuColumnas.vue';
+import FiltroDeCabecera from './FiltroDeCabecera.vue';
+import LeyendaDeColumna from './LeyendaDeColumna.vue';
 import MenuCompacto from './MenuCompacto.vue';
 import PanelDeFiltros from './PanelDeFiltros.vue';
 import TarjetaDeFila from './TarjetaDeFila.vue';
@@ -320,6 +320,108 @@ const estiloAnclado = (columna: ColumnaDeTabla<T>): Record<string, string> => {
     return estilos;
 };
 
+/* ------------------------------------------- alto en filas enteras */
+
+/**
+ * El desplazamiento vertical vive **dentro** del panel, y eso es lo que permite
+ * que la cabecera se quede fija: un `<thead>` pegajoso necesita un contenedor
+ * que ruede, y el contenedor tiene que rodar también en horizontal por las
+ * columnas ancladas.
+ *
+ * El precio era que el alto pedido (`70vh`) cae donde cae, casi nunca en la
+ * costura entre dos filas, y la última fila visible aparecía **cortada por la
+ * mitad**. No era un `overflow` mal puesto: era un límite en píxeles aplicado a
+ * un contenido medido en filas.
+ *
+ * Aquí se recorta ese límite hasta el pie de la última fila que cabe entera. No
+ * se puede calcular con `alto de fila × n`: una fila con el nombre en dos
+ * líneas mide más que sus vecinas, así que se miden las filas de verdad.
+ */
+const contenedor = ref<HTMLElement | null>(null);
+const rejilla = ref<HTMLTableElement | null>(null);
+const altoAjustado = ref<string | null>(null);
+let observadorAlto: ResizeObserver | undefined;
+
+const ajustarAlto = (): void => {
+    const caja = contenedor.value;
+
+    if (caja === null || esMovil.value) {
+        altoAjustado.value = null;
+
+        return;
+    }
+
+    /*
+     * El límite pedido se lee del estilo calculado y no de `clientHeight`: con
+     * un `height` ya puesto, `clientHeight` devolvería el recorte anterior y
+     * cada medición encogería la tabla un poco más.
+     */
+    const limite = Number.parseFloat(getComputedStyle(caja).maxHeight);
+
+    if (!Number.isFinite(limite)) {
+        altoAjustado.value = null;
+
+        return;
+    }
+
+    const filas = Array.from(
+        caja.querySelectorAll<HTMLTableRowElement>('tbody > tr'),
+    );
+
+    // Origen del contenido: el canto superior de la caja, corregido por lo que
+    // ya esté desplazado. Con rectángulos y no con `offsetTop`, que depende de
+    // qué ancestro esté posicionado.
+    const origen = caja.getBoundingClientRect().top - caja.scrollTop;
+    const total = (rejilla.value ?? caja).scrollHeight;
+
+    if (total <= limite) {
+        // Cabe entera: el panel se ajusta a su contenido y no hay nada que
+        // recortar. Un listado de tres filas se ve corto, que es la verdad.
+        altoAjustado.value = null;
+
+        return;
+    }
+
+    let corte = 0;
+
+    for (const fila of filas) {
+        const fondo = fila.getBoundingClientRect().bottom - origen;
+
+        if (fondo > limite) {
+            break;
+        }
+
+        corte = fondo;
+    }
+
+    // Si ni la primera fila cabe, se deja el límite pedido: recortar a cero
+    // dejaría una tabla sin filas.
+    altoAjustado.value = corte > 0 ? `${Math.round(corte)}px` : null;
+};
+
+const observarAlto = (): void => {
+    observadorAlto?.disconnect();
+    observadorAlto = undefined;
+
+    if (typeof ResizeObserver === 'undefined' || rejilla.value === null) {
+        return;
+    }
+
+    // Se observa la tabla, no el contenedor: el contenedor es justo lo que
+    // cambia de alto al ajustar, y observarlo sería un bucle.
+    observadorAlto = new ResizeObserver(() => ajustarAlto());
+    observadorAlto.observe(rejilla.value);
+};
+
+onMounted(() => {
+    ajustarAlto();
+    observarAlto();
+});
+
+onBeforeUnmount(() => observadorAlto?.disconnect());
+
+watch([densidad, columnasVisiblesEnOrden], () => nextTick(ajustarAlto));
+
 /* --------------------------------------------------- navegación con teclado */
 
 const elementosDeFila = ref<HTMLTableRowElement[]>([]);
@@ -365,7 +467,10 @@ watch(
         // ven.
         seleccion.value = {};
         filaActiva.value = 0;
-        nextTick(sacarDelTabulador);
+        nextTick(() => {
+            sacarDelTabulador();
+            ajustarAlto();
+        });
     },
 );
 
@@ -384,11 +489,17 @@ watch(esMovil, () =>
         observador = undefined;
 
         if (esMovil.value) {
+            observadorAlto?.disconnect();
+            observadorAlto = undefined;
+            altoAjustado.value = null;
+
             return;
         }
 
         medirAnclajes();
         sacarDelTabulador();
+        ajustarAlto();
+        observarAlto();
 
         if (typeof ResizeObserver !== 'undefined' && cabecera.value !== null) {
             observador = new ResizeObserver(() => medirAnclajes());
@@ -470,6 +581,13 @@ const totalFiltros = computed(
 
 const sinFilas = computed(() => props.filas.length === 0 && !props.cargando);
 
+/**
+ * Con una sola página los controles de paginación no llevan a ninguna parte:
+ * las dos flechas nacen deshabilitadas y «Página 1 de 1» informa de que no hay
+ * nada más. El total de resultados sí dice algo, y ese se queda.
+ */
+const hayVariasPaginas = computed(() => props.paginacion.last_page > 1);
+
 const alternarColumna = (id: string, visible: boolean): void => {
     const visibles = props.columnas
         .filter((columna) =>
@@ -485,99 +603,6 @@ const alternarColumna = (id: string, visible: boolean): void => {
 
 <template>
     <div class="flex flex-col gap-corto">
-        <!-- Barra de herramientas -->
-        <div class="flex flex-wrap items-center justify-between gap-corto">
-            <div class="flex flex-wrap items-center gap-corto">
-                <slot name="acciones" />
-
-                <Button
-                    v-if="hayFiltrosActivos && !esMovil"
-                    variant="ghost"
-                    size="sm"
-                    class="gap-fino text-texto-suave"
-                    @click="estado.limpiarFiltros()"
-                >
-                    <X class="size-3.5" aria-hidden="true" />
-                    {{ $t('comun.tabla.limpiar_filtros') }}
-                    <span class="text-fino">
-                        ({{
-                            $t('comun.tabla.filtros_activos', {
-                                total: String(totalFiltros),
-                            })
-                        }})
-                    </span>
-                </Button>
-            </div>
-
-            <!-- En móvil los cuatro controles se agrupan en un solo menú: en
-                 360px no caben en una fila y desbordan o se parten en tres. -->
-            <MenuCompacto
-                v-if="esMovil"
-                :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
-                :visibles="visiblesPedidas"
-                :densidad="densidad"
-                :hay-filtros-activos="hayFiltrosActivos"
-                :hay-orden-multiple="props.orden.length > 1"
-                @alternar-columna="alternarColumna"
-                @restablecer-columnas="
-                    estado.fijarColumnas(columnasPorDefecto, columnasPorDefecto)
-                "
-                @fijar-densidad="fijarDensidad"
-                @limpiar-filtros="estado.limpiarFiltros()"
-                @limpiar-orden="estado.limpiarOrden()"
-            />
-
-            <div v-else class="flex items-center gap-corto">
-                <Button
-                    v-if="props.orden.length > 1"
-                    variant="ghost"
-                    size="sm"
-                    class="text-texto-suave"
-                    @click="estado.limpiarOrden()"
-                >
-                    {{ $t('comun.tabla.limpiar_orden') }}
-                </Button>
-
-                <MenuColumnas
-                    :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
-                    :visibles="visiblesPedidas"
-                    @alternar="alternarColumna"
-                    @restablecer="
-                        estado.fijarColumnas(
-                            columnasPorDefecto,
-                            columnasPorDefecto,
-                        )
-                    "
-                />
-
-                <Button
-                    variant="outline"
-                    size="sm"
-                    class="gap-fino"
-                    :aria-pressed="densidad === 'compacta'"
-                    :title="$t('comun.tabla.densidad')"
-                    @click="
-                        fijarDensidad(
-                            densidad === 'compacta' ? 'comoda' : 'compacta',
-                        )
-                    "
-                >
-                    <component
-                        :is="densidad === 'compacta' ? Rows3 : Rows2"
-                        class="size-4"
-                        aria-hidden="true"
-                    />
-                    <span class="sr-only">
-                        {{
-                            densidad === 'compacta'
-                                ? $t('comun.tabla.densidad_compacta')
-                                : $t('comun.tabla.densidad_comoda')
-                        }}
-                    </span>
-                </Button>
-            </div>
-        </div>
-
         <!-- Acciones en lote. Solo aparece con algo seleccionado. -->
         <div
             v-if="props.seleccionable && filasSeleccionadas.length > 0"
@@ -594,7 +619,7 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 v-for="accion in props.accionesEnLote"
                 :key="accion.id"
                 size="sm"
-                :variant="accion.destructiva ? 'outline' : 'secondary'"
+                :variant="accion.destructiva ? 'destructive' : 'outline'"
                 @click="emit('enLote', accion.id, filasSeleccionadas)"
             >
                 {{ accion.etiqueta }}
@@ -609,9 +634,10 @@ const alternarColumna = (id: string, visible: boolean): void => {
             </Button>
         </div>
 
-        <!-- En la tabla los filtros van bajo la cabecera; con tarjetas no hay
-             cabecera, así que van aquí. Sin esto no se puede filtrar desde el
-             teléfono, que es justo donde más falta hace. -->
+        <!-- En la tabla los filtros cuelgan de la cabecera de cada columna;
+             con tarjetas no hay cabecera, así que van aquí. Sin esto no se
+             puede filtrar desde el teléfono, que es justo donde más falta
+             hace. -->
         <PanelDeFiltros
             v-if="esMovil"
             :columnas="columnasVisiblesEnOrden"
@@ -625,6 +651,11 @@ const alternarColumna = (id: string, visible: boolean): void => {
             Panel: cabecera, cuerpo y pie del mismo objeto. El pie va dentro del
             borde para que se lea como parte de la tabla y no como un texto
             suelto debajo.
+
+            **Es la única frontera de la pantalla.** El área de contenido ya no
+            pinta otro panel redondeado alrededor: dos cajas concéntricas sin
+            jerarquía entre ellas hacían que la tabla se leyera como un objeto
+            flotando dentro de otro objeto. Ver docs/05-identidad-visual.md §12.
         -->
         <div
             class="flex min-w-0 flex-col overflow-hidden rounded-md border border-borde-fuerte bg-panel"
@@ -707,12 +738,18 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 </template>
             </div>
 
+            <!-- `height` recortado a la última fila entera; `max-height` sigue
+                 siendo el límite pedido y es de donde se mide. -->
             <div
                 v-else
+                ref="contenedor"
                 class="min-w-0 overflow-auto"
-                :style="{ maxHeight: props.altoMaximo }"
+                :style="{
+                    maxHeight: props.altoMaximo,
+                    height: altoAjustado ?? undefined,
+                }"
             >
-                <table class="w-full border-collapse text-cuerpo">
+                <table ref="rejilla" class="w-full border-collapse text-cuerpo">
                     <caption class="sr-only">
                         {{
                             props.etiqueta
@@ -757,72 +794,70 @@ const alternarColumna = (id: string, visible: boolean): void => {
                                 :style="estiloAnclado(columna)"
                                 :class="
                                     cn(
-                                        'bg-inherit px-celda pt-corto pb-fino text-micro font-medium whitespace-nowrap text-texto-suave',
-                                        columna.alineacion === 'derecha' &&
-                                            'text-right',
+                                        'bg-inherit px-celda py-corto text-micro font-medium whitespace-nowrap text-texto-suave',
                                         columna.anclada &&
                                             'sticky z-10 border-r border-borde-fuerte',
                                     )
                                 "
                             >
-                                <CabeceraDeColumna
-                                    :columna="
-                                        columna as ColumnaDeTabla<unknown>
+                                <!-- Rótulo, leyenda y filtro en la misma línea:
+                                     la cabecera es el sitio de todo lo que
+                                     opera sobre la columna. -->
+                                <div
+                                    :class="
+                                        cn(
+                                            'flex items-center gap-fino',
+                                            columna.alineacion === 'derecha' &&
+                                                'justify-end',
+                                        )
                                     "
-                                    :orden="props.orden"
-                                    @alternar="
-                                        (acumular: boolean) =>
-                                            estado.alternarOrden(
-                                                columna.ordenPor!,
-                                                acumular,
-                                            )
-                                    "
-                                />
-                            </th>
-                        </tr>
+                                >
+                                    <CabeceraDeColumna
+                                        :columna="
+                                            columna as ColumnaDeTabla<unknown>
+                                        "
+                                        :orden="props.orden"
+                                        @alternar="
+                                            (acumular: boolean) =>
+                                                estado.alternarOrden(
+                                                    columna.ordenPor!,
+                                                    acumular,
+                                                )
+                                        "
+                                    />
 
-                        <!-- Fila de filtros por columna, aparte de los globales. -->
-                        <tr
-                            v-if="
-                                columnasVisiblesEnOrden.some(
-                                    (columna) => columna.filtro,
-                                )
-                            "
-                            class="bg-panel-cabecera"
-                        >
-                            <th
-                                v-if="props.seleccionable"
-                                class="sticky left-0 z-10 bg-inherit"
-                            />
-                            <th
-                                v-for="columna in columnasVisiblesEnOrden"
-                                :key="columna.id"
-                                :style="estiloAnclado(columna)"
-                                :class="
-                                    cn(
-                                        'bg-inherit px-celda pb-corto font-normal',
-                                        columna.anclada &&
-                                            'sticky z-10 border-r border-borde-fuerte',
-                                    )
-                                "
-                            >
-                                <FiltroDeColumna
-                                    v-if="columna.filtro"
-                                    :filtro="columna.filtro"
-                                    :etiqueta="columna.etiqueta"
-                                    :valor="
-                                        props.filtros[columna.filtro.clave] ??
-                                        ''
-                                    "
-                                    @cambiar="
-                                        (valor: string, retrasar: boolean) =>
-                                            estado.aplicarFiltro(
-                                                columna.filtro!.clave,
-                                                valor,
-                                                retrasar,
-                                            )
-                                    "
-                                />
+                                    <!-- La leyenda la escribe la página: aquí
+                                         dentro no se sabe qué significa un
+                                         icono de esa columna. -->
+                                    <LeyendaDeColumna
+                                        v-if="$slots[`leyenda-${columna.id}`]"
+                                        :etiqueta="columna.etiqueta"
+                                    >
+                                        <slot :name="`leyenda-${columna.id}`" />
+                                    </LeyendaDeColumna>
+
+                                    <FiltroDeCabecera
+                                        v-if="columna.filtro"
+                                        :filtro="columna.filtro"
+                                        :etiqueta="columna.etiqueta"
+                                        :valor="
+                                            props.filtros[
+                                                columna.filtro.clave
+                                            ] ?? ''
+                                        "
+                                        @cambiar="
+                                            (
+                                                valor: string,
+                                                retrasar: boolean,
+                                            ) =>
+                                                estado.aplicarFiltro(
+                                                    columna.filtro!.clave,
+                                                    valor,
+                                                    retrasar,
+                                                )
+                                        "
+                                    />
+                                </div>
                             </th>
                         </tr>
                     </thead>
@@ -945,19 +980,58 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 </table>
             </div>
 
-            <!-- Pie: parte del panel, con su propio ritmo interno. -->
+            <!--
+                Pie: parte del panel, con su propio ritmo interno.
+
+                Aquí viven también los controles de la tabla. Antes ocupaban una
+                franja horizontal entera entre la cabecera de la página y el
+                panel, cuya única función era alojar dos botones. Agrupados en
+                un solo menú y metidos en una barra que ya existía, no cuestan
+                ni un píxel de alto nuevo.
+            -->
             <div
                 class="flex items-center justify-between gap-corto border-t border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
             >
-                <span>
-                    {{
-                        $t('comun.tabla.total_resultados', {
-                            total: String(props.paginacion.total),
-                        })
-                    }}
-                </span>
+                <div class="flex min-w-0 items-center gap-corto">
+                    <MenuCompacto
+                        :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
+                        :visibles="visiblesPedidas"
+                        :densidad="densidad"
+                        :hay-filtros-activos="hayFiltrosActivos"
+                        :hay-orden-multiple="props.orden.length > 1"
+                        @alternar-columna="alternarColumna"
+                        @restablecer-columnas="
+                            estado.fijarColumnas(
+                                columnasPorDefecto,
+                                columnasPorDefecto,
+                            )
+                        "
+                        @fijar-densidad="fijarDensidad"
+                        @limpiar-filtros="estado.limpiarFiltros()"
+                        @limpiar-orden="estado.limpiarOrden()"
+                    />
 
-                <div class="flex items-center gap-corto">
+                    <span class="truncate">
+                        {{
+                            $t('comun.tabla.total_resultados', {
+                                total: String(props.paginacion.total),
+                            })
+                        }}
+                    </span>
+
+                    <slot name="acciones" />
+                </div>
+
+                <!--
+                    Con una sola página, «Por página · Página 1 de 1 · ‹ ›» son
+                    cuatro controles que no llevan a ninguna parte: dos de ellos
+                    nacen deshabilitados y el tercero informa de que no hay nada
+                    más. Con una página solo queda el total, que sí dice algo.
+                -->
+                <div
+                    v-if="hayVariasPaginas"
+                    class="flex items-center gap-corto"
+                >
                     <!-- En móvil sobran: con el pulgar se pasa página, no se
                      elige un tamaño ni se lee «página 2 de 9». -->
                     <label v-if="!esMovil" class="flex items-center gap-fino">
@@ -985,9 +1059,7 @@ const alternarColumna = (id: string, visible: boolean): void => {
                         {{
                             $t('comun.tabla.pagina_de', {
                                 actual: String(props.paginacion.current_page),
-                                total: String(
-                                    Math.max(props.paginacion.last_page, 1),
-                                ),
+                                total: String(props.paginacion.last_page),
                             })
                         }}
                     </span>

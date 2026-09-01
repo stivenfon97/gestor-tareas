@@ -17,7 +17,7 @@ import { create, index } from '@/routes/proyectos/tareas';
 import { create as capturaRapida } from '@/routes/proyectos/tareas/rapida';
 import { index as listado, show } from '@/routes/tareas';
 import type { RespuestaPaginada } from '@/types/paginacion';
-import type { FilaTarea, OpcionesDeTarea } from '@/types/tareas';
+import type { FilaTarea, OpcionesDeTarea, TipoTarea } from '@/types/tareas';
 
 /**
  * Sirve a los dos alcances: el listado de un proyecto
@@ -78,7 +78,9 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
                 etiqueta: trans(opcion.etiqueta),
             })),
         },
-        anchoMinimo: '4rem',
+        // La cabecera lleva rótulo, leyenda y filtro; con 4rem el rótulo se
+        // partía en dos líneas.
+        anchoMinimo: '6rem',
     },
     {
         id: 'nombre',
@@ -270,7 +272,7 @@ const enLote = async (
                     }}</Link>
                 </Button>
                 <template v-if="props.puede.crear">
-                    <Button as-child variant="secondary" size="sm">
+                    <Button as-child variant="outline" size="sm">
                         <Link :href="capturaRapida(props.proyecto.id)">
                             {{ $t('tareas.rapida.titulo') }}
                         </Link>
@@ -331,6 +333,28 @@ const enLote = async (
                         {{ fila.codigo }}
                     </Link>
                 </div>
+            </template>
+
+            <!--
+                Clave de lectura de la columna de iconos. Sin ella, quien abre
+                la aplicación ve cinco siluetas y ninguna forma de saber qué
+                distingue una de otra: el `title` de cada icono resuelve la duda
+                de uno en uno, la leyenda las resuelve todas de golpe.
+
+                La escribe la página porque `TablaDatos` no sabe qué es un tipo
+                de tarea; el componente solo sabe que esta columna tiene leyenda.
+            -->
+            <template #leyenda-tipo>
+                <ul class="flex flex-col gap-corto">
+                    <li
+                        v-for="opcion in props.opciones.tipos"
+                        :key="opcion.valor"
+                        class="flex items-center gap-corto text-cuerpo text-texto"
+                    >
+                        <IconoTipo :tipo="opcion.valor as TipoTarea" />
+                        {{ $t(opcion.etiqueta) }}
+                    </li>
+                </ul>
             </template>
 
             <template #celda-tipo="{ fila }">
