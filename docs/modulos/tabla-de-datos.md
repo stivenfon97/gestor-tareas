@@ -23,7 +23,10 @@ defender cuando aparezca la tentación de meterle un caso particular.
 | `TablaDatos/tipos.ts` | La API pública: `ColumnaDeTabla`, `FiltroDeColumna`, `AccionEnLote`… |
 | `TablaDatos/CabeceraDeColumna.vue` | Etiqueta, control de orden y prioridad de orden |
 | `TablaDatos/FiltroDeColumna.vue` | Filtro de texto o de opciones, bajo la cabecera |
-| `TablaDatos/MenuColumnas.vue` | Visibilidad de columnas |
+| `TablaDatos/MenuColumnas.vue` | Visibilidad de columnas (a partir de `md`) |
+| `TablaDatos/MenuCompacto.vue` | Los cuatro controles agrupados (por debajo de `md`) |
+| `TablaDatos/TarjetaDeFila.vue` | Una fila apilada como tarjeta (por debajo de `md`) |
+| `TablaDatos/PanelDeFiltros.vue` | Los filtros de columna, apilados (por debajo de `md`) |
 | `TablaDatos/EstadoVacio.vue` | Los dos vacíos |
 | `TablaDatos/EsqueletoDeTabla.vue` | Carga sin saltos de diseño |
 | `composables/useEstadoDeTabla.ts` | Sincronización del estado con la URL |
@@ -113,7 +116,8 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
 
 ### Eventos
 
-- **`abrir(fila)`** — Intro sobre la fila enfocada, o doble clic.
+- **`abrir(fila)`** — Intro sobre la fila enfocada, o doble clic. Solo en la tabla: en
+  modo tarjeta se abre por el enlace de la celda, que ya está ahí.
 - **`enLote(accion, claves)`** — una acción en lote sobre las filas seleccionadas.
 
 ### Correspondencia con el servidor
@@ -121,6 +125,65 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
 `ordenPor` tiene que coincidir con un `allowedSorts` del controlador y `filtro.clave` con
 un `allowedFilters`. Si no coinciden, spatie/laravel-query-builder responde **400**, que
 es preferible a ignorar el parámetro en silencio y que la tabla mienta sobre su estado.
+
+## Por debajo de `md`: tarjetas, no tabla
+
+Añadido en la fase 07b. El corte es `(max-width: 767.98px)`, el mismo que usa el menú
+lateral. Mantener seis columnas en 360px con desplazamiento horizontal produce una tabla
+que nadie desplaza: se ve la primera columna y media segunda, y el resto no existe.
+
+Cada fila pasa a ser una tarjeta. **Qué se ve lo declara el listado**, con dos marcas
+nuevas en `ColumnaDeTabla`:
+
+| Marca | Dónde sale |
+|---|---|
+| `principal` | Arriba de la tarjeta, **sin etiqueta**, una por línea. Se admite más de una |
+| `prioritaria` | Par etiqueta/valor, visible sin desplegar |
+| ninguna | Detrás de «Ver más» (`<details>`) |
+
+```ts
+{
+    id: 'codigo',
+    etiqueta: trans('tareas.codigo'),
+    valor: (tarea) => tarea.codigo,
+    fija: true,
+    principal: true,   // identifica la fila
+},
+{
+    id: 'nombre',
+    etiqueta: trans('comun.nombre'),
+    valor: (tarea) => tarea.nombre,
+    principal: true,   // es lo que se lee
+},
+{
+    id: 'estado',
+    etiqueta: trans('comun.estado'),
+    valor: (tarea) => tarea.estado,
+    prioritaria: true, // acompaña, con su etiqueta
+},
+```
+
+**El componente no lo adivina.** Sin `principal` declarada usa la columna `fija`, que es
+la que lleva el enlace; adivinar por posición daría «Tipo» en el listado de tareas.
+
+Los slots `celda-{id}` siguen sirviendo igual: la tarjeta cambia la forma, no quién sabe
+pintar cada valor.
+
+Lo demás que cambia por debajo de `md`:
+
+- Los filtros de columna se apilan en un `<details>` encima del panel. En la tabla viven
+  bajo la cabecera, y ahí no hay cabecera; sin esto no se podría filtrar desde el
+  teléfono.
+- Los cuatro controles de la barra se agrupan en un menú «Opciones».
+- El pie deja el total y «anterior / siguiente». El selector de tamaño de página y el
+  «página X de Y» se ocultan.
+- `altoMaximo` **no se aplica**: un contenedor con su propio scroll dentro de una página
+  que también rueda es un pulgar peleándose con dos ejes.
+
+La decisión se toma con `useMediaQuery`, no con `hidden md:table`: pintar las dos formas
+duplicaría cada fila en el DOM y el tabulador itinerante se movería por filas que nadie
+ve. A cambio, un `watch` sobre la consulta vuelve a medir los anclajes y a sacar del
+tabulador lo que hay dentro de las filas cuando se cruza el corte.
 
 ## Qué **no** debe hacerse
 

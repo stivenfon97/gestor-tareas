@@ -116,6 +116,7 @@ compilar con `npm run build`.
 | `mysql` | `mysql:8.4` | 3309 → 3308 | Base de datos |
 | `node` | `gestor-tareas-node` (desde `docker/node/Dockerfile`, base `node:22-alpine`) | 5173 | Vite en modo desarrollo |
 | `worker` | `gestor-tareas-app` (misma imagen que `app`) | — | `php artisan queue:work` |
+| `humo` | `mcr.microsoft.com/playwright:v1.62.1-noble` | — | Comprobacion de humo. **Perfil `humo`**: no se levanta con `docker compose up` |
 
 ### Volumenes nombrados
 
@@ -176,6 +177,119 @@ Ese limite vive en **cuatro sitios** que deben cambiarse juntos:
 Cambiar uno solo produce fallos silenciosos que parecen bugs de la aplicacion:
 Nginx corta la peticion antes de que PHP la vea, o PHP la descarta antes de que
 la validacion se ejecute.
+
+---
+
+## Comprobacion de humo (`make humo`)
+
+```bash
+make humo
+```
+
+Levanta un navegador de verdad, recorre cinco pantallas —tablero, clientes,
+proyectos, detalle de proyecto y listado de tareas— a tres anchos (360, 768 y
+1440) en claro y en oscuro, y **falla** si encuentra cualquiera de estas dos
+cosas:
+
+1. Texto visible con forma de clave de traduccion: una cadena sin espacios con
+   dos o mas segmentos separados por puntos (`nav.dashboard`).
+2. Desbordamiento horizontal del documento (`scrollWidth > clientWidth` en la
+   raiz). Que una tabla se desplace dentro de su panel es correcto; que la
+   pagina entera se vaya a la derecha, no.
+
+**No es una suite end-to-end y no debe crecer hasta serlo.** Existe porque las
+fases 04 y 07 se cerraron en verde con la aplicacion mostrando sus claves en
+crudo: `npm run build` compila igual de bien y ninguna prueba de servidor mira
+el texto. Lo que valida el comportamiento son las pruebas de Pest.
+
+Necesita los servicios levantados. El objetivo compila los assets primero y
+corre **contra el build, no contra el dev server**: la URL que Vite escribe en
+`public/hot` es `localhost:5173`, que dentro de la red de Compose es el propio
+contenedor de la comprobacion. Ademas es la version que vale, porque el escaner
+de Tailwind solo falla en el build de produccion.
+
+### Donde quedan las capturas
+
+| Ruta | Que hay |
+|---|---|
+| `storage/humo/capturas/` | Una PNG por pantalla, ancho y tema: `tareas-360-dark.png` |
+| `storage/humo/resultados/` | Lo que Playwright guarda de un fallo |
+| `storage/humo/sesion.json` | La cookie de sesion, reutilizada por las seis comprobaciones |
+
+Todo `storage/humo` esta en `.gitignore`: son artefactos.
+
+**Mira las capturas.** La comprobacion dice que nada esta roto, no que algo este
+bien: las mayusculas inconsistentes de las cabeceras de tabla pasaban las dos
+comprobaciones y solo se vieron mirando una PNG.
+
+La sesion se abre **una sola vez**, en el `globalSetup`: Fortify limita los
+intentos de acceso y seis autenticaciones seguidas agotan el cupo.
+
+### Credenciales
+
+Salen de `DesarrolloSeeder` y se pueden cambiar por entorno:
+
+| Variable | Por defecto |
+|---|---|
+| `HUMO_URL` | `http://nginx` |
+| `HUMO_CORREO` | `admin@gestor.test` |
+| `HUMO_CLAVE` | `password` |
+
+---
+
+## Traducciones: como se generan y como anadir una clave
+
+Las traducciones de la interfaz viven en `lang/es/*.php` y `lang/en/*.php`. El
+cliente no lee esos archivos: el plugin de Vite de `laravel-vue-i18n` los
+compila a **`lang/php_es.json` y `lang/php_en.json`**, que estan en
+`.gitignore` porque son artefactos.
+
+### Que los genera, y la trampa
+
+El plugin los escribe en `buildStart` y **los borra en `buildEnd`**. Eso
+significa que `npm run build` los deja fuera del disco al terminar. Para el
+propio build no importa —el JSON queda inlineado en los chunks—, pero **un dev
+server que ya estuviera corriendo se queda sin diccionario**: el `import()` de
+`lang/php_es.json` devuelve 404, el paquete se traga el fallo y toda la interfaz
+pinta su clave en crudo.
+
+Es exactamente lo que le paso a las fases 04 y 07: la verificacion de cada fase
+es `docker compose exec node npm run build`, y se ejecuta con `docker compose
+up` levantado.
+
+Lo arregla un plugin propio de tres lineas en `vite.config.ts`
+(`regenerarTraducciones`), que los vuelve a escribir en `closeBundle`, que corre
+despues de `buildEnd`. Si alguna vez vuelven a faltar, reiniciar el servicio
+`node` tambien los regenera:
+
+```bash
+docker compose restart node
+```
+
+### Anadir una clave nueva
+
+1. Anadela a `lang/es/<grupo>.php` **y a `lang/en/<grupo>.php`, en el mismo
+   commit**. Se admite el texto en espanol como valor provisional en `en`.
+2. Usala desde el componente con `$t('grupo.clave')`, o con `trans()` importado
+   de **`@/lib/i18n`**, nunca del paquete: el envoltorio avisa por consola y la
+   marca en pantalla como `⟦grupo.clave⟧` cuando no resuelve. Hay una regla de
+   ESLint que lo impide.
+3. Corre `php artisan test --filter=CoberturaDeClaves`. Falla si la clave no
+   existe en los dos idiomas, si un prefijo compuesto en ejecucion
+   (`` $t(`enums.estado_tarea.${estado}`) ``) no corresponde a ningun grupo, o
+   si `es` y `en` dejan de tener exactamente las mismas claves.
+
+Esa misma prueba **informa** —sin fallar— de las claves definidas que nadie usa.
+No falla porque hay claves que resuelve el servidor con `__()` y otras que
+esperan a una fase posterior.
+
+Las tres redes son independientes y hacen falta las tres:
+
+| Red | Donde salta | Que caza |
+|---|---|---|
+| `CoberturaDeClavesTest` | `php artisan test` | Claves que faltan en `es` o en `en` |
+| Modo estricto de `@/lib/i18n` | Navegador, en desarrollo | Cualquier clave que no resuelva, sea cual sea el motivo |
+| `make humo` | Navegador, contra el build | Lo mismo, ya en la pantalla, en cinco pantallas |
 
 ---
 
@@ -303,6 +417,11 @@ Git versiona **codigo**, no datos. Quedan fuera y necesitan su propio respaldo:
 - **`app` y `worker` corren con el UID/GID del host** (variables `UID` y `GID`
   del `.env`, 1000 por defecto). Sin eso, los archivos que los contenedores
   escriben en el bind mount quedan como `root` y el host no los puede editar.
+- **La comprobacion de humo no corre en el contenedor `node`.** Ese es Alpine y
+  Playwright no soporta musl: sus navegadores son binarios contra glibc. El
+  servicio `humo` usa la imagen oficial, que ya los trae instalados, y sus
+  dependencias van a `tests/humo/node_modules` en lugar de al volumen
+  `dependencias-node`: ese arbol lo instalo Alpine y mezclarlos rompe los dos.
 - **No se usa Laravel Sail**: se necesita control explicito de Nginx y de los
   limites de subida.
 - **No se usa Redis.** Colas, cache y sesiones van por el driver `database`.
