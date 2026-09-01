@@ -14,6 +14,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | docker-compose.yml, .env*, .gitignore | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
 | lang/** | .ai/rules/lang.md |
+| resources/js/layouts/** | .ai/rules/layouts.md |
 | database/migrations/** | .ai/rules/migrations.md |
 | app/Models/**, app/Models/Tarea.php, app/Models/Reporte.php, app/Models/Reunion.php, app/Models/Proyecto.php | .ai/rules/models.md |
 | app/Observers/** | .ai/rules/observers.md |
