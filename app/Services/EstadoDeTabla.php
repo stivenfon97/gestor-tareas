@@ -38,11 +38,10 @@ final class EstadoDeTabla
     {
         $sort = trim((string) $request->input('sort', ''));
 
-        if ($sort === '') {
-            return [['campo' => $porDefecto, 'direccion' => 'asc']];
-        }
-
-        $campos = array_filter(array_map('trim', explode(',', $sort)));
+        // El valor por defecto se lee igual que el parámetro, guion incluido:
+        // el listado global de tareas ordena por `-updated_at`, y sin esto no
+        // habría forma de expresar un descendente por defecto.
+        $campos = array_filter(array_map('trim', explode(',', $sort === '' ? $porDefecto : $sort)));
 
         return array_values(array_map(static fn (string $campo): array => [
             'campo' => ltrim($campo, '-'),

@@ -25,6 +25,8 @@ return [
     'descripcion' => 'Descripción',
     'buscar' => 'Buscar por nombre',
     'todos_los_estados' => 'Todos los estados',
+    'descripcion_listado' => 'Cada proyecto tiene sus propios módulos, tareas y periodos.',
+    'ver_tareas' => 'Ver las tareas del proyecto',
     'tareas_abiertas' => 'Tareas abiertas',
     'sin_proyectos_ayuda' => 'Los proyectos en los que participes aparecerán aquí.',
     'fecha_creacion' => 'Alta',

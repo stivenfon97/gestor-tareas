@@ -15,6 +15,7 @@ return [
     'sin_tareas_ayuda' => 'Tasks you create in this project will show up here.',
 
     'codigo' => 'Code',
+    'proyecto' => 'Project',
     'modulo' => 'Module',
     'sin_modulo' => 'No module',
     'periodo' => 'Period',
@@ -35,6 +36,12 @@ return [
     'correcciones' => 'Fixes it caused',
     'correcciones_conteo' => ':total fixes',
     'sin_correcciones' => 'This task has caused no fixes.',
+
+    'todas' => [
+        'titulo' => 'All tasks',
+        'descripcion' => 'Tasks across all of your projects, most recently touched first.',
+        'sin_tareas_ayuda' => 'Once you take part in a project with tasks, they will show up here.',
+    ],
 
     'estado' => [
         'titulo' => 'Status',

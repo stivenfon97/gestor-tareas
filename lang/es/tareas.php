@@ -15,6 +15,7 @@ return [
     'sin_tareas_ayuda' => 'Las tareas que crees en este proyecto aparecerán aquí.',
 
     'codigo' => 'Código',
+    'proyecto' => 'Proyecto',
     'modulo' => 'Módulo',
     'sin_modulo' => 'Sin módulo',
     'periodo' => 'Periodo',
@@ -35,6 +36,17 @@ return [
     'correcciones' => 'Correcciones que generó',
     'correcciones_conteo' => ':total correcciones',
     'sin_correcciones' => 'Esta tarea no ha generado ninguna corrección.',
+
+    /*
+     * Listado global: todas las tareas visibles del usuario, de todos sus
+     * proyectos. Es la pantalla que más se usa y hasta la fase 07b no existía
+     * como destino: había que entrar a un proyecto y buscar su pestaña.
+     */
+    'todas' => [
+        'titulo' => 'Todas las tareas',
+        'descripcion' => 'Las tareas de todos tus proyectos, con lo último que se tocó primero.',
+        'sin_tareas_ayuda' => 'Cuando participes en un proyecto con tareas, aparecerán aquí.',
+    ],
 
     'estado' => [
         'titulo' => 'Estado',

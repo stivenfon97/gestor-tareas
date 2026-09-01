@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { trans } from 'laravel-vue-i18n';
 import { computed } from 'vue';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { trans } from '@/lib/i18n';
 import { create, index, show } from '@/routes/proyectos';
+import { index as tareasIndex } from '@/routes/tareas';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
 type Proyecto = {
@@ -43,6 +44,8 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
             clave: 'nombre',
             marcador: trans('comun.buscar'),
         },
+        // Titular de la tarjeta en móvil.
+        principal: true,
         anchoMinimo: '16rem',
     },
     {
@@ -57,6 +60,7 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
                 etiqueta: cliente.nombre,
             })),
         },
+        prioritaria: true,
         anchoMinimo: '12rem',
     },
     {
@@ -71,6 +75,7 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
         etiqueta: trans('proyectos.tareas_abiertas'),
         valor: (proyecto) => proyecto.tareas_abiertas_count,
         alineacion: 'derecha',
+        prioritaria: true,
         anchoMinimo: '8rem',
     },
     {
@@ -85,6 +90,7 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
                 etiqueta: trans(opcion.etiqueta),
             })),
         },
+        prioritaria: true,
         anchoMinimo: '8rem',
     },
     {
@@ -102,18 +108,32 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
 const abrir = (proyecto: Proyecto): void => {
     router.visit(show(proyecto.id).url);
 };
+
+/*
+ * Enlace al listado global ya filtrado por este proyecto y por los estados
+ * abiertos, que es lo que cuenta la columna. El filtro viaja en la URL porque
+ * ahí es donde vive el estado de un listado: así el enlace se puede compartir.
+ */
+const ESTADOS_ABIERTOS = ['pendiente', 'en_proceso', 'en_espera'];
+
+const tareasAbiertasDe = (id: number): string =>
+    `${tareasIndex().url}?filter[proyecto_id]=${id}&filter[estado]=${ESTADOS_ABIERTOS.join(',')}`;
 </script>
 
 <template>
     <Head :title="$t('proyectos.titulo')" />
 
     <div class="flex flex-col gap-seccion">
-        <div class="flex items-start justify-between gap-bloque">
-            <Heading variant="small" :title="$t('proyectos.titulo')" />
-            <Button v-if="props.puede.crear" as-child size="sm">
-                <Link :href="create()">{{ $t('proyectos.crear') }}</Link>
-            </Button>
-        </div>
+        <CabeceraDePagina
+            :titulo="$t('proyectos.titulo')"
+            :descripcion="$t('proyectos.descripcion_listado')"
+        >
+            <template v-if="props.puede.crear" #acciones>
+                <Button as-child size="sm">
+                    <Link :href="create()">{{ $t('proyectos.crear') }}</Link>
+                </Button>
+            </template>
+        </CabeceraDePagina>
 
         <TablaDatos
             :url="index().url"
@@ -150,6 +170,23 @@ const abrir = (proyecto: Proyecto): void => {
                 <span class="text-texto-suave">{{
                     fila.cliente?.nombre ?? '—'
                 }}</span>
+            </template>
+
+            <!-- El conteo es la pregunta «¿qué queda por hacer aquí?»; que
+                 sea un enlace la responde en un clic en vez de en cuatro. -->
+            <template #celda-tareas_abiertas="{ fila }">
+                <!-- En color de marca, que es el color de enlace del tema: un
+                     enlace que se ve igual que el texto de al lado no lo
+                     encuentra nadie, y el sentido de esta columna es ser la
+                     entrada al listado. -->
+                <Link
+                    v-if="fila.tareas_abiertas_count > 0"
+                    :href="tareasAbiertasDe(fila.id)"
+                    class="text-marca underline-offset-4 hover:underline"
+                >
+                    {{ fila.tareas_abiertas_count }}
+                </Link>
+                <span v-else class="text-texto-tenue">0</span>
             </template>
 
             <template #celda-prefijo="{ fila }">

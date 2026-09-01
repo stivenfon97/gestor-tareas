@@ -12,6 +12,7 @@ use App\Http\Controllers\Gestion\EquipoController;
 use App\Http\Controllers\Gestion\EstadoUsuarioController;
 use App\Http\Controllers\Gestion\MiembroEquipoController;
 use App\Http\Controllers\Gestion\UsuarioController;
+use App\Http\Controllers\ListadoDeTareasController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\NotaTareaController;
 use App\Http\Controllers\PagoController;
@@ -112,6 +113,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('proyectos/{proyecto}/pagos', [PagoController::class, 'index'])->name('proyectos.pagos.index');
     Route::get('proyectos/{proyecto}/reuniones', [ReunionController::class, 'index'])->name('proyectos.reuniones.index');
     Route::post('proyectos/{proyecto}/reportes', [ReporteController::class, 'store'])->name('proyectos.reportes.store');
+
+    /*
+     * Listado global de tareas. Va **antes** que `tareas/{tarea}`: con el
+     * orden al revés, `/tareas` no llegaría aquí nunca.
+     *
+     * Lo acota `Tarea::visiblesPara()`, no una policy: `viewAny` pide un
+     * proyecto y aquí no hay uno solo.
+     */
+    Route::get('tareas', ListadoDeTareasController::class)->name('tareas.index');
 
     Route::get('tareas/{tarea}', [TareaController::class, 'show'])->name('tareas.show');
     Route::get('tareas/{tarea}/editar', [TareaController::class, 'edit'])->name('tareas.edit');

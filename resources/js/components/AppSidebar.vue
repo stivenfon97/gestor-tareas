@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Building2, BookOpen, FolderGit2, LayoutGrid, Users, UsersRound } from '@lucide/vue';
+import {
+    Building2,
+    BookOpen,
+    FolderGit2,
+    LayoutGrid,
+    ListChecks,
+    Users,
+    UsersRound,
+} from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -20,6 +28,7 @@ import { dashboard } from '@/routes';
 import { index as clientesIndex } from '@/routes/clientes';
 import { index as equiposIndex } from '@/routes/equipos';
 import { index as proyectosIndex } from '@/routes/proyectos';
+import { index as tareasIndex } from '@/routes/tareas';
 import { index as usuariosIndex } from '@/routes/usuarios';
 import type { NavItem } from '@/types';
 
@@ -32,13 +41,26 @@ const { puede, esSoloLectura } = usePermisos();
 const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         { title: 'nav.dashboard', href: dashboard(), icon: LayoutGrid },
+        /*
+         * Tareas va segundo, antes que proyectos: es la pantalla que más se
+         * usa. Hasta la fase 07b no estaba en el menú y solo se llegaba
+         * entrando a un proyecto y buscando su pestaña.
+         *
+         * El listado se acota solo: `Tarea::visiblesPara()` no devuelve nada
+         * de un proyecto en el que no participas.
+         */
+        { title: 'nav.tareas', href: tareasIndex(), icon: ListChecks },
         { title: 'nav.proyectos', href: proyectosIndex(), icon: FolderGit2 },
     ];
 
     // El catálogo de clientes es interno: `ClientePolicy@viewAny` lo niega al
     // rol global `invitado`, así que tampoco se le enseña la puerta.
-    if (! esSoloLectura.value) {
-        items.push({ title: 'nav.clientes', href: clientesIndex(), icon: Building2 });
+    if (!esSoloLectura.value) {
+        items.push({
+            title: 'nav.clientes',
+            href: clientesIndex(),
+            icon: Building2,
+        });
     }
 
     if (puede('usuarios.gestionar')) {
