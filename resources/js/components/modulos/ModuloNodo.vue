@@ -189,7 +189,7 @@ const etiquetaTareas = computed(() => {
                 @keydown.enter.prevent="confirmarHijo"
                 @keydown.esc.prevent="anadiendo = false"
             />
-            <Button size="sm" variant="secondary" @click="confirmarHijo">
+            <Button size="sm" variant="outline" @click="confirmarHijo">
                 {{ $t('comun.agregar') }}
             </Button>
         </div>

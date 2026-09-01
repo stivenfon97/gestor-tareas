@@ -8,8 +8,8 @@ import type { ColumnaDeTabla } from './tipos';
 /**
  * Los filtros de columna, apilados. Solo por debajo de `md`.
  *
- * En la tabla los filtros viven en una fila bajo la cabecera, y esa fila no
- * existe cuando la tabla se convierte en tarjetas. Sin esto, en el teléfono no
+ * En la tabla los filtros cuelgan de la cabecera de cada columna, y esa
+ * cabecera no existe cuando la tabla se convierte en tarjetas. Sin esto, en el teléfono no
  * se podría filtrar en absoluto: se verían las tareas de todos los proyectos y
  * no habría forma de reducirlas.
  *
@@ -75,6 +75,7 @@ const abierto = ref(props.total > 0);
                     :filtro="columna.filtro!"
                     :etiqueta="columna.etiqueta"
                     :valor="props.filtros[columna.filtro!.clave] ?? ''"
+                    comodo
                     @cambiar="
                         (valor: string, retrasar: boolean) =>
                             emit(

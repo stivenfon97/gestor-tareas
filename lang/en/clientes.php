@@ -29,6 +29,8 @@ return [
     'todos' => 'All',
 
     'proyectos' => 'Projects',
+    'proyectos_activos' => 'Active projects',
+    'proyectos_de_total' => ':activos active projects out of :total.',
     'sin_proyectos' => 'This client has no projects yet.',
 
     'resumen' => [

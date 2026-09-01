@@ -14,6 +14,9 @@ return [
     'actualizado' => 'Proyecto actualizado.',
     'eliminado' => 'Proyecto eliminado.',
     'eliminar' => 'Eliminar proyecto',
+    'eliminar_confirmar_titulo' => 'Eliminar este proyecto',
+    'eliminar_confirmar_cuerpo' => 'Se van con él sus módulos, sus tareas, sus periodos, sus pagos y su bitácora. No hay forma de recuperarlo.',
+    'eliminar_confirmar_campo' => 'Escribe «:nombre» para confirmar',
     'eliminar_ayuda' => 'Solo para deshacer una creación equivocada. Para archivar un proyecto que sí trabajó, cámbialo a «finalizado».',
     'eliminar_confirmar' => '¿Eliminar «:nombre»? El borrado es suave y conserva su historial.',
 

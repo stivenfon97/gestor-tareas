@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem } from '@/types';
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
         breadcrumbs?: BreadcrumbItem[];
     }>(),
@@ -12,17 +13,30 @@ withDefaults(
         breadcrumbs: () => [],
     },
 );
+
+/**
+ * La miga solo aparece cuando **hay camino**.
+ *
+ * Con un solo nivel la miga dice «Tablero» y el `<h1>` de justo debajo dice
+ * «Tablero»: el mismo nombre dos veces en cuarenta píxeles de altura. La miga
+ * sirve para volver al nivel de arriba, y con un nivel no hay arriba.
+ */
+const hayCamino = computed(() => props.breadcrumbs.length > 1);
 </script>
 
 <template>
+    <!--
+        Cabecera de la aplicación: el conmutador del menú y el del tema, nada
+        más. `h-12` y no `h-16`: con la miga fuera, dieciséis unidades de alto
+        para dos botones era una franja de aire sobre el título de cada
+        pantalla.
+    -->
     <header
-        class="flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border/70 px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4"
+        class="flex h-12 shrink-0 items-center gap-2 border-b border-sidebar-border/70 px-6 transition-[width,height] ease-linear md:px-4"
     >
         <div class="flex items-center gap-2">
             <SidebarTrigger class="-ml-1" />
-            <template v-if="breadcrumbs && breadcrumbs.length > 0">
-                <Breadcrumbs :breadcrumbs="breadcrumbs" />
-            </template>
+            <Breadcrumbs v-if="hayCamino" :breadcrumbs="props.breadcrumbs" />
         </div>
 
         <!--

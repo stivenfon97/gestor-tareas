@@ -22,9 +22,10 @@ defender cuando aparezca la tentación de meterle un caso particular.
 | `TablaDatos/TablaDatos.vue` | El componente |
 | `TablaDatos/tipos.ts` | La API pública: `ColumnaDeTabla`, `FiltroDeColumna`, `AccionEnLote`… |
 | `TablaDatos/CabeceraDeColumna.vue` | Etiqueta, control de orden y prioridad de orden |
-| `TablaDatos/FiltroDeColumna.vue` | Filtro de texto o de opciones, bajo la cabecera |
-| `TablaDatos/MenuColumnas.vue` | Visibilidad de columnas (a partir de `md`) |
-| `TablaDatos/MenuCompacto.vue` | Los cuatro controles agrupados (por debajo de `md`) |
+| `TablaDatos/FiltroDeColumna.vue` | El control: filtro de texto o de opciones |
+| `TablaDatos/FiltroDeCabecera.vue` | Disparador y capa flotante del filtro, en la cabecera |
+| `TablaDatos/LeyendaDeColumna.vue` | Clave de lectura de una columna, en la cabecera |
+| `TablaDatos/MenuCompacto.vue` | Los cuatro controles agrupados, en el pie |
 | `TablaDatos/TarjetaDeFila.vue` | Una fila apilada como tarjeta (por debajo de `md`) |
 | `TablaDatos/PanelDeFiltros.vue` | Los filtros de columna, apilados (por debajo de `md`) |
 | `TablaDatos/EstadoVacio.vue` | Los dos vacíos |
@@ -111,7 +112,10 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
 ### Slots
 
 - **`celda-{id}`** — contenido de una celda. Recibe `{ fila, valor }`.
-- **`acciones`** — controles propios de la página en la barra de herramientas.
+- **`leyenda-{id}`** — clave de lectura de esa columna. Si el slot existe, la cabecera
+  pinta un botón de información que la abre. Es lo que explica una columna de símbolos:
+  el componente no sabe qué significa un icono, la página sí.
+- **`acciones`** — controles propios de la página, en el pie junto a «Opciones».
 - **`vacio-acciones`** — la salida del vacío inicial (normalmente «crear»).
 
 ### Eventos
@@ -171,12 +175,12 @@ pintar cada valor.
 
 Lo demás que cambia por debajo de `md`:
 
-- Los filtros de columna se apilan en un `<details>` encima del panel. En la tabla viven
-  bajo la cabecera, y ahí no hay cabecera; sin esto no se podría filtrar desde el
-  teléfono.
-- Los cuatro controles de la barra se agrupan en un menú «Opciones».
+- Los filtros de columna se apilan en un `<details>` encima del panel. En la tabla
+  cuelgan de la cabecera de cada columna, y ahí no hay cabecera; sin esto no se podría
+  filtrar desde el teléfono.
 - El pie deja el total y «anterior / siguiente». El selector de tamaño de página y el
-  «página X de Y» se ocultan.
+  «página X de Y» se ocultan. El menú «Opciones» sigue ahí: es el mismo a todos los
+  anchos.
 - `altoMaximo` **no se aplica**: un contenedor con su propio scroll dentro de una página
   que también rueda es un pulgar peleándose con dos ejes.
 
@@ -246,7 +250,7 @@ Se usa muchas horas al día, así que la tabla se recorre entera sin ratón.
 
 | Tecla | Qué hace |
 |---|---|
-| `Tab` | Barra de herramientas → cabeceras y filtros → primera fila → pie |
+| `Tab` | Cabeceras, con sus leyendas y filtros → primera fila → pie, con «Opciones» |
 | `↑` `↓` | Fila anterior / siguiente |
 | `Inicio` `Fin` | Primera / última fila de la página |
 | `Intro` | Abre la fila enfocada |
@@ -326,3 +330,38 @@ ve, que es peor que no hacerlo porque parece que funciona.
 - **Acciones en lote reales.** Hoy la única es copiar códigos, que no necesita servidor.
   Mover tareas de periodo en bloque es trabajo de la fase 09 y ya tiene sitio donde
   engancharse.
+
+### Los filtros no viven en la maquetación de la tabla
+
+El `<select>` de «Tipo» se renderizaba como `Tc`: la columna lleva un icono, mide cuarenta
+píxeles y el control medía lo que la celda.
+
+Ensanchar esa columna solo movía el problema a la siguiente columna estrecha. **Ningún
+control de filtro hereda el ancho de su columna**: en la cabecera hay un disparador de
+tamaño fijo y el control vive en una capa flotante, que se dimensiona por su contenido.
+Con eso desapareció además la segunda fila del `<thead>`.
+
+Los controles llevan `data-filtro-de-columna` y los disparadores `data-filtro-cabecera`:
+`make humo` los abre uno a uno y falla si alguno mide menos de 96px. Los abre de verdad
+—una capa cerrada no existe en el DOM visible— y falla también si no llegó a medir
+ninguno, que es la forma silenciosa de dar verde en vacío.
+
+### La tabla acaba en una fila entera
+
+`altoMaximo` es un límite en píxeles sobre un contenido medido en filas, así que caía casi
+siempre en mitad de una y la última fila visible salía partida. El componente recorta ese
+límite hasta el pie de la última fila que cabe entera.
+
+Se miden las filas del DOM, no `alto de fila × n`: una fila con el nombre en dos líneas
+mide más que sus vecinas. Cuando el contenido cabe entero no se recorta nada, y el panel
+queda ajustado a su contenido.
+
+El desplazamiento vertical no se puede sacar del panel: un `<thead>` pegajoso necesita un
+contenedor que ruede, y ese contenedor tiene que rodar también en horizontal por las
+columnas ancladas.
+
+### Con una sola página no hay controles de paginación
+
+«Por página · Página 1 de 1 · ‹ ›» con `last_page` a uno son cuatro controles que no
+llevan a ninguna parte: dos nacen deshabilitados y el tercero informa de que no hay nada
+más. Queda el total de resultados, que sí dice algo.

@@ -56,3 +56,12 @@ Hay dos maneras distintas de que un texto salga mal y **no se detectan igual**:
 Del segundo se encarga `vue/no-bare-strings-in-template` en `npm run lint`. Cubre el texto de la plantilla y los atributos que se muestran (`title`, `alt`, `placeholder`, `aria-label`). **No cubre** los literales del `<script>` ni los que se pasan como prop: para esos, el valor es una **clave** y la resuelve con `$t` quien la pinta (`NavMain`, `Breadcrumbs`, `AuthSimpleLayout`, `settings/Layout`). En `defineOptions` no se puede llamar a `trans()`: se evalúa al importar el módulo, antes de que i18n exista.
 
 Las excepciones se declaran en `eslint.config.js` con el motivo al lado, o con `<!-- eslint-disable-next-line vue/no-bare-strings-in-template (motivo) -->` en el archivo. Nunca desactivando la regla entera: una regla sin escape se apaga en cuanto estorba.
+
+## Escala de acciones: cuatro escalones, y la destructiva nunca en la posición primaria
+Primaria `default` (relleno esmeralda), una por pantalla como mucho: lo que se viene a hacer ahí. Secundaria `outline`: alternativas del mismo nivel y todo lo que cambia estado sin destruir. Terciaria `ghost`: navegación y deshacer de bajo riesgo. Destructiva `destructive`, **fuera de la posición primaria** —menú de acciones secundarias o pie de la pantalla de edición— y con confirmación proporcional al daño: lo que arrastra otras entidades detrás confirma escribiendo el nombre (`components/ConfirmarPorNombre.vue`), no con un «¿seguro?» que se contesta sin leer.
+
+No uses `variant="secondary"` para acciones: es un relleno gris que no ocupa ningún escalón. Queda para `Badge`.
+
+Una acción de estado tiene forma de control (`outline`, nunca `ghost` suelto a la derecha) y su rótulo dice qué va a pasar, no en qué estado está: «Desactivar» en un cliente activo, «Activar» en uno inactivo.
+
+Detalle y razones en docs/05-identidad-visual.md §13.

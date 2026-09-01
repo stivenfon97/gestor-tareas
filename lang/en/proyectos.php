@@ -14,6 +14,9 @@ return [
     'actualizado' => 'Project updated.',
     'eliminado' => 'Project deleted.',
     'eliminar' => 'Delete project',
+    'eliminar_confirmar_titulo' => 'Delete this project',
+    'eliminar_confirmar_cuerpo' => 'Its modules, tasks, periods, payments and meeting log go with it. There is no way back.',
+    'eliminar_confirmar_campo' => 'Type “:nombre” to confirm',
     'eliminar_ayuda' => 'Only to undo a mistaken creation. To archive a project that did real work, set it to “finished”.',
     'eliminar_confirmar' => 'Delete “:nombre”? The delete is soft and keeps its history.',
 

@@ -55,7 +55,7 @@ const props = defineProps<{
                     v-if="props.puede.editar"
                     as-child
                     size="sm"
-                    variant="secondary"
+                    variant="outline"
                 >
                     <Link :href="edit(props.cliente.id)">{{
                         $t('comun.editar')

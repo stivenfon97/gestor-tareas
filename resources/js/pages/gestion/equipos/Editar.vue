@@ -128,11 +128,7 @@ const props = defineProps<{
                         </option>
                     </select>
                 </div>
-                <Button
-                    type="submit"
-                    variant="secondary"
-                    :disabled="processing"
-                >
+                <Button type="submit" variant="outline" :disabled="processing">
                     {{ $t('comun.agregar') }}
                 </Button>
             </Form>

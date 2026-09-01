@@ -538,3 +538,169 @@ haber ahí**, en qué fase llega, y ofrece el camino que hoy sí existe.
 **Nunca datos de mentira.** Una cifra inventada se olvida, nadie la distingue de un dato
 real y acaba enseñándose a un cliente. Es la misma regla que ya seguía
 `SeccionPendiente.vue` en el concentrador de proyecto.
+
+---
+
+## 12. Composición
+
+Añadido en la fase 07d. La revisión con el texto ya traducido dio un veredicto que no
+era sobre el diseño —tipografía, colores y densidad de fila funcionaban— sino sobre
+**cómo estaba compuesto**: sobraba vacío, había marcos anidados sin jerarquía entre ellos
+y tres cosas que parecían errores de renderizado.
+
+### 12.1 — Una sola frontera por pantalla
+
+Había dos cajas concéntricas: `SidebarInset` en variante `inset` pintaba un panel blanco
+redondeado con sombra sobre toda el área de contenido, y dentro la tabla pintaba el suyo
+con borde. Nada distinguía a una de otra, así que la tabla se leía como un objeto
+flotando dentro de otro objeto.
+
+Se retira la de fuera. El menú lateral pasa a `variant="sidebar"` —columna con borde
+derecho, sin margen ni redondeo— y el contenido se apoya directamente sobre el fondo de
+la página. **La única frontera de una pantalla es la que envuelve su contenido**, no la
+que envuelve la página.
+
+Consecuencia para los recuadros que quedaban dentro:
+
+| Bloque | Qué queda |
+|---|---|
+| Listados | El panel de la tabla. Es la frontera. |
+| Resumen de proyecto | Ninguna. Ya eran tres columnas con divisores, no tres tarjetas (§7.1); retirada la capa de fuera no hace falta añadir nada. |
+| Tablero | Los tres bloques punteados se quedan: el borde discontinuo es lo que los marca como marcadores de posición, no como contenido (§11.3). |
+
+### 12.2 — La altura la manda el contenido
+
+En clientes había tres filas y después seiscientos píxeles de panel blanco. El panel no
+sobraba de espacio: **se estiraba**. El contenedor de contenido llevaba `flex-1` y crecía
+hasta el pie de la ventana hubiera tres filas o trescientas.
+
+Se le quita el `flex-1`. Un listado de tres filas se ve corto, que es la verdad, y por
+debajo se ve el fondo de la página.
+
+Las otras dos direcciones se descartaron:
+
+- **Rellenar el hueco con información útil** —últimos periodos, tareas abiertas por
+  proyecto— es inventar un tablero dentro de un listado, y adelanta trabajo de las fases
+  09 y 12. Un hueco es una respuesta honesta; un bloque puesto para taparlo, no.
+- **Estirar el contenido** hasta ocupar la altura habría dado filas de sesenta píxeles en
+  un listado de tres y de veinte en uno de treinta: la misma pantalla con dos densidades
+  distintas según cuántos datos haya.
+
+### 12.3 — El ancho también está acotado
+
+`--container-contenido: 90rem` (1440px), aplicado en `AppSidebarLayout`. No muerde por
+debajo de 1440px de ventana —ahí el ancho disponible ya es menor— y sí en 1600 y 1920,
+donde una tabla de cinco columnas repartía mil seiscientos píxeles entre celdas medio
+vacías.
+
+Dentro de ese tope, **qué ocupa todo el ancho depende de para qué sirve**:
+
+- La tabla, sí. Alinear columnas entre filas es su trabajo, y una tabla estrecha con
+  desplazamiento horizontal es peor que una ancha.
+- El resumen de proyecto, no (`max-w-4xl`). Tres hechos sobre el mismo proyecto se leen
+  como un grupo; repartidos entre 1140px quedan uno en cada esquina de la pantalla.
+
+### 12.4 — La tabla acaba en una fila entera
+
+El desplazamiento vertical vive **dentro** del panel, y eso no es opcional: un `<thead>`
+pegajoso necesita un contenedor que ruede, y ese contenedor tiene que rodar también en
+horizontal por las columnas ancladas.
+
+El defecto no era el `overflow`: era que el alto máximo (`70vh`) es un límite en píxeles
+aplicado a un contenido medido en filas, y caía casi siempre en mitad de una. `TablaDatos`
+recorta ahora ese límite hasta el pie de la última fila que cabe entera.
+
+Se miden las filas de verdad, no `alto de fila × n`: una fila con el nombre en dos líneas
+mide más que sus vecinas. Cuando el contenido cabe entero no se recorta nada, que es lo
+que deja el panel ajustado a su contenido en los listados cortos.
+
+### 12.5 — Los filtros cuelgan de la cabecera
+
+El `<select>` de «Tipo» se renderizaba como `Tc`. La columna solo lleva un icono, mide
+cuarenta píxeles, y el control medía lo que la celda.
+
+Ensanchar esa columna solo movía el problema a la siguiente columna estrecha. La regla es
+**ningún control de filtro hereda el ancho de su columna**: el disparador es un icono de
+tamaño fijo en la cabecera y el control vive en una capa flotante, que se dimensiona por
+su contenido.
+
+De paso desaparece la segunda fila del `<thead>`, que era otra banda de controles entre
+la cabecera y los datos. En el teléfono no cambia nada: ahí nunca hubo cabecera y los
+filtros ya vivían apilados en `PanelDeFiltros` (§10.3).
+
+### 12.6 — Ninguna banda existe solo para alojar botones
+
+«Columnas» y «densidad» ocupaban una franja horizontal entera entre la cabecera de la
+página y el panel. Ahora son un único menú «Opciones» —el mismo `MenuCompacto` que ya
+servía al teléfono— y viven en el pie de la tabla, una barra que ya existía. Cero píxeles
+de alto nuevos.
+
+El pie también deja de mentir: con una sola página, «Por página · Página 1 de 1 · ‹ ›»
+son cuatro controles que no llevan a ninguna parte. Con `last_page` a uno solo queda el
+total de resultados.
+
+Lo mismo con la cabecera de la aplicación: la miga de pan decía «Tablero» y el `<h1>` de
+justo debajo decía «Tablero». La miga sirve para volver al nivel de arriba, así que solo
+aparece cuando hay más de un nivel, y la cabecera baja de `h-16` a `h-12`.
+
+### 12.7 — Los símbolos se explican
+
+La columna de tipo son cinco iconos monocromos sin ninguna clave de lectura.
+
+Cada icono ya declaraba `title` y `aria-label`, pero iban sobre el `<svg>`, y **un
+atributo `title` sobre un `<svg>` no produce ningún globo de ayuda**: hace falta un
+elemento `<title>` hijo. Ahora van sobre un `<span>` que envuelve al icono, y el globo
+aparece.
+
+El globo resuelve la duda de uno en uno. La leyenda las resuelve todas: `TablaDatos`
+pinta un botón de información en la cabecera de cualquier columna para la que la página
+declare un slot `leyenda-{columna}`. El contenido lo escribe la página —el componente no
+sabe qué es un tipo de tarea—; el componente solo sabe que esa columna tiene leyenda.
+
+---
+
+## 13. Escala de acciones
+
+Cuatro escalones. Antes había botones sólidos, botones con borde y texto pelado sin un
+criterio de cuándo usar cada uno: «Editar» era `secondary` en el detalle de proyecto,
+«Desactivar» era texto suelto en clientes, y «Eliminar proyecto» compartía esquina y
+tamaño con «Editar».
+
+| Escalón | Variante | Para qué | Cuántas por pantalla |
+|---|---|---|---|
+| **Primaria** | `default` (relleno esmeralda) | Lo que se viene a hacer a esa pantalla. | Una, o ninguna. |
+| **Secundaria** | `outline` | Alternativas del mismo nivel, y todo lo que cambia estado sin destruir nada. | Las que hagan falta. |
+| **Terciaria** | `ghost` | Navegación y deshacer de bajo riesgo: «Volver», «Limpiar filtros». | Las que hagan falta. |
+| **Destructiva** | `destructive`, **nunca en la posición primaria** | Lo que no se puede deshacer. | Fuera del flujo principal. |
+
+No se usa `variant="secondary"` para acciones: es un relleno gris que no ocupa ningún
+escalón —ni pesa como el primario ni se lee como un control secundario— y era la mitad de
+la ambigüedad. Queda para `Badge`, que no es una acción.
+
+### 13.1 — Las destructivas no comparten prominencia
+
+«Eliminar proyecto» estaba arriba a la derecha, del mismo tamaño que «Editar» y justo
+donde va el ratón por defecto. Un proyecto arrastra módulos, tareas, periodos, pagos y
+reuniones.
+
+Baja dos escalones: vive en un menú de acciones secundarias («⋯», `outline`, tamaño
+icono) y no ejecuta hasta que se **escribe el nombre del proyecto**.
+
+### 13.2 — La confirmación es proporcional al daño
+
+Un «¿seguro?» con dos botones se contesta que sí sin leerlo: el dedo ya iba hacia el
+botón de la derecha. Escribir el nombre obliga a mirar qué se está borrando, y es la
+única confirmación que distingue borrar el proyecto que tocaba de borrar el de al lado
+(`components/ConfirmarPorNombre.vue`).
+
+Se reserva para lo que arrastra otras cosas detrás. Para lo reversible basta un diálogo
+normal: una confirmación que estorba en lo trivial enseña a despacharla sin leer también
+en lo grave.
+
+### 13.3 — Una acción de estado tiene forma de control y rótulo de estado
+
+«Desactivar» en clientes era `ghost`: texto suelto alineado a la derecha, sin ninguna
+apariencia de algo en lo que se pueda pulsar. Pasa a `outline`.
+
+El rótulo dice **qué va a pasar**, no en qué estado está: en un cliente activo pone
+«Desactivar» y en uno inactivo, «Activar».

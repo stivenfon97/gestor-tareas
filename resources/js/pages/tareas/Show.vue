@@ -142,7 +142,7 @@ const eliminar = (): void => {
                 <Button
                     v-if="props.puede.editar"
                     as-child
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                 >
                     <Link :href="edit(props.tarea.id)">{{
