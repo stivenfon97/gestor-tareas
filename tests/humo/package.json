@@ -1,0 +1,11 @@
+{
+    "name": "gestor-tareas-humo",
+    "private": true,
+    "description": "Comprobación de humo: claves sin traducir y desbordamiento horizontal. No es una suite end-to-end y no debe crecer hasta serlo.",
+    "scripts": {
+        "humo": "playwright test"
+    },
+    "devDependencies": {
+        "@playwright/test": "1.62.1"
+    }
+}

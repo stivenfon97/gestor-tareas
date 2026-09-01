@@ -119,6 +119,39 @@ services:
       retries: 5
       start_period: 20s
 
+  # Comprobación de humo. Solo con el perfil "humo": no forma parte de los
+  # cinco servicios del entorno y "docker compose up" no debe levantarla.
+  #
+  # No corre en el contenedor "node" porque ese es Alpine y Playwright no
+  # soporta musl: sus navegadores son binarios contra glibc. La imagen oficial
+  # ya trae los navegadores instalados, así que tampoco hay que descargarlos.
+  #
+  # Sus dependencias van a tests/humo/node_modules, fuera del volumen que
+  # comparten "app" y "node": ese árbol lo instaló Alpine contra musl y esta
+  # imagen es Debian. `@playwright/test` es lo único que instala aquí.
+  humo:
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    profiles: ["humo"]
+    # Con el usuario del host: si corre como root, las capturas quedan de root
+    # dentro del bind mount y no hay forma de borrarlas desde fuera.
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /var/www/html/tests/humo
+    environment:
+      # Chromium necesita un HOME donde escribir; el del usuario no existe en
+      # esta imagen.
+      HOME: /tmp
+      # Dentro de la red de Compose se llega a la aplicación por el nombre del
+      # servicio, no por localhost:8080.
+      HUMO_URL: ${HUMO_URL:-http://nginx}
+      HUMO_CORREO: ${HUMO_CORREO:-admin@gestor.test}
+      HUMO_CLAVE: ${HUMO_CLAVE:-password}
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      nginx:
+        condition: service_healthy
+    command: sh -c "npm install --no-audit --no-fund && npx playwright test"
+
 volumes:
   datos-mysql:
   archivos-storage:
