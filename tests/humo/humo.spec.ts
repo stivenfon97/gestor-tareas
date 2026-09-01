@@ -149,6 +149,26 @@ for (const tema of ['light', 'dark'] as const) {
                     // Inertia pinta en el cliente: sin esto se mide el esqueleto.
                     await pagina.waitForLoadState('networkidle');
 
+                    /*
+                     * Que la pantalla tenga texto, antes de mirar qué texto es.
+                     *
+                     * Las dos comprobaciones de abajo pasan **en vacío** sobre
+                     * una página en blanco: no hay claves crudas y no hay
+                     * desbordamiento. Y una página en blanco es justo lo que
+                     * deja un bundle que no carga, que es el fallo más gordo
+                     * que puede haber. Sin esto, la comprobación de humo daría
+                     * verde sobre una aplicación que no arranca.
+                     */
+                    const visible = await pagina.evaluate(
+                        () => document.body.innerText.trim().length,
+                    );
+
+                    if (visible < 50) {
+                        fallos.push(
+                            `${pantalla.nombre}: la pantalla llegó vacía (${visible} caracteres). ¿Cargó el bundle?`,
+                        );
+                    }
+
                     const claves = await clavesEnPantalla(pagina);
 
                     if (claves.length > 0) {

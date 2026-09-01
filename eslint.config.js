@@ -14,6 +14,40 @@ const controlStatements = [
     'try',
     'throw',
 ];
+/*
+ * Excepciones de `vue/no-bare-strings-in-template`.
+ *
+ * La opción `allowlist` **sustituye** a la lista por defecto del plugin, así
+ * que hay que repetirla entera; y sus entradas se escapan antes de compilar el
+ * patrón, así que son cadenas literales, no expresiones regulares.
+ *
+ * Funciona quitando del texto todo lo que aparece aquí y avisando si queda
+ * algo. Por eso admitir los dígitos no debilita la regla: «100% seguro» sigue
+ * dejando «% seguro» y sigue avisando. Lo único que pasa a estar permitido es
+ * un texto **entero** de puntuación y números, que nunca hay que traducir.
+ *
+ * Para un caso suelto que no sea de estas clases, la salida es un comentario
+ * en el propio archivo diciendo por qué:
+ *
+ *     <!-- eslint-disable-next-line vue/no-bare-strings-in-template
+ *          (motivo concreto) -->
+ *
+ * Nunca desactivando la regla entera.
+ */
+const puntuacionPermitida = [
+    // La lista por defecto del plugin, tal cual.
+    '(', ')', ',', '.', '&', '+', '-', '=', '*', '/', '#', '%', '!', '?',
+    ':', '[', ']', '{', '}', '<', '>', '|',
+    '\u00B7', '\u2022', '\u2010', '\u2013', '\u2014', '\u2212',
+    // Añadidos del proyecto:
+    // Los dígitos, para que un valor puramente numérico no pida traducción:
+    // los tamaños de página del selector de la tabla y el «0» de un contador.
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    // La flecha del historial de estados. Es un símbolo, no una palabra:
+    // «pendiente → en proceso» se lee igual en los dos idiomas.
+    '\u2192',
+];
+
 const paddingAroundControl = [
     ...controlStatements.flatMap((stmt) => [
         { blankLine: 'always', prev: '*', next: stmt },
@@ -90,6 +124,47 @@ export default defineConfigWithVueTs(
             '@stylistic/padding-line-between-statements': [
                 'error',
                 ...paddingAroundControl,
+            ],
+        },
+    },
+    {
+        /*
+         * Ningún texto visible se escribe en la plantilla.
+         *
+         * Es la otra mitad de la red de i18n, y detecta lo contrario que
+         * `CoberturaDeClavesTest`: aquella caza claves que no resuelven —que se
+         * pintan como su ruta—, y esta caza texto que **nunca pasó por el
+         * sistema de traducción**. Un `Email address` incrustado se renderiza
+         * perfectamente y ninguna comprobación de humo lo ve; simplemente está
+         * en el idioma equivocado.
+         *
+         * Cubre el texto de la plantilla y los atributos que se muestran. **No
+         * cubre** los literales del `<script>` ni los que se pasan como prop a
+         * un componente: para esos, la costumbre del proyecto es que el valor
+         * sea una clave y quien la pinta la resuelva con `$t`, como hacen
+         * `NavMain`, `Breadcrumbs` y `AuthSimpleLayout`.
+         */
+        files: ['resources/js/**/*.vue'],
+        rules: {
+            'vue/no-bare-strings-in-template': [
+                'error',
+                {
+                    allowlist: puntuacionPermitida,
+                    // `placeholder` en cualquier etiqueta, no solo en `input`:
+                    // los campos del proyecto son componentes propios.
+                    attributes: {
+                        '/.+/': [
+                            'title',
+                            'alt',
+                            'placeholder',
+                            'aria-label',
+                            'aria-placeholder',
+                            'aria-roledescription',
+                            'aria-valuetext',
+                        ],
+                    },
+                    directives: ['v-text'],
+                },
             ],
         },
     },
