@@ -28,10 +28,12 @@ const passwordInput = useTemplateRef('passwordInput');
             :title="$t('ajustes.eliminar.titulo')"
             :description="$t('ajustes.eliminar.descripcion')"
         />
+        <!-- Tokens de estado, no utilidades crudas de paleta: `bg-red-50` no
+             tiene par oscuro y dejaba texto rojo claro sobre fondo rojo claro. -->
         <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+            class="space-y-4 rounded-lg border border-estado-cancelada-borde bg-estado-cancelada-fondo p-4"
         >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+            <div class="relative space-y-0.5 text-estado-cancelada-texto">
                 <p class="font-medium">{{ $t('ajustes.eliminar.aviso') }}</p>
                 <p class="text-sm">
                     {{ $t('ajustes.eliminar.aviso_cuerpo') }}
@@ -81,7 +83,7 @@ const passwordInput = useTemplateRef('passwordInput');
                         <DialogFooter class="gap-2">
                             <DialogClose as-child>
                                 <Button
-                                    variant="secondary"
+                                    variant="outline"
                                     @click="
                                         () => {
                                             clearErrors();

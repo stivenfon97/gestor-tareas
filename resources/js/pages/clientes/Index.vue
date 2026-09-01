@@ -61,13 +61,20 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
         anchoMinimo: '14rem',
     },
     {
+        /*
+         * Un solo número, y la columna dice cuál es.
+         *
+         * Antes decía «1 / 1» bajo el rótulo «Proyectos», y nada en la pantalla
+         * explicaba qué era cada mitad: se leía igual como «uno de uno» que
+         * como una fracción o una fecha abreviada. El total sigue estando a un
+         * palmo, en el globo de ayuda de la celda.
+         */
         id: 'proyectos',
-        etiqueta: trans('clientes.proyectos'),
-        valor: (cliente) =>
-            `${cliente.proyectos_activos_count} / ${cliente.proyectos_count}`,
+        etiqueta: trans('clientes.proyectos_activos'),
+        valor: (cliente) => cliente.proyectos_activos_count,
         alineacion: 'derecha',
         prioritaria: true,
-        anchoMinimo: '7rem',
+        anchoMinimo: '9rem',
     },
     {
         id: 'estado',
@@ -165,16 +172,35 @@ const abrir = (cliente: Cliente): void => {
                 </Badge>
             </template>
 
+            <template #celda-proyectos="{ fila }">
+                <span
+                    :title="
+                        $t('clientes.proyectos_de_total', {
+                            activos: String(fila.proyectos_activos_count),
+                            total: String(fila.proyectos_count),
+                        })
+                    "
+                >
+                    {{ fila.proyectos_activos_count }}
+                </span>
+            </template>
+
             <template #celda-acciones="{ fila }">
                 <!-- Un cliente nunca se borra, se desactiva: tiene proyectos con
-                     historial de pagos colgando y la clave foránea es `restrict`. -->
+                     historial de pagos colgando y la clave foránea es `restrict`.
+
+                     `outline`, no `ghost`: cambiar el estado de un cliente es
+                     una acción, y un texto suelto alineado a la derecha no se
+                     parece a nada en lo que se pueda pulsar. La etiqueta dice
+                     **qué va a pasar**, no en qué estado está: en un cliente
+                     inactivo pone «Activar». -->
                 <Form
                     v-if="props.puede.crear"
                     v-bind="EstadoClienteController.update.form(fila.id)"
                     v-slot="{ processing }"
                 >
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         type="submit"
                         :disabled="processing"

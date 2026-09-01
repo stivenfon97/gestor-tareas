@@ -29,6 +29,8 @@ return [
     'todos' => 'Todos',
 
     'proyectos' => 'Proyectos',
+    'proyectos_activos' => 'Proyectos activos',
+    'proyectos_de_total' => ':activos proyectos activos de :total en total.',
     'sin_proyectos' => 'Este cliente todavía no tiene proyectos.',
 
     'resumen' => [

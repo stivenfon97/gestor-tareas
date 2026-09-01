@@ -33,7 +33,7 @@ defineProps<{
         class="space-y-6 text-center"
         v-slot="{ processing }"
     >
-        <Button :disabled="processing" variant="secondary">
+        <Button :disabled="processing" variant="outline">
             <Spinner v-if="processing" />
             {{ $t('auth.verificar.reenviar') }}
         </Button>

@@ -94,7 +94,7 @@ const handleDelete = () => {
                 </DialogDescription>
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
-                        <Button variant="secondary">{{
+                        <Button variant="outline">{{
                             $t('comun.cancelar')
                         }}</Button>
                     </DialogClose>

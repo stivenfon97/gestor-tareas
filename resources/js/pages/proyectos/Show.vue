@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { MoreHorizontal } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import ConfirmarPorNombre from '@/components/ConfirmarPorNombre.vue';
 import SeccionPendiente from '@/components/SeccionPendiente.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { trans } from '@/lib/i18n';
 import { destroy, edit, show } from '@/routes/proyectos';
 import { index as miembrosIndex } from '@/routes/proyectos/miembros';
@@ -107,7 +115,19 @@ const enlaceDePestana = (id: string): string =>
         ? show(props.proyecto.id).url
         : `${show(props.proyecto.id).url}?seccion=${id}`;
 
+/*
+ * Eliminar un proyecto estaba en la esquina superior derecha, al lado de
+ * «Editar» y del mismo tamaño: justo donde el ratón va por defecto. Una acción
+ * que se lleva por delante módulos, tareas, periodos, pagos y reuniones no
+ * puede competir en prominencia con la acción de todos los días.
+ *
+ * Baja dos escalones: vive en el menú de acciones secundarias y confirma
+ * escribiendo el nombre del proyecto.
+ */
+const confirmando = ref(false);
+
 const eliminar = (): void => {
+    confirmando.value = false;
     router.delete(destroy(props.proyecto.id).url);
 };
 </script>
@@ -123,24 +143,34 @@ const eliminar = (): void => {
             "
         >
             <template #acciones>
-                <Button
-                    v-if="props.puede.editar"
-                    as-child
-                    size="sm"
-                    variant="secondary"
-                >
+                <!-- Primaria: es lo que se viene a hacer a esta pantalla. -->
+                <Button v-if="props.puede.editar" as-child size="sm">
                     <Link :href="edit(props.proyecto.id)">{{
                         $t('comun.editar')
                     }}</Link>
                 </Button>
-                <Button
-                    v-if="props.puede.eliminar"
-                    size="sm"
-                    variant="outline"
-                    @click="eliminar"
-                >
-                    {{ $t('proyectos.eliminar') }}
-                </Button>
+
+                <DropdownMenu v-if="props.puede.eliminar">
+                    <DropdownMenuTrigger as-child>
+                        <Button
+                            variant="outline"
+                            size="icon-sm"
+                            :title="$t('comun.mas_acciones')"
+                            :aria-label="$t('comun.mas_acciones')"
+                        >
+                            <MoreHorizontal class="size-4" aria-hidden="true" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-56">
+                        <DropdownMenuItem
+                            variant="destructive"
+                            class="text-cuerpo"
+                            @select="confirmando = true"
+                        >
+                            {{ $t('proyectos.eliminar') }}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </template>
 
             <template #meta>
@@ -159,6 +189,21 @@ const eliminar = (): void => {
                 </span>
             </template>
         </CabeceraDePagina>
+
+        <ConfirmarPorNombre
+            v-if="props.puede.eliminar"
+            v-model:abierto="confirmando"
+            :titulo="$t('proyectos.eliminar_confirmar_titulo')"
+            :descripcion="$t('proyectos.eliminar_confirmar_cuerpo')"
+            :nombre="props.proyecto.nombre"
+            :etiqueta-campo="
+                $t('proyectos.eliminar_confirmar_campo', {
+                    nombre: props.proyecto.nombre,
+                })
+            "
+            :boton="$t('proyectos.eliminar')"
+            @confirmar="eliminar"
+        />
 
         <!--
             Pestañas. Se desplazan a lo ancho en móvil en lugar de partirse en
@@ -197,8 +242,18 @@ const eliminar = (): void => {
             v-if="props.seccion === 'resumen'"
             class="flex flex-col gap-bloque"
         >
+            <!--
+                `max-w-4xl`: tres hechos sobre el mismo proyecto se leen como un
+                grupo, y repartidos entre 1140px de ancho quedan uno en cada
+                esquina de la pantalla. La tabla sí ocupa todo el ancho —alinear
+                columnas es su trabajo—; un resumen de tres datos, no.
+
+                Cada celda es una pila vertical: cuando la fase 09 traiga fechas
+                y montos, el periodo abierto gana líneas y el bloque crece hacia
+                abajo sin rehacerse.
+            -->
             <div
-                class="grid gap-bloque sm:grid-cols-3 sm:divide-x sm:divide-borde"
+                class="grid max-w-4xl gap-bloque sm:grid-cols-3 sm:divide-x sm:divide-borde"
             >
                 <div class="flex flex-col gap-corto sm:pr-bloque">
                     <p class="text-fino font-medium text-texto-suave">
