@@ -2,7 +2,6 @@
 import { Head, Link } from '@inertiajs/vue3';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Button } from '@/components/ui/button';
-import { dashboard } from '@/routes';
 import { index as clientesIndex } from '@/routes/clientes';
 import { index as proyectosIndex } from '@/routes/proyectos';
 import { index as tareasIndex } from '@/routes/tareas';
@@ -15,17 +14,12 @@ import { index as tareasIndex } from '@/routes/tareas';
  * traiga los datos de verdad, cada bloque dice **qué va a haber ahí** y ofrece
  * el camino que hoy sí existe. Nada de cifras de mentira: un dato inventado se
  * olvida y acaba enseñándose a un cliente.
+ *
+ * **Sin miga de pan.** Decía «Tablero» en la cabecera de la aplicación y el
+ * `<h1>` de justo debajo decía «Tablero»: el mismo nombre dos veces en cuarenta
+ * píxeles de altura. La miga sirve para volver al nivel de arriba, y aquí no
+ * hay arriba.
  */
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'nav.dashboard',
-                href: dashboard(),
-            },
-        ],
-    },
-});
 
 const bloques = [
     {

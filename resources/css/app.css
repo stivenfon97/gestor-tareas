@@ -90,6 +90,14 @@
     --spacing-fila-compacta: 1.75rem; /* 28px */
 
     /*
+     * Ancho máximo del contenido. Acota la columna de trabajo en pantallas
+     * grandes: sin tope, en 1920px una tabla de cinco columnas reparte 1600px
+     * entre celdas medio vacías. No muerde por debajo de 1440px, donde el
+     * ancho disponible ya es menor que el tope.
+     */
+    --container-contenido: 90rem; /* 1440px */
+
+    /*
      * Radios pequeños: es el lenguaje de un instrumento, no de una tarjeta de
      * producto. No hay radio grande.
      */
