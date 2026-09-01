@@ -13,7 +13,12 @@ import { Label } from '@/components/ui/label';
 import { index as tareasDelProyecto } from '@/routes/proyectos/tareas';
 import { destroy, edit, show, update } from '@/routes/tareas';
 import { store as guardarNota } from '@/routes/tareas/notas';
-import type { EstadoTarea, PrioridadTarea, Transicion, TipoTarea } from '@/types/tareas';
+import type {
+    EstadoTarea,
+    PrioridadTarea,
+    Transicion,
+    TipoTarea,
+} from '@/types/tareas';
 
 const props = defineProps<{
     tarea: {
@@ -34,7 +39,12 @@ const props = defineProps<{
         periodo: number | null;
         periodo_origen: number | null;
         arrastrada: boolean;
-        origen: { id: number; codigo: string; nombre: string; estado: EstadoTarea } | null;
+        origen: {
+            id: number;
+            codigo: string;
+            nombre: string;
+            estado: EstadoTarea;
+        } | null;
     };
     transiciones: Transicion[];
     notas: Array<{
@@ -111,8 +121,13 @@ const eliminar = (): void => {
                 <div class="flex flex-col gap-1">
                     <div class="flex items-center gap-2">
                         <IconoTipo :tipo="props.tarea.tipo" />
-                        <span class="font-mono text-sm text-muted-foreground">{{ props.tarea.codigo }}</span>
-                        <BadgeEstado :estado="props.tarea.estado" tamano="pequeno" />
+                        <span class="font-mono text-sm text-muted-foreground">{{
+                            props.tarea.codigo
+                        }}</span>
+                        <BadgeEstado
+                            :estado="props.tarea.estado"
+                            tamano="pequeno"
+                        />
                     </div>
                     <Heading variant="small" :title="props.tarea.nombre" />
                 </div>
@@ -120,23 +135,51 @@ const eliminar = (): void => {
 
             <div class="flex items-center gap-2">
                 <Button as-child variant="ghost" size="sm">
-                    <Link :href="tareasDelProyecto(props.tarea.proyecto.id)">{{ $t('comun.volver') }}</Link>
+                    <Link :href="tareasDelProyecto(props.tarea.proyecto.id)">{{
+                        $t('comun.volver')
+                    }}</Link>
                 </Button>
-                <Button v-if="props.puede.editar" as-child variant="secondary" size="sm">
-                    <Link :href="edit(props.tarea.id)">{{ $t('comun.editar') }}</Link>
+                <Button
+                    v-if="props.puede.editar"
+                    as-child
+                    variant="secondary"
+                    size="sm"
+                >
+                    <Link :href="edit(props.tarea.id)">{{
+                        $t('comun.editar')
+                    }}</Link>
                 </Button>
-                <Button v-if="props.puede.eliminar" variant="outline" size="sm" @click="eliminar">
+                <Button
+                    v-if="props.puede.eliminar"
+                    variant="outline"
+                    size="sm"
+                    @click="eliminar"
+                >
                     {{ $t('tareas.eliminar') }}
                 </Button>
             </div>
         </div>
 
         <!-- Metadatos -->
-        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span>{{ $t('tareas.tipo') }}: {{ $t(`enums.tipo_tarea.${props.tarea.tipo}`) }}</span>
-            <span>{{ $t('tareas.prioridad') }}: {{ $t(`enums.prioridad_tarea.${props.tarea.prioridad}`) }}</span>
-            <span>{{ $t('tareas.modulo') }}: {{ props.tarea.modulo?.ruta ?? $t('tareas.sin_modulo') }}</span>
-            <span>{{ $t('tareas.periodo') }}: {{ props.tarea.periodo ?? $t('tareas.sin_periodo') }}</span>
+        <div
+            class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground"
+        >
+            <span
+                >{{ $t('tareas.tipo') }}:
+                {{ $t(`enums.tipo_tarea.${props.tarea.tipo}`) }}</span
+            >
+            <span
+                >{{ $t('tareas.prioridad') }}:
+                {{ $t(`enums.prioridad_tarea.${props.tarea.prioridad}`) }}</span
+            >
+            <span
+                >{{ $t('tareas.modulo') }}:
+                {{ props.tarea.modulo?.ruta ?? $t('tareas.sin_modulo') }}</span
+            >
+            <span
+                >{{ $t('tareas.periodo') }}:
+                {{ props.tarea.periodo ?? $t('tareas.sin_periodo') }}</span
+            >
             <span v-if="props.tarea.fecha_inicio">
                 {{ $t('tareas.fecha_inicio') }}: {{ props.tarea.fecha_inicio }}
             </span>
@@ -147,13 +190,19 @@ const eliminar = (): void => {
                 {{ $t('tareas.creada_por') }}: {{ props.tarea.creada_por }}
             </span>
             <Badge v-if="props.tarea.arrastrada" variant="outline">
-                {{ $t('tareas.arrastrada_de', { consecutivo: String(props.tarea.periodo_origen ?? '—') }) }}
+                {{
+                    $t('tareas.arrastrada_de', {
+                        consecutivo: String(props.tarea.periodo_origen ?? '—'),
+                    })
+                }}
             </Badge>
         </div>
 
         <!-- Estado y transiciones -->
         <section class="flex flex-col gap-3">
-            <h3 class="text-base font-medium">{{ $t('tareas.estado.titulo') }}</h3>
+            <h3 class="text-base font-medium">
+                {{ $t('tareas.estado.titulo') }}
+            </h3>
 
             <ControlDeEstado
                 :tarea-id="props.tarea.id"
@@ -162,20 +211,30 @@ const eliminar = (): void => {
                 :puede-cambiar="props.puede.cambiarEstado"
             />
 
-            <p v-if="props.tarea.motivo_espera" class="text-sm text-muted-foreground">
-                {{ $t('tareas.estado.motivo_espera') }}: {{ props.tarea.motivo_espera }}
+            <p
+                v-if="props.tarea.motivo_espera"
+                class="text-sm text-muted-foreground"
+            >
+                {{ $t('tareas.estado.motivo_espera') }}:
+                {{ props.tarea.motivo_espera }}
             </p>
-            <p v-if="props.tarea.motivo_cancelacion" class="text-sm text-muted-foreground">
-                {{ $t('tareas.estado.motivo_cancelacion') }}: {{ props.tarea.motivo_cancelacion }}
+            <p
+                v-if="props.tarea.motivo_cancelacion"
+                class="text-sm text-muted-foreground"
+            >
+                {{ $t('tareas.estado.motivo_cancelacion') }}:
+                {{ props.tarea.motivo_cancelacion }}
             </p>
         </section>
 
         <!-- Descripción editable en línea -->
         <section class="flex flex-col gap-2">
             <div class="flex items-center justify-between gap-4">
-                <h3 class="text-base font-medium">{{ $t('tareas.descripcion') }}</h3>
+                <h3 class="text-base font-medium">
+                    {{ $t('tareas.descripcion') }}
+                </h3>
                 <Button
-                    v-if="props.puede.editar && ! editandoDescripcion"
+                    v-if="props.puede.editar && !editandoDescripcion"
                     variant="ghost"
                     size="sm"
                     @click="editandoDescripcion = true"
@@ -192,16 +251,27 @@ const eliminar = (): void => {
                 />
                 <InputError :message="descripcion.errors.descripcion" />
                 <div class="flex items-center gap-2">
-                    <Button size="sm" :disabled="descripcion.processing" @click="guardarDescripcion">
+                    <Button
+                        size="sm"
+                        :disabled="descripcion.processing"
+                        @click="guardarDescripcion"
+                    >
                         {{ $t('comun.guardar') }}
                     </Button>
-                    <Button variant="ghost" size="sm" @click="editandoDescripcion = false">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        @click="editandoDescripcion = false"
+                    >
                         {{ $t('comun.cancelar') }}
                     </Button>
                 </div>
             </template>
 
-            <p v-else class="max-w-3xl whitespace-pre-line text-sm text-muted-foreground">
+            <p
+                v-else
+                class="max-w-3xl text-sm whitespace-pre-line text-muted-foreground"
+            >
                 {{ props.tarea.descripcion }}
             </p>
         </section>
@@ -215,20 +285,29 @@ const eliminar = (): void => {
             >
                 <span class="font-mono">{{ props.tarea.origen.codigo }}</span>
                 <span>{{ props.tarea.origen.nombre }}</span>
-                <BadgeEstado :estado="props.tarea.origen.estado" tamano="pequeno" />
+                <BadgeEstado
+                    :estado="props.tarea.origen.estado"
+                    tamano="pequeno"
+                />
             </Link>
         </section>
 
         <section class="flex flex-col gap-2">
             <h3 class="text-base font-medium">
                 {{ $t('tareas.correcciones') }}
-                <span v-if="props.correcciones.length" class="text-sm font-normal text-muted-foreground">
+                <span
+                    v-if="props.correcciones.length"
+                    class="text-sm font-normal text-muted-foreground"
+                >
                     ({{ props.correcciones.length }})
                 </span>
             </h3>
 
             <ul v-if="props.correcciones.length" class="flex flex-col gap-1">
-                <li v-for="correccion in props.correcciones" :key="correccion.id">
+                <li
+                    v-for="correccion in props.correcciones"
+                    :key="correccion.id"
+                >
                     <Link
                         :href="show(correccion.id)"
                         class="flex items-center gap-2 text-sm underline-offset-4 hover:underline"
@@ -236,18 +315,29 @@ const eliminar = (): void => {
                         <IconoTipo :tipo="correccion.tipo" />
                         <span class="font-mono">{{ correccion.codigo }}</span>
                         <span>{{ correccion.nombre }}</span>
-                        <BadgeEstado :estado="correccion.estado" tamano="pequeno" />
+                        <BadgeEstado
+                            :estado="correccion.estado"
+                            tamano="pequeno"
+                        />
                     </Link>
                 </li>
             </ul>
-            <p v-else class="text-sm text-muted-foreground">{{ $t('tareas.sin_correcciones') }}</p>
+            <p v-else class="text-sm text-muted-foreground">
+                {{ $t('tareas.sin_correcciones') }}
+            </p>
         </section>
 
         <!-- Notas -->
         <section class="flex flex-col gap-3">
-            <h3 class="text-base font-medium">{{ $t('tareas.notas.titulo') }}</h3>
+            <h3 class="text-base font-medium">
+                {{ $t('tareas.notas.titulo') }}
+            </h3>
 
-            <form v-if="props.puede.comentar" class="flex flex-col gap-2" @submit.prevent="agregarNota">
+            <form
+                v-if="props.puede.comentar"
+                class="flex flex-col gap-2"
+                @submit.prevent="agregarNota"
+            >
                 <Label for="nota">{{ $t('tareas.notas.contenido') }}</Label>
                 <textarea
                     id="nota"
@@ -263,13 +353,19 @@ const eliminar = (): void => {
                         class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                         :aria-label="$t('tareas.notas.visibilidad')"
                     >
-                        <option value="interna">{{ $t('enums.visibilidad.interna') }}</option>
-                        <option value="cliente">{{ $t('enums.visibilidad.cliente') }}</option>
+                        <option value="interna">
+                            {{ $t('enums.visibilidad.interna') }}
+                        </option>
+                        <option value="cliente">
+                            {{ $t('enums.visibilidad.cliente') }}
+                        </option>
                     </select>
                     <Button type="submit" size="sm" :disabled="nota.processing">
                         {{ $t('tareas.notas.agregar') }}
                     </Button>
-                    <span class="text-xs text-muted-foreground">{{ $t('tareas.notas.interna_ayuda') }}</span>
+                    <span class="text-xs text-muted-foreground">{{
+                        $t('tareas.notas.interna_ayuda')
+                    }}</span>
                 </div>
             </form>
 
@@ -279,45 +375,75 @@ const eliminar = (): void => {
                     :key="registro.id"
                     class="rounded-lg border border-border p-3"
                 >
-                    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div
+                        class="flex items-center gap-2 text-xs text-muted-foreground"
+                    >
                         <span>{{ registro.autor }}</span>
                         <span>{{ registro.creada }}</span>
                         <Badge variant="outline">
-                            {{ $t(`enums.visibilidad.${registro.visibilidad}`) }}
+                            {{
+                                $t(`enums.visibilidad.${registro.visibilidad}`)
+                            }}
                         </Badge>
                     </div>
-                    <p class="mt-1 whitespace-pre-line text-sm">{{ registro.contenido }}</p>
+                    <p class="mt-1 text-sm whitespace-pre-line">
+                        {{ registro.contenido }}
+                    </p>
                 </li>
             </ul>
-            <p v-else class="text-sm text-muted-foreground">{{ $t('tareas.notas.vacio') }}</p>
+            <p v-else class="text-sm text-muted-foreground">
+                {{ $t('tareas.notas.vacio') }}
+            </p>
         </section>
 
         <!-- Historial: solo lectura, siempre -->
         <section class="flex flex-col gap-3">
-            <h3 class="text-base font-medium">{{ $t('tareas.historial.titulo') }}</h3>
+            <h3 class="text-base font-medium">
+                {{ $t('tareas.historial.titulo') }}
+            </h3>
 
-            <ol v-if="props.historial.length" class="flex flex-col gap-3 border-l border-border pl-4">
-                <li v-for="registro in props.historial" :key="registro.id" class="flex flex-col gap-1">
+            <ol
+                v-if="props.historial.length"
+                class="flex flex-col gap-3 border-l border-border pl-4"
+            >
+                <li
+                    v-for="registro in props.historial"
+                    :key="registro.id"
+                    class="flex flex-col gap-1"
+                >
                     <div class="flex flex-wrap items-center gap-2 text-sm">
                         <BadgeEstado
                             v-if="registro.anterior"
                             :estado="registro.anterior"
                             tamano="pequeno"
                         />
-                        <span v-else class="text-muted-foreground">{{ $t('tareas.historial.inicial') }}</span>
+                        <span v-else class="text-muted-foreground">{{
+                            $t('tareas.historial.inicial')
+                        }}</span>
                         <span class="text-muted-foreground">→</span>
-                        <BadgeEstado :estado="registro.nuevo" tamano="pequeno" />
+                        <BadgeEstado
+                            :estado="registro.nuevo"
+                            tamano="pequeno"
+                        />
                     </div>
                     <p class="text-xs text-muted-foreground">
                         {{ registro.cuando }}
                         <span v-if="registro.usuario">
-                            {{ $t('tareas.historial.por', { usuario: registro.usuario }) }}
+                            {{
+                                $t('tareas.historial.por', {
+                                    usuario: registro.usuario,
+                                })
+                            }}
                         </span>
                     </p>
-                    <p v-if="registro.comentario" class="text-sm">{{ registro.comentario }}</p>
+                    <p v-if="registro.comentario" class="text-sm">
+                        {{ registro.comentario }}
+                    </p>
                 </li>
             </ol>
-            <p v-else class="text-sm text-muted-foreground">{{ $t('tareas.historial.vacio') }}</p>
+            <p v-else class="text-sm text-muted-foreground">
+                {{ $t('tareas.historial.vacio') }}
+            </p>
         </section>
     </div>
 </template>

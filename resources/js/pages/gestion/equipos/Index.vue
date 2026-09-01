@@ -35,25 +35,44 @@ defineProps<{
             <table class="w-full text-left text-sm">
                 <thead class="bg-muted text-muted-foreground">
                     <tr>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.nombre') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.descripcion') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('gestion.equipos.cantidad_miembros') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.acciones') }}</th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.nombre') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.descripcion') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('gestion.equipos.cantidad_miembros') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.acciones') }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="equipo in equipos.data" :key="equipo.id" class="border-t border-border">
+                    <tr
+                        v-for="equipo in equipos.data"
+                        :key="equipo.id"
+                        class="border-t border-border"
+                    >
                         <td class="px-4 py-2">{{ equipo.nombre }}</td>
-                        <td class="px-4 py-2 text-muted-foreground">{{ equipo.descripcion }}</td>
+                        <td class="px-4 py-2 text-muted-foreground">
+                            {{ equipo.descripcion }}
+                        </td>
                         <td class="px-4 py-2">{{ equipo.usuarios_count }}</td>
                         <td class="px-4 py-2">
                             <Button as-child variant="ghost" size="sm">
-                                <Link :href="edit(equipo.id)">{{ $t('comun.editar') }}</Link>
+                                <Link :href="edit(equipo.id)">{{
+                                    $t('comun.editar')
+                                }}</Link>
                             </Button>
                         </td>
                     </tr>
                     <tr v-if="equipos.data.length === 0">
-                        <td colspan="4" class="px-4 py-6 text-center text-muted-foreground">
+                        <td
+                            colspan="4"
+                            class="px-4 py-6 text-center text-muted-foreground"
+                        >
                             {{ $t('comun.sin_resultados') }}
                         </td>
                     </tr>

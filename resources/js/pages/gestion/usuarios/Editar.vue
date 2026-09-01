@@ -9,7 +9,13 @@ import { Label } from '@/components/ui/label';
 import { index } from '@/routes/usuarios';
 
 const props = defineProps<{
-    usuario: { id: number; name: string; email: string; activo: boolean; rol_global: string | null };
+    usuario: {
+        id: number;
+        name: string;
+        email: string;
+        activo: boolean;
+        rol_global: string | null;
+    };
     roles: Array<{ valor: string; etiqueta: string }>;
 }>();
 </script>
@@ -18,7 +24,11 @@ const props = defineProps<{
     <Head :title="$t('gestion.usuarios.editar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading variant="small" :title="$t('gestion.usuarios.editar')" :description="props.usuario.email" />
+        <Heading
+            variant="small"
+            :title="$t('gestion.usuarios.editar')"
+            :description="props.usuario.email"
+        />
 
         <Form
             v-bind="UsuarioController.update.form(props.usuario.id)"
@@ -27,18 +37,31 @@ const props = defineProps<{
         >
             <div class="grid gap-2">
                 <Label for="name">{{ $t('comun.nombre') }}</Label>
-                <Input id="name" name="name" :default-value="props.usuario.name" required />
+                <Input
+                    id="name"
+                    name="name"
+                    :default-value="props.usuario.name"
+                    required
+                />
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="email">{{ $t('comun.correo') }}</Label>
-                <Input id="email" name="email" type="email" :default-value="props.usuario.email" required />
+                <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    :default-value="props.usuario.email"
+                    required
+                />
                 <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="rol_global">{{ $t('gestion.usuarios.rol_global') }}</Label>
+                <Label for="rol_global">{{
+                    $t('gestion.usuarios.rol_global')
+                }}</Label>
                 <select
                     id="rol_global"
                     name="rol_global"
@@ -58,7 +81,9 @@ const props = defineProps<{
             </div>
 
             <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">{{ $t('comun.guardar') }}</Button>
+                <Button type="submit" :disabled="processing">{{
+                    $t('comun.guardar')
+                }}</Button>
                 <Button as-child variant="ghost">
                     <Link :href="index()">{{ $t('comun.cancelar') }}</Link>
                 </Button>

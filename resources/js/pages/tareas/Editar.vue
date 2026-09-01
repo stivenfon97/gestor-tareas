@@ -4,7 +4,11 @@ import TareaController from '@/actions/App/Http/Controllers/TareaController';
 import Heading from '@/components/Heading.vue';
 import FormularioTarea from '@/components/tareas/FormularioTarea.vue';
 import { show } from '@/routes/tareas';
-import type { OpcionesDeTarea, PrioridadTarea, TipoTarea } from '@/types/tareas';
+import type {
+    OpcionesDeTarea,
+    PrioridadTarea,
+    TipoTarea,
+} from '@/types/tareas';
 
 const props = defineProps<{
     proyecto: { id: number; nombre: string; prefijo_tarea: string };

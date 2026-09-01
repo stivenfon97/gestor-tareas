@@ -32,7 +32,8 @@ const pedirPrevisualizacion = (): void => {
     previsualizacion.post(previsualizar(props.proyecto.id).url, {
         preserveScroll: true,
         onFlash: (flash) => {
-            const propuestas = (flash.previsualizacion ?? []) as FilaCapturaRapida[];
+            const propuestas = (flash.previsualizacion ??
+                []) as FilaCapturaRapida[];
 
             filas.value = propuestas.map((fila) => ({
                 ...fila,
@@ -60,7 +61,9 @@ type FilaConfirmada = {
 
 const confirmacion = useForm<{ filas: FilaConfirmada[] }>({ filas: [] });
 
-const validas = computed(() => filas.value.filter((fila) => fila.nombre.trim() !== ''));
+const validas = computed(() =>
+    filas.value.filter((fila) => fila.nombre.trim() !== ''),
+);
 
 const quitar = (linea: number): void => {
     filas.value = filas.value.filter((fila) => fila.linea !== linea);
@@ -99,7 +102,9 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                 :description="$t('tareas.rapida.descripcion')"
             />
             <Button as-child variant="ghost" size="sm">
-                <Link :href="index(props.proyecto.id)">{{ $t('comun.volver') }}</Link>
+                <Link :href="index(props.proyecto.id)">{{
+                    $t('comun.volver')
+                }}</Link>
             </Button>
         </div>
 
@@ -119,11 +124,18 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                 :placeholder="$t('tareas.rapida.ejemplo')"
                 class="rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-foreground"
             />
-            <p class="text-xs text-muted-foreground">{{ $t('tareas.rapida.formato') }}</p>
+            <p class="text-xs text-muted-foreground">
+                {{ $t('tareas.rapida.formato') }}
+            </p>
             <InputError :message="previsualizacion.errors.texto" />
 
             <div>
-                <Button :disabled="previsualizacion.processing || texto.trim() === ''" @click="pedirPrevisualizacion">
+                <Button
+                    :disabled="
+                        previsualizacion.processing || texto.trim() === ''
+                    "
+                    @click="pedirPrevisualizacion"
+                >
                     {{ $t('tareas.rapida.previsualizar') }}
                 </Button>
             </div>
@@ -131,8 +143,12 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
 
         <section v-if="filas.length" class="flex flex-col gap-3">
             <div>
-                <h3 class="text-base font-medium">{{ $t('tareas.rapida.previsualizacion') }}</h3>
-                <p class="text-sm text-muted-foreground">{{ $t('tareas.rapida.previsualizacion_ayuda') }}</p>
+                <h3 class="text-base font-medium">
+                    {{ $t('tareas.rapida.previsualizacion') }}
+                </h3>
+                <p class="text-sm text-muted-foreground">
+                    {{ $t('tareas.rapida.previsualizacion_ayuda') }}
+                </p>
             </div>
 
             <ul class="flex flex-col gap-3">
@@ -143,7 +159,11 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                 >
                     <div class="flex items-center justify-between gap-4">
                         <span class="font-mono text-xs text-muted-foreground">
-                            {{ $t('tareas.rapida.linea', { numero: String(fila.linea) }) }}
+                            {{
+                                $t('tareas.rapida.linea', {
+                                    numero: String(fila.linea),
+                                })
+                            }}
                         </span>
                         <Button
                             variant="ghost"
@@ -156,48 +176,77 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                     </div>
 
                     <ul v-if="fila.avisos.length" class="flex flex-col gap-1">
-                        <li v-for="aviso in fila.avisos" :key="aviso" class="text-xs text-muted-foreground">
-                            {{ aviso === 'tareas.rapida.avisos.modulo_nuevo'
-                                ? $t('tareas.rapida.modulo_nuevo', { nombre: fila.modulo ?? '' })
-                                : $t(aviso) }}
+                        <li
+                            v-for="aviso in fila.avisos"
+                            :key="aviso"
+                            class="text-xs text-muted-foreground"
+                        >
+                            {{
+                                aviso === 'tareas.rapida.avisos.modulo_nuevo'
+                                    ? $t('tareas.rapida.modulo_nuevo', {
+                                          nombre: fila.modulo ?? '',
+                                      })
+                                    : $t(aviso)
+                            }}
                         </li>
                     </ul>
 
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div class="grid gap-1 sm:col-span-2">
-                            <Label :for="`nombre-${fila.linea}`">{{ $t('comun.nombre') }}</Label>
-                            <Input :id="`nombre-${fila.linea}`" v-model="fila.nombre" />
-                            <InputError :message="errorDeFila(indice, 'nombre')" />
+                            <Label :for="`nombre-${fila.linea}`">{{
+                                $t('comun.nombre')
+                            }}</Label>
+                            <Input
+                                :id="`nombre-${fila.linea}`"
+                                v-model="fila.nombre"
+                            />
+                            <InputError
+                                :message="errorDeFila(indice, 'nombre')"
+                            />
                         </div>
 
                         <div class="grid gap-1">
-                            <Label :for="`estado-${fila.linea}`">{{ $t('comun.estado') }}</Label>
+                            <Label :for="`estado-${fila.linea}`">{{
+                                $t('comun.estado')
+                            }}</Label>
                             <select
                                 :id="`estado-${fila.linea}`"
                                 v-model="fila.estado"
                                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                             >
-                                <option v-for="opcion in props.opciones.estados" :key="opcion.valor" :value="opcion.valor">
+                                <option
+                                    v-for="opcion in props.opciones.estados"
+                                    :key="opcion.valor"
+                                    :value="opcion.valor"
+                                >
                                     {{ $t(opcion.etiqueta) }}
                                 </option>
                             </select>
                         </div>
 
                         <div class="grid gap-1">
-                            <Label :for="`tipo-${fila.linea}`">{{ $t('tareas.tipo') }}</Label>
+                            <Label :for="`tipo-${fila.linea}`">{{
+                                $t('tareas.tipo')
+                            }}</Label>
                             <select
                                 :id="`tipo-${fila.linea}`"
                                 v-model="fila.tipo"
                                 class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                             >
-                                <option v-for="opcion in props.opciones.tipos" :key="opcion.valor" :value="opcion.valor">
+                                <option
+                                    v-for="opcion in props.opciones.tipos"
+                                    :key="opcion.valor"
+                                    :value="opcion.valor"
+                                >
                                     {{ $t(opcion.etiqueta) }}
                                 </option>
                             </select>
                         </div>
 
                         <div class="grid gap-1 sm:col-span-2">
-                            <Label :for="`descripcion-${fila.linea}`">{{ $t('tareas.descripcion') }}</Label>
+                            <Label :for="`descripcion-${fila.linea}`">{{
+                                $t('tareas.descripcion')
+                            }}</Label>
                             <textarea
                                 :id="`descripcion-${fila.linea}`"
                                 v-model="fila.descripcion"
@@ -210,22 +259,47 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                             El motivo se pide aquí, no después: es el momento en
                             que el usuario todavía recuerda por qué lo escribió.
                         -->
-                        <div v-if="fila.estado === 'en_espera'" class="grid gap-1 sm:col-span-2">
-                            <Label :for="`espera-${fila.linea}`">{{ $t('tareas.estado.motivo_espera') }}</Label>
-                            <Input :id="`espera-${fila.linea}`" :model-value="fila.motivo_espera ?? ''" @update:model-value="(valor) => (fila.motivo_espera = String(valor))" />
-                            <InputError :message="errorDeFila(indice, 'motivo_espera')" />
+                        <div
+                            v-if="fila.estado === 'en_espera'"
+                            class="grid gap-1 sm:col-span-2"
+                        >
+                            <Label :for="`espera-${fila.linea}`">{{
+                                $t('tareas.estado.motivo_espera')
+                            }}</Label>
+                            <Input
+                                :id="`espera-${fila.linea}`"
+                                :model-value="fila.motivo_espera ?? ''"
+                                @update:model-value="
+                                    (valor) =>
+                                        (fila.motivo_espera = String(valor))
+                                "
+                            />
+                            <InputError
+                                :message="errorDeFila(indice, 'motivo_espera')"
+                            />
                         </div>
 
-                        <div v-if="fila.estado === 'cancelada'" class="grid gap-1 sm:col-span-2">
+                        <div
+                            v-if="fila.estado === 'cancelada'"
+                            class="grid gap-1 sm:col-span-2"
+                        >
                             <Label :for="`cancelacion-${fila.linea}`">
                                 {{ $t('tareas.estado.motivo_cancelacion') }}
                             </Label>
                             <Input
                                 :id="`cancelacion-${fila.linea}`"
                                 :model-value="fila.motivo_cancelacion ?? ''"
-                                @update:model-value="(valor) => (fila.motivo_cancelacion = String(valor))"
+                                @update:model-value="
+                                    (valor) =>
+                                        (fila.motivo_cancelacion =
+                                            String(valor))
+                                "
                             />
-                            <InputError :message="errorDeFila(indice, 'motivo_cancelacion')" />
+                            <InputError
+                                :message="
+                                    errorDeFila(indice, 'motivo_cancelacion')
+                                "
+                            />
                         </div>
                     </div>
                 </li>
@@ -236,11 +310,17 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                     :disabled="confirmacion.processing || validas.length === 0"
                     @click="confirmar"
                 >
-                    {{ $t('tareas.rapida.confirmar', { total: String(validas.length) }) }}
+                    {{
+                        $t('tareas.rapida.confirmar', {
+                            total: String(validas.length),
+                        })
+                    }}
                 </Button>
             </div>
         </section>
 
-        <p v-else class="text-sm text-muted-foreground">{{ $t('tareas.rapida.sin_filas') }}</p>
+        <p v-else class="text-sm text-muted-foreground">
+            {{ $t('tareas.rapida.sin_filas') }}
+        </p>
     </div>
 </template>

@@ -38,11 +38,21 @@ defineProps<{
             <table class="w-full text-left text-sm">
                 <thead class="bg-muted text-muted-foreground">
                     <tr>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.nombre') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.correo') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('gestion.usuarios.rol_global') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.estado') }}</th>
-                        <th class="px-4 py-2 font-medium">{{ $t('comun.acciones') }}</th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.nombre') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.correo') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('gestion.usuarios.rol_global') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.estado') }}
+                        </th>
+                        <th class="px-4 py-2 font-medium">
+                            {{ $t('comun.acciones') }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,35 +62,67 @@ defineProps<{
                         class="border-t border-border"
                     >
                         <td class="px-4 py-2">{{ usuario.name }}</td>
-                        <td class="px-4 py-2 text-muted-foreground">{{ usuario.email }}</td>
+                        <td class="px-4 py-2 text-muted-foreground">
+                            {{ usuario.email }}
+                        </td>
                         <td class="px-4 py-2">
                             <span v-if="usuario.rol_global">
-                                {{ $t(`enums.rol_global.${usuario.rol_global}`) }}
+                                {{
+                                    $t(`enums.rol_global.${usuario.rol_global}`)
+                                }}
                             </span>
                         </td>
                         <td class="px-4 py-2">
-                            <Badge :variant="usuario.activo ? 'secondary' : 'outline'">
-                                {{ usuario.activo ? $t('gestion.usuarios.activo') : $t('gestion.usuarios.inactivo') }}
+                            <Badge
+                                :variant="
+                                    usuario.activo ? 'secondary' : 'outline'
+                                "
+                            >
+                                {{
+                                    usuario.activo
+                                        ? $t('gestion.usuarios.activo')
+                                        : $t('gestion.usuarios.inactivo')
+                                }}
                             </Badge>
                         </td>
                         <td class="px-4 py-2">
                             <div class="flex items-center gap-2">
                                 <Button as-child variant="ghost" size="sm">
-                                    <Link :href="edit(usuario.id)">{{ $t('comun.editar') }}</Link>
+                                    <Link :href="edit(usuario.id)">{{
+                                        $t('comun.editar')
+                                    }}</Link>
                                 </Button>
                                 <Form
-                                    v-bind="EstadoUsuarioController.update.form(usuario.id)"
+                                    v-bind="
+                                        EstadoUsuarioController.update.form(
+                                            usuario.id,
+                                        )
+                                    "
                                     v-slot="{ processing }"
                                 >
-                                    <Button variant="ghost" size="sm" type="submit" :disabled="processing">
-                                        {{ usuario.activo ? $t('gestion.usuarios.desactivar') : $t('gestion.usuarios.activar') }}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        type="submit"
+                                        :disabled="processing"
+                                    >
+                                        {{
+                                            usuario.activo
+                                                ? $t(
+                                                      'gestion.usuarios.desactivar',
+                                                  )
+                                                : $t('gestion.usuarios.activar')
+                                        }}
                                     </Button>
                                 </Form>
                             </div>
                         </td>
                     </tr>
                     <tr v-if="usuarios.data.length === 0">
-                        <td colspan="5" class="px-4 py-6 text-center text-muted-foreground">
+                        <td
+                            colspan="5"
+                            class="px-4 py-6 text-center text-muted-foreground"
+                        >
                             {{ $t('comun.sin_resultados') }}
                         </td>
                     </tr>
@@ -88,6 +130,8 @@ defineProps<{
             </table>
         </div>
 
-        <p class="text-sm text-muted-foreground">{{ $t('gestion.usuarios.nota_desactivar') }}</p>
+        <p class="text-sm text-muted-foreground">
+            {{ $t('gestion.usuarios.nota_desactivar') }}
+        </p>
     </div>
 </template>

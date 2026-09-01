@@ -12,7 +12,9 @@ import type { RolGlobal } from '@/types/auth';
 export function usePermisos() {
     const page = usePage();
 
-    const rolGlobal = computed<RolGlobal | null>(() => page.props.auth?.rolGlobal ?? null);
+    const rolGlobal = computed<RolGlobal | null>(
+        () => page.props.auth?.rolGlobal ?? null,
+    );
     const permisos = computed<string[]>(() => page.props.auth?.permisos ?? []);
 
     const esAdministrador = computed(() => rolGlobal.value === 'administrador');

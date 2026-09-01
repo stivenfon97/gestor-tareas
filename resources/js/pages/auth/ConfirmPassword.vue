@@ -40,7 +40,9 @@ defineOptions({
     >
         <div class="space-y-6">
             <div class="grid gap-2">
-                <Label htmlFor="password">{{ $t('auth.confirmar.contrasena') }}</Label>
+                <Label htmlFor="password">{{
+                    $t('auth.confirmar.contrasena')
+                }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"

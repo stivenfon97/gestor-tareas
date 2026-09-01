@@ -79,12 +79,19 @@ const enviar = (): void => {
                     :disabled="form.processing"
                     @click="abrir(transicion)"
                 >
-                    {{ $t('tareas.estado.mover_a', { estado: $t(transicion.etiqueta) }) }}
+                    {{
+                        $t('tareas.estado.mover_a', {
+                            estado: $t(transicion.etiqueta),
+                        })
+                    }}
                 </Button>
             </template>
         </div>
 
-        <p v-if="props.transiciones.length === 0" class="text-sm text-muted-foreground">
+        <p
+            v-if="props.transiciones.length === 0"
+            class="text-sm text-muted-foreground"
+        >
             {{ $t('tareas.estado.sin_transiciones') }}
         </p>
 
@@ -93,12 +100,18 @@ const enviar = (): void => {
         <!-- El motivo se pide en el momento, no después: es cuando se recuerda. -->
         <Dialog
             :open="abierta !== null"
-            @update:open="(estaAbierta) => (estaAbierta ? null : (abierta = null))"
+            @update:open="
+                (estaAbierta) => (estaAbierta ? null : (abierta = null))
+            "
         >
             <DialogContent v-if="abierta">
                 <DialogHeader>
                     <DialogTitle>
-                        {{ $t('tareas.estado.mover_a', { estado: $t(abierta.etiqueta) }) }}
+                        {{
+                            $t('tareas.estado.mover_a', {
+                                estado: $t(abierta.etiqueta),
+                            })
+                        }}
                     </DialogTitle>
                     <DialogDescription>
                         {{
@@ -109,8 +122,13 @@ const enviar = (): void => {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div v-if="abierta.requiere_motivo === 'motivo_espera'" class="grid gap-2">
-                    <Label for="motivo_espera">{{ $t('tareas.estado.motivo_espera') }}</Label>
+                <div
+                    v-if="abierta.requiere_motivo === 'motivo_espera'"
+                    class="grid gap-2"
+                >
+                    <Label for="motivo_espera">{{
+                        $t('tareas.estado.motivo_espera')
+                    }}</Label>
                     <textarea
                         id="motivo_espera"
                         v-model="form.motivo_espera"
@@ -121,7 +139,9 @@ const enviar = (): void => {
                 </div>
 
                 <div v-else class="grid gap-2">
-                    <Label for="motivo_cancelacion">{{ $t('tareas.estado.motivo_cancelacion') }}</Label>
+                    <Label for="motivo_cancelacion">{{
+                        $t('tareas.estado.motivo_cancelacion')
+                    }}</Label>
                     <textarea
                         id="motivo_cancelacion"
                         v-model="form.motivo_cancelacion"
@@ -132,7 +152,9 @@ const enviar = (): void => {
                 </div>
 
                 <DialogFooter>
-                    <Button variant="ghost" @click="abierta = null">{{ $t('comun.cancelar') }}</Button>
+                    <Button variant="ghost" @click="abierta = null">{{
+                        $t('comun.cancelar')
+                    }}</Button>
                     <Button :disabled="form.processing" @click="enviar">
                         {{ $t('comun.confirmar') }}
                     </Button>

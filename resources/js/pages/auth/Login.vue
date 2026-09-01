@@ -63,7 +63,9 @@ defineProps<{
 
             <div class="grid gap-2">
                 <div class="flex items-center justify-between">
-                    <Label for="password">{{ $t('auth.acceso.contrasena') }}</Label>
+                    <Label for="password">{{
+                        $t('auth.acceso.contrasena')
+                    }}</Label>
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"

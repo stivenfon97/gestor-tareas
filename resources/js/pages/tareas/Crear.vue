@@ -9,7 +9,10 @@ import type { OpcionesDeTarea } from '@/types/tareas';
 const props = defineProps<{
     proyecto: { id: number; nombre: string; prefijo_tarea: string };
     opciones: OpcionesDeTarea;
-    sugerencias: { modulo_id: number | null; prioridad_por_tipo: Record<string, string> };
+    sugerencias: {
+        modulo_id: number | null;
+        prioridad_por_tipo: Record<string, string>;
+    };
     candidatasDeOrigen: Array<{ id: number; codigo: string; nombre: string }>;
     periodoAbierto: { id: number; consecutivo: number } | null;
 }>();
@@ -19,7 +22,11 @@ const props = defineProps<{
     <Head :title="$t('tareas.crear')" />
 
     <div class="flex max-w-2xl flex-col gap-6">
-        <Heading variant="small" :title="$t('tareas.crear')" :description="props.proyecto.nombre" />
+        <Heading
+            variant="small"
+            :title="$t('tareas.crear')"
+            :description="props.proyecto.nombre"
+        />
 
         <!--
             Sin periodo abierto la tarea nace suelta. Se avisa antes de crearla,

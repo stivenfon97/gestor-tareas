@@ -75,12 +75,16 @@ const handleDelete = () => {
                     class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                     <Trash2 class="h-4 w-4" />
-                    <span class="sr-only">{{ $t('ajustes.passkeys.quitar') }}</span>
+                    <span class="sr-only">{{
+                        $t('ajustes.passkeys.quitar')
+                    }}</span>
                 </Button>
             </DialogTrigger>
 
             <DialogContent>
-                <DialogTitle>{{ $t('ajustes.passkeys.quitar_titulo') }}</DialogTitle>
+                <DialogTitle>{{
+                    $t('ajustes.passkeys.quitar_titulo')
+                }}</DialogTitle>
                 <DialogDescription>
                     {{
                         $t('ajustes.passkeys.quitar_confirmar', {
@@ -90,7 +94,9 @@ const handleDelete = () => {
                 </DialogDescription>
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
-                        <Button variant="secondary">{{ $t('comun.cancelar') }}</Button>
+                        <Button variant="secondary">{{
+                            $t('comun.cancelar')
+                        }}</Button>
                     </DialogClose>
                     <Button
                         variant="destructive"

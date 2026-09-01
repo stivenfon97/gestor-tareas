@@ -50,7 +50,9 @@ const inputEmail = ref(props.email);
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">{{ $t('auth.restablecer.contrasena') }}</Label>
+                <Label for="password">{{
+                    $t('auth.restablecer.contrasena')
+                }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"

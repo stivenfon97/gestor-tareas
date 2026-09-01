@@ -39,8 +39,10 @@ const passwordInput = useTemplateRef('passwordInput');
             </div>
             <Dialog>
                 <DialogTrigger as-child>
-                    <Button variant="destructive" data-test="delete-user-button"
-                                                >{{ $t('ajustes.eliminar.boton') }}</Button
+                    <Button
+                        variant="destructive"
+                        data-test="delete-user-button"
+                        >{{ $t('ajustes.eliminar.boton') }}</Button
                     >
                 </DialogTrigger>
                 <DialogContent>

@@ -66,7 +66,10 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
             </div>
             <div class="relative flex justify-center text-xs uppercase">
                 <span class="bg-background px-2 text-muted-foreground">
-                    {{ props.separator ?? $t('auth.acceso.con_passkey_separador') }}
+                    {{
+                        props.separator ??
+                        $t('auth.acceso.con_passkey_separador')
+                    }}
                 </span>
             </div>
         </div>

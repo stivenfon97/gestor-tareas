@@ -15,7 +15,11 @@ import { index } from '@/routes/equipos';
     <div class="flex max-w-xl flex-col gap-6">
         <Heading variant="small" :title="$t('gestion.equipos.crear')" />
 
-        <Form v-bind="EquipoController.store.form()" class="space-y-6" v-slot="{ errors, processing }">
+        <Form
+            v-bind="EquipoController.store.form()"
+            class="space-y-6"
+            v-slot="{ errors, processing }"
+        >
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
                 <Input id="nombre" name="nombre" required />
@@ -29,7 +33,9 @@ import { index } from '@/routes/equipos';
             </div>
 
             <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">{{ $t('comun.guardar') }}</Button>
+                <Button type="submit" :disabled="processing">{{
+                    $t('comun.guardar')
+                }}</Button>
                 <Button as-child variant="ghost">
                     <Link :href="index()">{{ $t('comun.cancelar') }}</Link>
                 </Button>

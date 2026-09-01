@@ -33,7 +33,7 @@ let slugEditadoAMano = false;
 watch(
     () => form.nombre,
     (nombre) => {
-        if (! slugEditadoAMano) {
+        if (!slugEditadoAMano) {
             form.slug = aSlug(nombre);
         }
     },
@@ -65,7 +65,11 @@ const enviar = (): void => {
                     required
                     class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                 >
-                    <option v-for="cliente in props.clientes" :key="cliente.id" :value="cliente.id">
+                    <option
+                        v-for="cliente in props.clientes"
+                        :key="cliente.id"
+                        :value="cliente.id"
+                    >
                         {{ cliente.nombre }}
                     </option>
                 </select>
@@ -80,16 +84,31 @@ const enviar = (): void => {
 
             <div class="grid gap-2">
                 <Label for="slug">{{ $t('proyectos.slug') }}</Label>
-                <Input id="slug" v-model="form.slug" @input="marcarSlugManual" />
-                <p class="text-xs text-muted-foreground">{{ $t('proyectos.slug_ayuda') }}</p>
+                <Input
+                    id="slug"
+                    v-model="form.slug"
+                    @input="marcarSlugManual"
+                />
+                <p class="text-xs text-muted-foreground">
+                    {{ $t('proyectos.slug_ayuda') }}
+                </p>
                 <InputError :message="form.errors.slug" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="prefijo_tarea">{{ $t('proyectos.prefijo') }}</Label>
-                <Input id="prefijo_tarea" v-model="form.prefijo_tarea" required maxlength="10" />
+                <Input
+                    id="prefijo_tarea"
+                    v-model="form.prefijo_tarea"
+                    required
+                    maxlength="10"
+                />
                 <p class="text-xs text-muted-foreground">
-                    {{ $t('proyectos.prefijo_ayuda', { ejemplo: ejemploDeCodigo }) }}
+                    {{
+                        $t('proyectos.prefijo_ayuda', {
+                            ejemplo: ejemploDeCodigo,
+                        })
+                    }}
                 </p>
                 <!-- Se avisa antes de crear, no después: luego ya no hay vuelta atrás. -->
                 <p class="text-xs font-medium text-muted-foreground">
@@ -99,7 +118,9 @@ const enviar = (): void => {
             </div>
 
             <div class="grid gap-2">
-                <Label for="descripcion">{{ $t('proyectos.descripcion') }}</Label>
+                <Label for="descripcion">{{
+                    $t('proyectos.descripcion')
+                }}</Label>
                 <textarea
                     id="descripcion"
                     v-model="form.descripcion"
@@ -117,7 +138,11 @@ const enviar = (): void => {
                     required
                     class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                 >
-                    <option v-for="opcion in props.estados" :key="opcion.valor" :value="opcion.valor">
+                    <option
+                        v-for="opcion in props.estados"
+                        :key="opcion.valor"
+                        :value="opcion.valor"
+                    >
                         {{ $t(opcion.etiqueta) }}
                     </option>
                 </select>
@@ -125,7 +150,9 @@ const enviar = (): void => {
             </div>
 
             <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="form.processing">{{ $t('comun.guardar') }}</Button>
+                <Button type="submit" :disabled="form.processing">{{
+                    $t('comun.guardar')
+                }}</Button>
                 <Button as-child variant="ghost">
                     <Link :href="index()">{{ $t('comun.cancelar') }}</Link>
                 </Button>

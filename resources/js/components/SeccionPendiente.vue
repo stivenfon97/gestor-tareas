@@ -10,9 +10,13 @@ defineProps<{ titulo: string; fase: number }>();
 </script>
 
 <template>
-    <section class="flex flex-col gap-3 rounded-lg border border-dashed border-border p-4">
+    <section
+        class="flex flex-col gap-3 rounded-lg border border-dashed border-border p-4"
+    >
         <div class="flex items-center justify-between gap-4">
-            <h3 class="text-base font-medium text-muted-foreground">{{ titulo }}</h3>
+            <h3 class="text-base font-medium text-muted-foreground">
+                {{ titulo }}
+            </h3>
             <slot />
         </div>
         <p class="text-sm text-muted-foreground">

@@ -41,7 +41,11 @@ const enviar = (): void => {
     <Head :title="$t('proyectos.editar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading variant="small" :title="$t('proyectos.editar')" :description="props.proyecto.nombre" />
+        <Heading
+            variant="small"
+            :title="$t('proyectos.editar')"
+            :description="props.proyecto.nombre"
+        />
 
         <form class="space-y-6" @submit.prevent="enviar">
             <div class="grid gap-2">
@@ -52,7 +56,11 @@ const enviar = (): void => {
                     required
                     class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                 >
-                    <option v-for="cliente in props.clientes" :key="cliente.id" :value="cliente.id">
+                    <option
+                        v-for="cliente in props.clientes"
+                        :key="cliente.id"
+                        :value="cliente.id"
+                    >
                         {{ cliente.nombre }}
                     </option>
                 </select>
@@ -68,7 +76,9 @@ const enviar = (): void => {
             <div class="grid gap-2">
                 <Label for="slug">{{ $t('proyectos.slug') }}</Label>
                 <Input id="slug" v-model="form.slug" />
-                <p class="text-xs text-muted-foreground">{{ $t('proyectos.slug_ayuda') }}</p>
+                <p class="text-xs text-muted-foreground">
+                    {{ $t('proyectos.slug_ayuda') }}
+                </p>
                 <InputError :message="form.errors.slug" />
             </div>
 
@@ -99,7 +109,9 @@ const enviar = (): void => {
             </div>
 
             <div class="grid gap-2">
-                <Label for="descripcion">{{ $t('proyectos.descripcion') }}</Label>
+                <Label for="descripcion">{{
+                    $t('proyectos.descripcion')
+                }}</Label>
                 <textarea
                     id="descripcion"
                     v-model="form.descripcion"
@@ -117,7 +129,11 @@ const enviar = (): void => {
                     required
                     class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                 >
-                    <option v-for="opcion in props.estados" :key="opcion.valor" :value="opcion.valor">
+                    <option
+                        v-for="opcion in props.estados"
+                        :key="opcion.valor"
+                        :value="opcion.valor"
+                    >
                         {{ $t(opcion.etiqueta) }}
                     </option>
                 </select>
@@ -125,9 +141,13 @@ const enviar = (): void => {
             </div>
 
             <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="form.processing">{{ $t('comun.guardar') }}</Button>
+                <Button type="submit" :disabled="form.processing">{{
+                    $t('comun.guardar')
+                }}</Button>
                 <Button as-child variant="ghost">
-                    <Link :href="show(props.proyecto.id)">{{ $t('comun.cancelar') }}</Link>
+                    <Link :href="show(props.proyecto.id)">{{
+                        $t('comun.cancelar')
+                    }}</Link>
                 </Button>
             </div>
         </form>

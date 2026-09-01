@@ -24,18 +24,28 @@ const etiqueta = (enlace: EnlacePaginacion, indice: number): string | null => {
 </script>
 
 <template>
-    <nav v-if="visible" class="flex flex-wrap items-center gap-1" :aria-label="$t('comun.paginacion')">
+    <nav
+        v-if="visible"
+        class="flex flex-wrap items-center gap-1"
+        :aria-label="$t('comun.paginacion')"
+    >
         <template v-for="(enlace, indice) in props.enlaces" :key="indice">
             <Link
                 v-if="enlace.url"
                 :href="enlace.url"
                 preserve-scroll
                 class="rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-                :class="enlace.active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'"
+                :class="
+                    enlace.active
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground'
+                "
             >
                 {{
                     etiqueta(enlace, indice) ??
-                    (indice === 0 ? $t('comun.anterior') : $t('comun.siguiente'))
+                    (indice === 0
+                        ? $t('comun.anterior')
+                        : $t('comun.siguiente'))
                 }}
             </Link>
             <span
@@ -44,7 +54,9 @@ const etiqueta = (enlace: EnlacePaginacion, indice: number): string | null => {
             >
                 {{
                     etiqueta(enlace, indice) ??
-                    (indice === 0 ? $t('comun.anterior') : $t('comun.siguiente'))
+                    (indice === 0
+                        ? $t('comun.anterior')
+                        : $t('comun.siguiente'))
                 }}
             </span>
         </template>

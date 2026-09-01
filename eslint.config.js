@@ -1,5 +1,8 @@
 import stylistic from '@stylistic/eslint-plugin';
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
+import {
+    defineConfigWithVueTs,
+    vueTsConfigs,
+} from '@vue/eslint-config-typescript';
 import prettier from 'eslint-config-prettier/flat';
 import importPlugin from 'eslint-plugin-import';
 import vue from 'eslint-plugin-vue';
@@ -36,13 +39,47 @@ const controlStatements = [
  */
 const puntuacionPermitida = [
     // La lista por defecto del plugin, tal cual.
-    '(', ')', ',', '.', '&', '+', '-', '=', '*', '/', '#', '%', '!', '?',
-    ':', '[', ']', '{', '}', '<', '>', '|',
-    '\u00B7', '\u2022', '\u2010', '\u2013', '\u2014', '\u2212',
+    '(',
+    ')',
+    ',',
+    '.',
+    '&',
+    '+',
+    '-',
+    '=',
+    '*',
+    '/',
+    '#',
+    '%',
+    '!',
+    '?',
+    ':',
+    '[',
+    ']',
+    '{',
+    '}',
+    '<',
+    '>',
+    '|',
+    '\u00B7',
+    '\u2022',
+    '\u2010',
+    '\u2013',
+    '\u2014',
+    '\u2212',
     // Añadidos del proyecto:
     // Los dígitos, para que un valor puramente numérico no pida traducción:
     // los tamaños de página del selector de la tabla y el «0» de un contador.
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
     // La flecha del historial de estados. Es un símbolo, no una palabra:
     // «pendiente → en proceso» se lee igual en los dos idiomas.
     '\u2192',
@@ -84,7 +121,14 @@ export default defineConfigWithVueTs(
             'import/order': [
                 'error',
                 {
-                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+                    groups: [
+                        'builtin',
+                        'external',
+                        'internal',
+                        'parent',
+                        'sibling',
+                        'index',
+                    ],
                     alphabetize: { order: 'asc', caseInsensitive: true },
                 },
             ],
@@ -106,7 +150,11 @@ export default defineConfigWithVueTs(
                     paths: [
                         {
                             name: 'laravel-vue-i18n',
-                            importNames: ['trans', 'transChoice', 'trans_choice'],
+                            importNames: [
+                                'trans',
+                                'transChoice',
+                                'trans_choice',
+                            ],
                             message:
                                 'Importa `trans` desde `@/lib/i18n`: avisa de las claves sin traducir en desarrollo.',
                         },
@@ -120,7 +168,11 @@ export default defineConfigWithVueTs(
             '@stylistic': stylistic,
         },
         rules: {
-            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+            '@stylistic/brace-style': [
+                'error',
+                '1tbs',
+                { allowSingleLine: false },
+            ],
             '@stylistic/padding-line-between-statements': [
                 'error',
                 ...paddingAroundControl,
@@ -200,7 +252,11 @@ export default defineConfigWithVueTs(
         },
         rules: {
             curly: ['error', 'all'],
-            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+            '@stylistic/brace-style': [
+                'error',
+                '1tbs',
+                { allowSingleLine: false },
+            ],
         },
     },
 );

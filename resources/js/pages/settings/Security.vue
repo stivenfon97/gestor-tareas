@@ -69,7 +69,9 @@ defineOptions({
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">{{ $t('ajustes.seguridad.nueva') }}</Label>
+                <Label for="password">{{
+                    $t('ajustes.seguridad.nueva')
+                }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"

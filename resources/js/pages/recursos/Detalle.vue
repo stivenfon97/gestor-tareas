@@ -16,8 +16,14 @@ const props = defineProps<{
         <Heading variant="small" :title="$t(props.titulo)" />
 
         <dl class="divide-y divide-border rounded-lg border border-border">
-            <div v-for="campo in props.campos" :key="campo.clave" class="flex justify-between gap-4 px-4 py-3 text-sm">
-                <dt class="text-muted-foreground">{{ $t(`recursos.columnas.${campo.clave}`) }}</dt>
+            <div
+                v-for="campo in props.campos"
+                :key="campo.clave"
+                class="flex justify-between gap-4 px-4 py-3 text-sm"
+            >
+                <dt class="text-muted-foreground">
+                    {{ $t(`recursos.columnas.${campo.clave}`) }}
+                </dt>
                 <dd class="text-right">{{ campo.valor }}</dd>
             </div>
         </dl>
