@@ -46,3 +46,13 @@ El paquete devuelve la clave misma cuando falta la traducción y eso se pinta co
 Si añades una clave a un componente, añádela a `lang/es` y a `lang/en` en el mismo commit: `CoberturaDeClavesTest` recorre los componentes, extrae las claves y falla si falta alguna en cualquiera de los dos idiomas.
 
 Una clave que viaja como dato (`{ title: 'nav.dashboard' }` en `AppSidebar`, que `NavMain` pasa por `$t`) también la caza el extractor, pero solo entre **comillas simples**: en una plantilla Vue el valor de un atributo va entre dobles y `:alt="auth.user.name"` tiene la misma forma que una clave.
+
+## Un literal visible en la plantilla no es una clave sin resolver, y ninguna comprobación de humo lo ve
+Hay dos maneras distintas de que un texto salga mal y **no se detectan igual**:
+
+1. La clave no resuelve → se pinta su ruta (`nav.dashboard`). Lo cazan `CoberturaDeClavesTest`, el modo estricto de `@/lib/i18n` y `make humo`.
+2. El texto nunca pasó por el sistema de traducción → un `Email address` escrito a mano se renderiza perfectamente, solo que en el idioma equivocado. **Ninguna de las tres anteriores lo ve**: `make humo` busca cadenas con forma de clave y esa no la tiene. Así sobrevivieron las pantallas de acceso en inglés hasta la fase 07c.
+
+Del segundo se encarga `vue/no-bare-strings-in-template` en `npm run lint`. Cubre el texto de la plantilla y los atributos que se muestran (`title`, `alt`, `placeholder`, `aria-label`). **No cubre** los literales del `<script>` ni los que se pasan como prop: para esos, el valor es una **clave** y la resuelve con `$t` quien la pinta (`NavMain`, `Breadcrumbs`, `AuthSimpleLayout`, `settings/Layout`). En `defineOptions` no se puede llamar a `trans()`: se evalúa al importar el módulo, antes de que i18n exista.
+
+Las excepciones se declaran en `eslint.config.js` con el motivo al lado, o con `<!-- eslint-disable-next-line vue/no-bare-strings-in-template (motivo) -->` en el archivo. Nunca desactivando la regla entera: una regla sin escape se apaga en cuanto estorba.

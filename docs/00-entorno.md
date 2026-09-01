@@ -180,6 +180,23 @@ la validacion se ejecute.
 
 ---
 
+## Formato y estilo
+
+```bash
+make formato    # Prettier arregla el frontend
+make verificar  # Pint, Prettier y ESLint comprueban, sin tocar nada
+```
+
+Pint y Prettier no se pisan: Pint solo toca `.php` y de Prettier solo salen
+`.ts`, `.vue`, `.json` y `.css`. Blade queda fuera de los dos, porque Prettier
+no tiene parser para `.blade.php` y falla si se le pasa uno.
+
+El alcance de Prettier esta en `config.formato` de `package.json`, en un solo
+sitio, e incluye `resources/` mas las configuraciones de la raiz que son
+nuestras.
+
+---
+
 ## Comprobacion de humo (`make humo`)
 
 ```bash
@@ -283,13 +300,59 @@ Esa misma prueba **informa** —sin fallar— de las claves definidas que nadie 
 No falla porque hay claves que resuelve el servidor con `__()` y otras que
 esperan a una fase posterior.
 
-Las tres redes son independientes y hacen falta las tres:
+### Los mensajes de validacion tambien son traducciones
 
-| Red | Donde salta | Que caza |
+`lang/{es,en}/validation.php`, `passwords.php` y `pagination.php` los publica
+`php artisan lang:publish` y los busca **Laravel**, no nuestro codigo. Hasta la
+fase 07c no existia la version en espanol y, como el fallback tambien es `es`,
+el validador no encontraba la linea y devolvia la clave: cada formulario
+rechazado mostraba `validation.required` debajo del campo.
+
+Al anadir un campo validado, anade tambien su nombre legible en
+`validation.attributes`. Es lo que se interpola en `:attribute`, y sin ello el
+formulario dice «El campo contacto_email es obligatorio».
+
+Estos tres grupos entran en la comprobacion de paridad entre `es` y `en`, pero
+quedan **fuera** del informe de claves huerfanas: sus ciento ochenta claves lo
+llenarian de ruido y nadie volveria a leerlo.
+
+### Dos problemas distintos, dos redes distintas
+
+Hay dos maneras de que un texto salga mal, y **no se detectan igual**:
+
+1. **La clave no resuelve.** Se pinta su ruta: `nav.dashboard`. Pasa cuando
+   falta el diccionario o falta la clave en un idioma.
+2. **El texto nunca paso por el sistema de traduccion.** Un `Email address`
+   escrito a mano en la plantilla se renderiza perfectamente; simplemente esta
+   en el idioma equivocado y no cambia al cambiar de idioma.
+
+El segundo es invisible para todo lo que busca el primero: `make humo` busca
+cadenas con forma de clave, y `Email address` no la tiene. Por eso la fase 07b
+dejo las pantallas de acceso en ingles sin que ninguna comprobacion protestara.
+
+| Red | Donde salta | Cual de los dos caza |
 |---|---|---|
-| `CoberturaDeClavesTest` | `php artisan test` | Claves que faltan en `es` o en `en` |
-| Modo estricto de `@/lib/i18n` | Navegador, en desarrollo | Cualquier clave que no resuelva, sea cual sea el motivo |
-| `make humo` | Navegador, contra el build | Lo mismo, ya en la pantalla, en cinco pantallas |
+| `CoberturaDeClavesTest` | `php artisan test` | (1) Claves que faltan en `es` o en `en` |
+| Modo estricto de `@/lib/i18n` | Navegador, en desarrollo | (1) Cualquier clave que no resuelva, sea cual sea el motivo |
+| `make humo` | Navegador, contra el build | (1) Lo mismo, ya en la pantalla, en cinco pantallas |
+| `vue/no-bare-strings-in-template` | `npm run lint` | (2) Texto incrustado en la plantilla |
+
+La cuarta cubre el texto de la plantilla y los atributos que se muestran
+(`title`, `alt`, `placeholder`, `aria-label`). **No cubre** los literales del
+`<script>` ni los que se pasan como prop a un componente: para esos la costumbre
+del proyecto es que el valor sea una **clave** y que la resuelva con `$t` quien
+la pinta, como hacen `NavMain`, `Breadcrumbs` y `AuthSimpleLayout`.
+
+Sus excepciones se declaran en `eslint.config.js`, con el motivo escrito al
+lado. Para un caso suelto, un comentario en el propio archivo:
+
+```vue
+<!-- eslint-disable-next-line vue/no-bare-strings-in-template
+     (motivo concreto) -->
+```
+
+Nunca desactivando la regla entera: una regla sin escape se apaga en cuanto
+estorba, y entonces no sirve de nada.
 
 ---
 
