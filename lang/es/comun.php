@@ -10,6 +10,7 @@ return [
     'confirmar' => 'Confirmar',
     'opcional' => 'Opcional',
     'guardar' => 'Guardar',
+    'procesando' => 'Procesando…',
     'cancelar' => 'Cancelar',
     'crear' => 'Crear',
     'editar' => 'Editar',
