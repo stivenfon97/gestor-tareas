@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\EstadoPeriodo;
 use App\Enums\EstadoProyecto;
 use App\Observers\ProyectoObserver;
+use App\Services\Adjuntos;
 use Database\Factories\ProyectoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\File;
 
 /**
  * Una aplicación o sistema. Tiene módulos, tareas y periodos propios.
@@ -128,7 +130,8 @@ class Proyecto extends Model implements HasMedia
     {
         $this->addMediaCollection('respaldos_bd')
             ->useDisk('local')
-            ->acceptsMimeTypes(['application/sql', 'text/plain', 'application/x-sql', 'application/gzip', 'application/zip']);
+            ->acceptsMimeTypes(Adjuntos::MIME_RESPALDOS)
+            ->acceptsFile(fn (File $archivo): bool => $archivo->size <= Adjuntos::LIMITE_RESPALDOS);
     }
 
     /** @return BelongsTo<Cliente, $this> */

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\TipoReunion;
 use App\Enums\Visibilidad;
+use App\Services\Adjuntos;
 use App\Services\ResolverRolProyecto;
 use Database\Factories\ReunionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,6 +20,7 @@ use Illuminate\Support\Carbon;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\File;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
@@ -72,10 +74,13 @@ class Reunion extends Model implements HasMedia
     {
         $this->addMediaCollection('imagenes')
             ->useDisk('public')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+            ->acceptsMimeTypes(Adjuntos::MIME_IMAGENES)
+            ->acceptsFile(fn (File $archivo): bool => $archivo->size <= Adjuntos::LIMITE_IMAGENES);
 
         $this->addMediaCollection('documentos')
-            ->useDisk('public');
+            ->useDisk('public')
+            ->acceptsMimeTypes(Adjuntos::MIME_DOCUMENTOS)
+            ->acceptsFile(fn (File $archivo): bool => $archivo->size <= Adjuntos::LIMITE_DOCUMENTOS);
     }
 
     public function registerMediaConversions(?Media $media = null): void

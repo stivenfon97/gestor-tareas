@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AdjuntoReunionController;
+use App\Http\Controllers\AdjuntoTareaController;
 use App\Http\Controllers\AgendaDeTareasController;
 use App\Http\Controllers\ArchivoController;
 use App\Http\Controllers\AsignarEquipoAProyectoController;
@@ -26,7 +28,9 @@ use App\Http\Controllers\ProyectoUsuarioController;
 use App\Http\Controllers\ReordenarModulosController;
 use App\Http\Controllers\ReordenarTareasController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\RespaldoController;
 use App\Http\Controllers\ReunionController;
+use App\Http\Controllers\ReunionTareaController;
 use App\Http\Controllers\TableroController;
 use App\Http\Controllers\TareaController;
 use App\Http\Controllers\VistaGuardadaController;
@@ -90,6 +94,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('proyectos/{proyecto}/miembros/{usuario}', [ProyectoUsuarioController::class, 'update'])->name('proyectos.miembros.update');
     Route::delete('proyectos/{proyecto}/miembros/{usuario}', [ProyectoUsuarioController::class, 'destroy'])->name('proyectos.miembros.destroy');
     Route::post('proyectos/{proyecto}/equipos', [AsignarEquipoAProyectoController::class, 'store'])->name('proyectos.equipos.store');
+
+    // Respaldos .sql del proyecto. Colección propia (`respaldos_bd`), disco
+    // privado, y solo `lider`/`administrador`: un dump lleva la base entera.
+    Route::post('proyectos/{proyecto}/respaldos', [RespaldoController::class, 'store'])->name('proyectos.respaldos.store');
+    Route::delete('proyectos/{proyecto}/respaldos/{media}', [RespaldoController::class, 'destroy'])->name('proyectos.respaldos.destroy');
 
     /*
      * Lecturas con guarda. Existen para que la autorización tenga superficie
@@ -166,7 +175,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('pagos/{pago}/editar', [PagoController::class, 'edit'])->name('pagos.edit');
     Route::put('pagos/{pago}', [PagoController::class, 'update'])->name('pagos.update');
 
+    // Bitácora del proyecto. `estado` de la tarea no aparece por aquí: crear
+    // desde una reunión pasa por el mismo camino que la captura rápida.
     Route::get('proyectos/{proyecto}/reuniones', [ReunionController::class, 'index'])->name('proyectos.reuniones.index');
+    Route::get('proyectos/{proyecto}/reuniones/crear', [ReunionController::class, 'create'])->name('proyectos.reuniones.create');
+    Route::post('proyectos/{proyecto}/reuniones', [ReunionController::class, 'store'])->name('proyectos.reuniones.store');
+    Route::get('reuniones/{reunion}', [ReunionController::class, 'show'])->name('reuniones.show');
+    Route::get('reuniones/{reunion}/editar', [ReunionController::class, 'edit'])->name('reuniones.edit');
+    Route::put('reuniones/{reunion}', [ReunionController::class, 'update'])->name('reuniones.update');
+    Route::delete('reuniones/{reunion}', [ReunionController::class, 'destroy'])->name('reuniones.destroy');
+
+    Route::post('reuniones/{reunion}/tareas', [ReunionTareaController::class, 'vincular'])->name('reuniones.tareas.vincular');
+    Route::delete('reuniones/{reunion}/tareas/{tarea}', [ReunionTareaController::class, 'desvincular'])->name('reuniones.tareas.desvincular');
+    Route::post('reuniones/{reunion}/tareas/rapida/previsualizar', [ReunionTareaController::class, 'previsualizar'])->name('reuniones.tareas.rapida.previsualizar');
+    Route::post('reuniones/{reunion}/tareas/rapida', [ReunionTareaController::class, 'crear'])->name('reuniones.tareas.rapida.crear');
+
     Route::post('proyectos/{proyecto}/reportes', [ReporteController::class, 'store'])->name('proyectos.reportes.store');
 
     /*
@@ -186,10 +209,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // mueve tarjetas sin editar el resto de campos.
     Route::put('tareas/{tarea}/estado', [EstadoTareaController::class, 'update'])->name('tareas.estado.update');
 
-    Route::get('tareas/{tarea}/notas', [NotaTareaController::class, 'index'])->name('tareas.notas.index');
+    // Sin índice propio: las notas se leen ya en `tareas.show`, que es la
+    // única pantalla que las muestra (fase 10, retiro de `recursos/Listado`).
     Route::post('tareas/{tarea}/notas', [NotaTareaController::class, 'store'])->name('tareas.notas.store');
+
+    Route::post('tareas/{tarea}/adjuntos', [AdjuntoTareaController::class, 'store'])->name('tareas.adjuntos.store');
+    Route::delete('tareas/{tarea}/adjuntos/{media}', [AdjuntoTareaController::class, 'destroy'])->name('tareas.adjuntos.destroy');
+
+    Route::post('reuniones/{reunion}/adjuntos', [AdjuntoReunionController::class, 'store'])->name('reuniones.adjuntos.store');
+    Route::delete('reuniones/{reunion}/adjuntos/{media}', [AdjuntoReunionController::class, 'destroy'])->name('reuniones.adjuntos.destroy');
+
     Route::get('pagos/{pago}', [PagoController::class, 'show'])->name('pagos.show');
-    Route::get('reuniones/{reunion}', [ReunionController::class, 'show'])->name('reuniones.show');
 
     // Único camino a un adjunto. Nunca una URL directa al disco.
     Route::get('archivos/{media}', [ArchivoController::class, 'show'])->name('archivos.descargar');

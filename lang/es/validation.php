@@ -187,8 +187,14 @@ return [
      * Sin esto el formulario dice «El campo contacto_email es obligatorio».
      */
     'attributes' => [
+        'acuerdos' => 'acuerdos',
         'activo' => 'estado',
+        'archivo' => 'archivo',
+        'asistentes' => 'asistentes',
         'cliente_id' => 'cliente',
+        'coleccion' => 'colección',
+        'contenido_html' => 'contenido',
+        'contenido_json' => 'contenido',
         'contacto_email' => 'correo de contacto',
         'contacto_nombre' => 'persona de contacto',
         'contacto_telefono' => 'teléfono de contacto',
@@ -197,6 +203,7 @@ return [
         'email' => 'correo electrónico',
         'equipo_id' => 'equipo',
         'estado' => 'estado',
+        'fecha' => 'fecha',
         'modulo_id' => 'módulo',
         'motivo_cancelacion' => 'motivo de la cancelación',
         'motivo_espera' => 'motivo de la espera',
@@ -213,9 +220,12 @@ return [
         'rol' => 'rol',
         'rol_global' => 'rol global',
         'slug' => 'identificador',
+        'tarea_ids' => 'tareas',
         'tarea_origen_id' => 'tarea de origen',
         'texto' => 'texto',
         'tipo' => 'tipo',
+        'titulo' => 'título',
         'usuario_id' => 'usuario',
+        'visibilidad' => 'visibilidad',
     ],
 ];

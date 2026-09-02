@@ -38,7 +38,7 @@ it('no muestra al invitado global con rol lider las reuniones internas, ni en li
 
     $respuesta->assertOk();
 
-    $titulos = collect($respuesta->viewData('page')['props']['filas'])->pluck('titulo')->all();
+    $titulos = collect($respuesta->viewData('page')['props']['reuniones'])->pluck('titulo')->all();
 
     expect($titulos)->toBe([$compartida->titulo])
         ->and($titulos)->not->toContain($interna->titulo);
@@ -63,11 +63,11 @@ it('no muestra al invitado global con rol colaborador las notas internas', funct
     $interna = NotaTarea::factory()->for($tarea)->create(['contenido' => 'Margen real del periodo']);
     $compartida = NotaTarea::factory()->for($tarea)->visibleParaCliente()->create(['contenido' => 'Desplegado en pruebas']);
 
-    $respuesta = $this->actingAs($invitado)->get(route('tareas.notas.index', $tarea));
+    $respuesta = $this->actingAs($invitado)->get(route('tareas.show', $tarea));
 
     $respuesta->assertOk();
 
-    $contenidos = collect($respuesta->viewData('page')['props']['filas'])->pluck('contenido')->all();
+    $contenidos = collect($respuesta->viewData('page')['props']['notas'])->pluck('contenido')->all();
 
     expect($contenidos)->toBe([$compartida->contenido])
         ->and($contenidos)->not->toContain($interna->contenido);
@@ -87,14 +87,14 @@ it('sí muestra lo interno a un miembro global con rol observador: es interno, s
 
     $reuniones->assertOk();
 
-    expect(collect($reuniones->viewData('page')['props']['filas'])->pluck('titulo')->all())
+    expect(collect($reuniones->viewData('page')['props']['reuniones'])->pluck('titulo')->all())
         ->toContain($reunion->titulo);
 
-    $notas = $this->actingAs($observador)->get(route('tareas.notas.index', $tarea));
+    $notas = $this->actingAs($observador)->get(route('tareas.show', $tarea));
 
     $notas->assertOk();
 
-    expect(collect($notas->viewData('page')['props']['filas'])->pluck('contenido')->all())
+    expect(collect($notas->viewData('page')['props']['notas'])->pluck('contenido')->all())
         ->toContain($nota->contenido);
 
     $this->actingAs($observador)

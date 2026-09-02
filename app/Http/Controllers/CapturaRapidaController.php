@@ -10,12 +10,12 @@ use App\Enums\PrioridadTarea;
 use App\Enums\TipoTarea;
 use App\Models\Proyecto;
 use App\Models\Tarea;
+use App\Services\ExigirMotivosPorFila;
 use App\Services\ParsearTareaRapida;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -67,6 +67,7 @@ class CapturaRapidaController extends Controller
         Request $request,
         Proyecto $proyecto,
         CrearTareasEnLote $crear,
+        ExigirMotivosPorFila $exigirMotivos,
     ): RedirectResponse {
         Gate::authorize('create', [Tarea::class, $proyecto]);
 
@@ -88,7 +89,7 @@ class CapturaRapidaController extends Controller
             'filas.*.motivo_cancelacion' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $this->exigirMotivosPorFila($datos['filas']);
+        $exigirMotivos($datos['filas']);
 
         $tareas = $crear($proyecto, $datos['filas'], $request->user());
 
@@ -98,26 +99,6 @@ class CapturaRapidaController extends Controller
         ]);
 
         return to_route('proyectos.tareas.index', $proyecto);
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $filas
-     */
-    private function exigirMotivosPorFila(array $filas): void
-    {
-        $errores = [];
-
-        foreach ($filas as $indice => $fila) {
-            $campo = EstadoTarea::from((string) $fila['estado'])->motivoRequerido();
-
-            if ($campo !== null && blank($fila[$campo] ?? null)) {
-                $errores["filas.{$indice}.{$campo}"] = __("tareas.validacion.{$campo}_obligatorio");
-            }
-        }
-
-        if ($errores !== []) {
-            throw ValidationException::withMessages($errores);
-        }
     }
 
     /**
