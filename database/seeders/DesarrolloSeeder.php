@@ -23,6 +23,7 @@ use App\Models\Proyecto;
 use App\Models\Reunion;
 use App\Models\Tarea;
 use App\Models\User;
+use App\Services\CambiarEstadoTarea;
 use Database\Factories\ReunionFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -491,6 +492,13 @@ class DesarrolloSeeder extends Seeder
      * Se hace así, y no fijando el estado final de golpe, para que el historial
      * quede poblado como en la vida real y para que el seeder rompa si alguien
      * cambia la matriz sin darse cuenta.
+     *
+     * **Pasa por `CambiarEstadoTarea`, igual que la aplicación.** Un
+     * `$tarea->update(['estado' => …])` directo aquí validaría la matriz y
+     * escribiría el historial —el observer cubre esa red—, pero nunca rellenaría
+     * `fecha_inicio` ni `fecha_fin`: esas dos las pone el servicio, no el
+     * observer. Así es como las 73 tareas sembradas llegaron a "Sin fecha de
+     * fin" en el calendario aunque 42 de ellas estuvieran `entregada` (D9.2).
      */
     protected function llevarA(Tarea $tarea, EstadoTarea $destino, ?string $motivo = null): void
     {
@@ -503,20 +511,22 @@ class DesarrolloSeeder extends Seeder
             EstadoTarea::Cancelada => [EstadoTarea::Cancelada],
         };
 
+        $cambiar = app(CambiarEstadoTarea::class);
+
         foreach ($camino as $paso) {
-            $atributos = ['estado' => $paso];
+            $motivos = [];
 
             if ($paso === EstadoTarea::EnEspera) {
-                $atributos['motivo_espera'] = $motivo
+                $motivos['motivo_espera'] = $motivo
                     ?? 'El cliente no ha entregado la información necesaria para continuar.';
             }
 
             if ($paso === EstadoTarea::Cancelada) {
-                $atributos['motivo_cancelacion'] = $motivo
+                $motivos['motivo_cancelacion'] = $motivo
                     ?? 'Se descartó de común acuerdo con el cliente.';
             }
 
-            $tarea->update($atributos);
+            $cambiar($tarea, $paso, $motivos);
         }
     }
 }

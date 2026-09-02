@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\EstadoPeriodo;
 use App\Models\Pago;
 use App\Models\Periodo;
+use App\Models\Proyecto;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -107,4 +108,28 @@ it('el consecutivo es único dentro del proyecto', function () {
         'proyecto_id' => $periodo->proyecto_id,
         'consecutivo' => 7,
     ]))->toThrow(UniqueConstraintViolationException::class);
+});
+
+it('un proyecto no admite un segundo periodo abierto, y lo impide la base de datos', function () {
+    // Distinto consecutivo a propósito: lo que se comprueba aquí es la
+    // columna generada `proyecto_si_abierto`, no el unique de consecutivo.
+    $abierto = Periodo::factory()->create(['consecutivo' => 1]);
+
+    expect(fn () => Periodo::factory()->create([
+        'proyecto_id' => $abierto->proyecto_id,
+        'consecutivo' => 2,
+    ]))->toThrow(UniqueConstraintViolationException::class);
+
+    expect($abierto->proyecto->periodos()->abiertos()->count())->toBe(1);
+});
+
+it('un proyecto sí admite varios periodos cerrados y uno abierto a la vez', function () {
+    $proyecto = Proyecto::factory()->create();
+
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 1]);
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 2]);
+    $abierto = Periodo::factory()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 3]);
+
+    expect($proyecto->periodos()->count())->toBe(3)
+        ->and($proyecto->periodoAbierto()->first()->is($abierto))->toBeTrue();
 });
