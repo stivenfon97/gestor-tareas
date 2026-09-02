@@ -5,6 +5,7 @@ paths:
   - app/Models/Reporte.php
   - app/Models/Reunion.php
   - app/Models/Proyecto.php
+  - app/Models/VistaGuardada.php
 ---
 
 # Models
@@ -70,3 +71,12 @@ Las rellena `CambiarEstadoTarea`, no un formulario ni el observer.
 **`tarea_origen_id`** vincula una corrección con la entrega que la originó (D3.3). Cuatro invariantes, comprobadas en `TareaObserver` además de en `TareaRequest`: solo en tipo `correccion`/`soporte`, mismo proyecto, nunca a sí misma, y sin cadenas circulares (se sube por la cadena entera, no basta mirar un eslabón). Excepción: `VinculoDeOrigenInvalido`.
 
 Es `set null` y no `cascade`: borrar la entrega no borra la corrección, que es trabajo hecho y cuenta en su periodo.
+
+## Las vistas guardadas son privadas y se aplican tolerando referencias muertas
+Una vista guardada es **un nombre y una cadena de consulta**: el estado de toda vista vive en la URL desde la fase 07, así que no hay ningún formato propio que mantener.
+
+**Privadas de su autor.** La propiedad no se resuelve con la policy sino con la consulta: `Gate::before` deja pasar al administrador por encima de todas las policies, y eso está bien para los datos de un proyecto y mal para la preferencia de una persona. Cada método busca la fila entre las del usuario de la sesión y responde 404 —no 403: confirmar que existe ya diría que otra persona tiene una vista con ese id—. No se comparten: dos personas con la misma vista acaban discutiendo sobre qué debería mostrar.
+
+**Una sola predeterminada por usuario y tipo, garantizado por la base**: columna generada `marca_predeterminada` (1 o NULL) más índice único. Ni MySQL ni SQLite tienen índices parciales, y los dos ignoran NULL en un único. Dejarlo en la interfaz permite que dos pestañas dejen dos marcadas, y entonces «la predeterminada» es la que devuelva primero el motor.
+
+**Aplicarla tolera referencias muertas** (`VistasGuardadas::sanear`): un filtro que apunta a un módulo borrado se ignora y se avisa una vez de que se aplicó en parte. Reventar o devolver cero filas fingiendo que no hay trabajo son las dos respuestas malas. Ojo: un `filter[modulo_id]` inexistente puesto a mano en la URL **sí** da cero filas; lo tolerante es aplicar una vista, no filtrar.

@@ -65,3 +65,19 @@ No uses `variant="secondary"` para acciones: es un relleno gris que no ocupa nin
 Una acción de estado tiene forma de control (`outline`, nunca `ghost` suelto a la derecha) y su rótulo dice qué va a pasar, no en qué estado está: «Desactivar» en un cliente activo, «Activar» en uno inactivo.
 
 Detalle y razones en docs/05-identidad-visual.md §13.
+
+## Arrastrar por estado y arrastrar por otro criterio no son la misma operación
+En el tablero agrupado **por estado**, soltar una tarjeta es un cambio de estado: pasa por `tareas.estado.update` → `CambiarEstadoTarea`, con la matriz de once transiciones, motivo obligatorio en `en_espera` y `cancelada`, fechas automáticas e historial. Agrupado **por módulo o prioridad** es un cambio de campo y va por `proyectos/{p}/tareas/{t}/columna`. Agrupado **por tipo no se mueve nada**: el tipo se fija al crear y no cambia (D1.3), así que esas columnas se leen y se reordenan pero no son destinos.
+
+**No unifiques los caminos.** Un endpoint único que reciba «columna destino» necesita un `if` dentro para decidir si aplica la matriz, y ese `if` es el que alguien simplifica el día que no sepa por qué está.
+
+La matriz **no se replica en Vue**: llega en `transiciones` con cada tarjeta. Sería una cuarta fuente de verdad —enum, skill, diagrama y cliente— y la única que ninguna prueba comprueba.
+
+Detalle y diagrama en docs/diagramas/arrastre-en-el-tablero.md.
+
+## Toda actualización optimista necesita su camino de vuelta, y `onError` no lo cubre entero
+Una tarjeta que se queda donde el usuario la soltó mientras el servidor la rechaza es peor que no tener arrastre: miente sobre lo que hay guardado. Antes de mover algo en pantalla, guarda una instantánea; restáurala en cuanto el servidor no confirme.
+
+**`onError` no basta.** Inertia solo lo llama con un 422 de validación: un 500, una caída de red o una respuesta que no es de Inertia no pasan por ahí. Invierte el criterio —se revierte salvo que se confirme el éxito— con una bandera puesta en `onSuccess` y comprobada en `onFinish` (`conReversion` en `useTablero`).
+
+Con SortableJS hay un segundo camino de vuelta que se olvida: deja la tarjeta **en la última columna que la admitió**, no en la que estaba, así que soltar sobre una columna prohibida la deja en una del camino. Apunta la última columna sobre la que se pidió entrar (aceptada o no) y compárala con dónde aterrizó. Restaurar el modelo no basta: SortableJS ya movió el nodo del DOM y el diff de Vue no lo devuelve a su lista, hace falta cambiar la clave de la lista para forzar la reconstrucción.
