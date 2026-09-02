@@ -4,9 +4,9 @@ import { ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
+import FilaDeTarea from '@/components/tareas/FilaDeTarea.vue';
 import PanelDeFiltrosDeTareas from '@/components/tareas/PanelDeFiltrosDeTareas.vue';
 import SelectorDeVista from '@/components/tareas/SelectorDeVista.vue';
-import TarjetaDeTarea from '@/components/tareas/TarjetaDeTarea.vue';
 import VistasGuardadas from '@/components/tareas/VistasGuardadas.vue';
 import { Button } from '@/components/ui/button';
 import { show as mostrarProyecto } from '@/routes/proyectos';
@@ -210,9 +210,9 @@ const vacia = computed(() => props.grupos.every((grupo) => grupo.total === 0));
 
                 <div
                     v-if="!plegados.has(grupo.clave)"
-                    class="flex flex-col gap-corto px-celda py-corto"
+                    class="flex flex-col gap-fino px-celda py-corto"
                 >
-                    <TarjetaDeTarea
+                    <FilaDeTarea
                         v-for="tarea in grupo.tareas"
                         :key="tarea.id"
                         :tarea="tarea"

@@ -259,12 +259,23 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
             La franja de sin fecha. No es un detalle: si no estuviera, el
             calendario enseñaría veinte tareas de ochenta y las sesenta que
             faltan serían justo las que nadie ha fechado.
+
+            **Plegada por defecto.** Cincuenta fichas pesan más que el propio
+            calendario: con `<details>` cerrado se ve que existen —el conteo
+            va en el `<summary>`, siempre visible— sin desplazar la vista
+            principal, y se despliegan a petición sin JavaScript propio.
         -->
-        <section
+        <details
             v-if="props.sinFecha.total > 0"
-            class="flex flex-col gap-corto rounded-md border border-dashed border-borde-fuerte bg-panel px-celda py-corto"
+            class="group rounded-md border border-dashed border-borde-fuerte bg-panel"
         >
-            <div class="flex flex-wrap items-baseline gap-corto">
+            <summary
+                class="flex cursor-pointer list-none flex-wrap items-baseline gap-corto px-celda py-corto [&::-webkit-details-marker]:hidden"
+            >
+                <ChevronRight
+                    class="size-4 shrink-0 text-texto-suave transition-transform group-open:rotate-90"
+                    aria-hidden="true"
+                />
                 <h2 class="text-cuerpo font-medium text-texto">
                     {{ $t('tablero.agenda.sin_fecha') }}
                 </h2>
@@ -274,37 +285,41 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
                 <p class="text-fino text-texto-suave">
                     {{ $t('tablero.agenda.sin_fecha_ayuda') }}
                 </p>
+            </summary>
+
+            <div class="flex flex-col gap-corto px-celda pb-corto">
+                <ul class="flex flex-wrap gap-corto">
+                    <li v-for="tarea in props.sinFecha.tareas" :key="tarea.id">
+                        <Link
+                            :href="mostrarTarea(tarea.id)"
+                            class="flex items-stretch gap-fino rounded-sm border border-borde bg-panel-cabecera px-corto py-fino hover:bg-fila-hover"
+                        >
+                            <BarraPrioridad :prioridad="tarea.prioridad" />
+                            <IconoTipo :tipo="tarea.tipo" />
+                            <span class="font-mono text-fino text-texto-suave">
+                                {{ tarea.codigo }}
+                            </span>
+                            <span
+                                class="max-w-60 truncate text-fino text-texto"
+                            >
+                                {{ tarea.nombre }}
+                            </span>
+                        </Link>
+                    </li>
+                </ul>
+
+                <p
+                    v-if="props.sinFecha.tareas.length < props.sinFecha.total"
+                    class="text-fino text-texto-tenue"
+                >
+                    {{
+                        $t('tablero.agenda.sin_fecha_recortadas', {
+                            mostradas: String(props.sinFecha.tareas.length),
+                            total: String(props.sinFecha.total),
+                        })
+                    }}
+                </p>
             </div>
-
-            <ul class="flex flex-wrap gap-corto">
-                <li v-for="tarea in props.sinFecha.tareas" :key="tarea.id">
-                    <Link
-                        :href="mostrarTarea(tarea.id)"
-                        class="flex items-stretch gap-fino rounded-sm border border-borde bg-panel-cabecera px-corto py-fino hover:bg-fila-hover"
-                    >
-                        <BarraPrioridad :prioridad="tarea.prioridad" />
-                        <IconoTipo :tipo="tarea.tipo" />
-                        <span class="font-mono text-fino text-texto-suave">
-                            {{ tarea.codigo }}
-                        </span>
-                        <span class="max-w-60 truncate text-fino text-texto">
-                            {{ tarea.nombre }}
-                        </span>
-                    </Link>
-                </li>
-            </ul>
-
-            <p
-                v-if="props.sinFecha.tareas.length < props.sinFecha.total"
-                class="text-fino text-texto-tenue"
-            >
-                {{
-                    $t('tablero.agenda.sin_fecha_recortadas', {
-                        mostradas: String(props.sinFecha.tareas.length),
-                        total: String(props.sinFecha.total),
-                    })
-                }}
-            </p>
-        </section>
+        </details>
     </div>
 </template>
