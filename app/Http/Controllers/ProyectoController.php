@@ -12,6 +12,7 @@ use App\Models\Pago;
 use App\Models\Proyecto;
 use App\Models\Reporte;
 use App\Models\Reunion;
+use App\Models\User;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use App\Services\ResolverRolProyecto;
@@ -138,7 +139,11 @@ class ProyectoController extends Controller
                 'tareas_abiertas_count' => $proyecto->tareas_abiertas_count,
                 'miembros_count' => $proyecto->miembros_count,
             ],
-            'resumen' => $this->resumen($proyecto),
+            // Diferido: desde la fase 09 el resumen también cuenta periodos y
+            // pagos, y se paga en cada navegación al proyecto. `defer()` deja
+            // que la pantalla aparezca de inmediato y los números lleguen
+            // después, en vez de esperar por ellos antes de pintar nada.
+            'resumen' => Inertia::defer(fn () => $this->resumen($proyecto, $usuario)),
             // La pestaña activa viaja en la URL, no solo en el estado de Vue:
             // así se puede compartir un enlace a la bitácora de un proyecto y
             // volver a la misma pestaña tras recargar.
@@ -202,12 +207,19 @@ class ProyectoController extends Controller
     }
 
     /**
-     * Conteo por estado, periodo abierto con sus días transcurridos y última
-     * reunión.
+     * Conteo por estado, periodo abierto con sus días transcurridos, última
+     * reunión y —desde la fase 09— periodos cerrados y lo pagado.
      *
-     * @return array{tareas_por_estado: array<string, int>, periodo_abierto: array{id: int, consecutivo: int, fecha_inicio: string, fecha_fin: string|null, dias_transcurridos: int, vencido: bool}|null, ultima_reunion: array{id: int, titulo: string, fecha: string}|null}
+     * Es la pantalla más cara del sistema: se paga en cada navegación al
+     * proyecto y por eso viaja diferida (`Inertia::defer()` en `show()`).
+     *
+     * **El total pagado no viaja para un `cliente`.** `PagoPolicy` ya se lo
+     * niega en la pestaña de pagos; repetir la cifra aquí, en un resumen que
+     * el cliente sí ve, sería la misma filtración por otra puerta.
+     *
+     * @return array{tareas_por_estado: array<string, int>, periodo_abierto: array{id: int, consecutivo: int, fecha_inicio: string, fecha_fin: string|null, dias_transcurridos: int, vencido: bool}|null, ultima_reunion: array{id: int, titulo: string, fecha: string}|null, periodos_cerrados_count: int, total_pagado_usd: string|null}
      */
-    private function resumen(Proyecto $proyecto): array
+    private function resumen(Proyecto $proyecto, User $usuario): array
     {
         $conteos = $proyecto->tareas()
             ->selectRaw('estado, count(*) as total')
@@ -223,9 +235,11 @@ class ProyectoController extends Controller
          * no que vea lo interno. Se filtra explícitamente.
          */
         $reunion = $proyecto->reuniones()
-            ->visiblesPara(request()->user())
+            ->visiblesPara($usuario)
             ->latest('fecha')
             ->first(['id', 'titulo', 'fecha']);
+
+        $puedeVerPagos = $usuario->can('viewAny', [Pago::class, $proyecto]);
 
         return [
             'tareas_por_estado' => $conteos,
@@ -244,6 +258,16 @@ class ProyectoController extends Controller
                 'titulo' => $reunion->titulo,
                 'fecha' => $reunion->fecha->toDateString(),
             ],
+            'periodos_cerrados_count' => $proyecto->periodos()->cerrados()->count(),
+            // `sum()` no pasa por el cast `decimal:2` del modelo -es un
+            // agregado de la consulta, no un atributo-, y MySQL y SQLite no
+            // devuelven el mismo tipo para «cero filas». Se formatea a mano
+            // para que el número se vea igual en los dos motores.
+            'total_pagado_usd' => $puedeVerPagos
+                ? number_format((float) Pago::query()
+                    ->whereIn('periodo_id', $proyecto->periodos()->select('id'))
+                    ->sum('monto_usd'), 2, '.', '')
+                : null,
         ];
     }
 

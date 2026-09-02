@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\EstadoPeriodo;
 use App\Enums\PrioridadTarea;
 use App\Enums\TipoTarea;
+use App\Models\Periodo;
 use App\Models\Proyecto;
 use App\Models\Tarea;
 use Closure;
@@ -50,6 +52,7 @@ class TareaRequest extends FormRequest
                 'nullable',
                 'integer',
                 Rule::exists('periodos', 'id')->where('proyecto_id', $proyecto->getKey()),
+                $this->periodoAbiertoOSinCambios($tarea),
             ],
             'tarea_origen_id' => [
                 'nullable',
@@ -77,6 +80,33 @@ class TareaRequest extends FormRequest
             'periodo_id.exists' => __('tareas.validacion.periodo_de_otro_proyecto'),
             'tarea_origen_id.exists' => __('tareas.validacion.origen_de_otro_proyecto'),
         ];
+    }
+
+    /**
+     * Un periodo cerrado no admite tareas nuevas ni asignaciones nuevas (D4.9).
+     *
+     * Deja pasar el `periodo_id` que la tarea ya tenía sin tocar: el
+     * desplegable de edición lista todos los periodos del proyecto, incluido
+     * uno que se cerró después de que esta tarea naciera ahí, y guardar el
+     * resto del formulario sin cambiar el periodo no puede fallar por eso.
+     */
+    private function periodoAbiertoOSinCambios(?Tarea $tarea): Closure
+    {
+        return function (string $atributo, mixed $valor, Closure $falla) use ($tarea): void {
+            if (blank($valor)) {
+                return;
+            }
+
+            if ($tarea instanceof Tarea && (int) $valor === $tarea->periodo_id) {
+                return;
+            }
+
+            $periodo = Periodo::query()->find($valor);
+
+            if ($periodo instanceof Periodo && $periodo->estado !== EstadoPeriodo::Abierto) {
+                $falla(__('tareas.validacion.periodo_cerrado'));
+            }
+        };
     }
 
     /**

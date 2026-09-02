@@ -56,6 +56,8 @@ return [
         'sin_reuniones' => 'Todavía no hay reuniones registradas.',
         'modulos' => 'Módulos',
         'miembros' => 'Personas',
+        'periodos_cerrados' => ':total periodos cerrados.',
+        'total_pagado' => 'USD :monto cobrados en total.',
     ],
 
     'pendiente_de_fase' => 'Esta sección llega en la fase :fase.',

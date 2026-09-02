@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Actions\AbrirPeriodo;
 use App\Enums\EstadoPeriodo;
+use App\Exceptions\PeriodoAbiertoExistente;
 use App\Models\Pago;
 use App\Models\Periodo;
+use App\Models\Proyecto;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -107,4 +110,65 @@ it('el consecutivo es único dentro del proyecto', function () {
         'proyecto_id' => $periodo->proyecto_id,
         'consecutivo' => 7,
     ]))->toThrow(UniqueConstraintViolationException::class);
+});
+
+it('un proyecto no admite un segundo periodo abierto, y lo impide la base de datos', function () {
+    // Distinto consecutivo a propósito: lo que se comprueba aquí es la
+    // columna generada `proyecto_si_abierto`, no el unique de consecutivo.
+    $abierto = Periodo::factory()->create(['consecutivo' => 1]);
+
+    expect(fn () => Periodo::factory()->create([
+        'proyecto_id' => $abierto->proyecto_id,
+        'consecutivo' => 2,
+    ]))->toThrow(UniqueConstraintViolationException::class);
+
+    expect($abierto->proyecto->periodos()->abiertos()->count())->toBe(1);
+});
+
+it('un proyecto sí admite varios periodos cerrados y uno abierto a la vez', function () {
+    $proyecto = Proyecto::factory()->create();
+
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 1]);
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 2]);
+    $abierto = Periodo::factory()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 3]);
+
+    expect($proyecto->periodos()->count())->toBe(3)
+        ->and($proyecto->periodoAbierto()->first()->is($abierto))->toBeTrue();
+});
+
+it('AbrirPeriodo asigna el consecutivo siguiente al máximo existente', function () {
+    $proyecto = Proyecto::factory()->create();
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 1]);
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 2]);
+
+    $abrir = app(AbrirPeriodo::class);
+    $nuevo = $abrir($proyecto, ['fecha_inicio' => '2026-06-01', 'notas' => null]);
+
+    expect($nuevo->consecutivo)->toBe(3)
+        ->and($nuevo->estado)->toBe(EstadoPeriodo::Abierto)
+        ->and($nuevo->fecha_fin)->toBeNull();
+
+    // Repetido en secuencia: cada apertura ve la anterior ya persistida, que
+    // es justo lo que el bloqueo de la fila del proyecto garantiza incluso
+    // bajo creación concurrente -las dos peticiones se serializan sobre la
+    // misma fila en lugar de leer el mismo `max()` a la vez-. La suite corre
+    // sobre SQLite en memoria, con una sola conexión: dos transacciones
+    // concurrentes de verdad no se pueden ejercitar aquí, igual que
+    // `ContadorTarea::siguienteCodigo()` tampoco lo hace en esta suite.
+    Periodo::whereKey($nuevo->id)->update(['estado' => EstadoPeriodo::Cerrado, 'fecha_fin' => '2026-06-30']);
+    $siguiente = $abrir($proyecto->fresh(), ['fecha_inicio' => '2026-07-01', 'notas' => null]);
+
+    expect($siguiente->consecutivo)->toBe(4);
+});
+
+it('AbrirPeriodo rechaza abrir un segundo periodo mientras uno sigue abierto', function () {
+    $proyecto = Proyecto::factory()->create();
+    Periodo::factory()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 1]);
+
+    $abrir = app(AbrirPeriodo::class);
+
+    expect(fn () => $abrir($proyecto, ['fecha_inicio' => '2026-06-01', 'notas' => null]))
+        ->toThrow(PeriodoAbiertoExistente::class);
+
+    expect($proyecto->periodos()->count())->toBe(1);
 });

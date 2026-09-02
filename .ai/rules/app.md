@@ -31,3 +31,6 @@ Si un requisito parece necesitar horas, la respuesta es que no las necesita: rev
 - **La TRM se consulta a la fecha del pago**, no a la fecha de hoy, y el valor queda siempre editable a mano.
 
 El código de tarea es correlativo **por proyecto y continuo de por vida** (`MAQ-0001`, `MAQ-0002`…). No se reinicia por periodo.
+
+## Trasladar una tarea entre periodos no es un cambio de estado
+Al cerrar un periodo, las tareas que se trasladan al siguiente conservan su `estado`: el traslado actualiza `periodo_id` y `periodo_origen_id` con un `update()` de query builder (`CerrarPeriodo`), nunca con `$tarea->save()` en un bucle ni pasando por `CambiarEstadoTarea`. Reutilizar el servicio de transiciones para esto ensuciaría `historial_estados` con una transición que nunca ocurrió: el estado no cambia, solo el periodo. `orden` tampoco se toca al trasladar: sigue siendo del proyecto, no del periodo (D4.10 en docs/03-dominio.md).

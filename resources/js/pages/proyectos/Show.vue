@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Deferred, Head, Link, router } from '@inertiajs/vue3';
 import { MoreHorizontal } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
@@ -13,6 +13,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 import { trans } from '@/lib/i18n';
 import { destroy, edit, show } from '@/routes/proyectos';
 import { index as agendaIndex } from '@/routes/proyectos/agenda';
@@ -39,7 +40,12 @@ const props = defineProps<{
         tareas_abiertas_count: number;
         miembros_count: number;
     };
-    resumen: {
+    /**
+     * Diferido desde la fase 09 (`Inertia::defer()`): no llega en la
+     * respuesta inicial, así que puede ser `undefined` mientras la pantalla
+     * ya está pintada. Cada uso va dentro de `<Deferred data="resumen">`.
+     */
+    resumen?: {
         tareas_por_estado: Record<string, number>;
         periodo_abierto: {
             id: number;
@@ -50,6 +56,8 @@ const props = defineProps<{
             vencido: boolean;
         } | null;
         ultima_reunion: { id: number; titulo: string; fecha: string } | null;
+        periodos_cerrados_count: number;
+        total_pagado_usd: string | null;
     };
     seccion: string;
     miRol: string | null;
@@ -64,7 +72,9 @@ const props = defineProps<{
     };
 }>();
 
-const estados = computed(() => Object.entries(props.resumen.tareas_por_estado));
+const estados = computed(() =>
+    Object.entries(props.resumen?.tareas_por_estado ?? {}),
+);
 
 /*
  * Pestañas en lugar de una página larga.
@@ -251,97 +261,143 @@ const eliminar = (): void => {
                 esquina de la pantalla. La tabla sí ocupa todo el ancho —alinear
                 columnas es su trabajo—; un resumen de tres datos, no.
 
-                Cada celda es una pila vertical: cuando la fase 09 traiga fechas
-                y montos, el periodo abierto gana líneas y el bloque crece hacia
-                abajo sin rehacerse.
+                Cada celda es una pila vertical: el periodo abierto lleva
+                fechas y, desde la fase 09, también periodos cerrados y lo
+                pagado, y el bloque crece hacia abajo sin rehacerse.
             -->
-            <div
-                class="grid max-w-4xl gap-bloque sm:grid-cols-3 sm:divide-x sm:divide-borde"
-            >
-                <div class="flex flex-col gap-corto sm:pr-bloque">
-                    <p class="text-fino font-medium text-texto-suave">
-                        {{ $t('proyectos.resumen.tareas_por_estado') }}
-                    </p>
-                    <ul
-                        v-if="estados.length"
-                        class="flex flex-col gap-fino text-cuerpo"
+            <Deferred data="resumen">
+                <template #fallback>
+                    <!--
+                        Misma rejilla, mismo alto de bloque: sin esto el hueco
+                        de carga salta cuando los datos llegan y el resto de
+                        la pantalla se mueve debajo del usuario.
+                    -->
+                    <div
+                        class="grid max-w-4xl gap-bloque sm:grid-cols-3 sm:divide-x sm:divide-borde"
                     >
-                        <li
-                            v-for="[estado, total] in estados"
-                            :key="estado"
-                            class="flex justify-between gap-bloque"
-                        >
-                            <span>{{
-                                $t(`enums.estado_tarea.${estado}`)
-                            }}</span>
-                            <span class="font-medium">{{ total }}</span>
-                        </li>
-                    </ul>
-                    <p v-else class="text-cuerpo text-texto-suave">
-                        {{ $t('proyectos.resumen.sin_tareas') }}
-                    </p>
-                </div>
-
-                <div class="flex flex-col gap-corto sm:px-bloque">
-                    <p class="text-fino font-medium text-texto-suave">
-                        {{ $t('proyectos.resumen.periodo_abierto') }}
-                    </p>
-                    <template v-if="props.resumen.periodo_abierto">
-                        <p class="text-cuerpo font-medium">
-                            {{
-                                $t('proyectos.resumen.periodo_numero', {
-                                    consecutivo: String(
-                                        props.resumen.periodo_abierto
-                                            .consecutivo,
-                                    ),
-                                })
-                            }}
-                        </p>
-                        <p class="text-cuerpo text-texto-suave">
-                            {{
-                                $t('proyectos.resumen.dias_transcurridos', {
-                                    dias: String(
-                                        props.resumen.periodo_abierto
-                                            .dias_transcurridos,
-                                    ),
-                                })
-                            }}
-                        </p>
-                        <!-- Pasarse de la fecha de fin es válido: el cierre es manual. -->
                         <div
-                            v-if="props.resumen.periodo_abierto.vencido"
-                            class="flex flex-col gap-fino"
+                            v-for="indice in 3"
+                            :key="indice"
+                            class="flex flex-col gap-corto sm:px-bloque sm:first:pr-bloque sm:first:pl-0 sm:last:pl-bloque sm:last:pr-0"
                         >
-                            <Badge variant="outline" class="self-start">
-                                {{ $t('proyectos.resumen.vencido') }}
-                            </Badge>
-                            <span class="text-fino text-texto-suave">
-                                {{ $t('proyectos.resumen.vencido_ayuda') }}
-                            </span>
+                            <Skeleton class="h-4 w-32" />
+                            <Skeleton class="h-5 w-24" />
+                            <Skeleton class="h-4 w-40" />
                         </div>
-                    </template>
-                    <p v-else class="text-cuerpo text-texto-suave">
-                        {{ $t('proyectos.resumen.sin_periodo_abierto') }}
-                    </p>
-                </div>
+                    </div>
+                </template>
 
-                <div class="flex flex-col gap-corto sm:pl-bloque">
-                    <p class="text-fino font-medium text-texto-suave">
-                        {{ $t('proyectos.resumen.ultima_reunion') }}
-                    </p>
-                    <template v-if="props.resumen.ultima_reunion">
-                        <p class="text-cuerpo font-medium">
-                            {{ props.resumen.ultima_reunion.titulo }}
+                <div
+                    v-if="props.resumen"
+                    class="grid max-w-4xl gap-bloque sm:grid-cols-3 sm:divide-x sm:divide-borde"
+                >
+                    <div class="flex flex-col gap-corto sm:pr-bloque">
+                        <p class="text-fino font-medium text-texto-suave">
+                            {{ $t('proyectos.resumen.tareas_por_estado') }}
                         </p>
-                        <p class="font-mono text-fino text-texto-suave">
-                            {{ props.resumen.ultima_reunion.fecha }}
+                        <ul
+                            v-if="estados.length"
+                            class="flex flex-col gap-fino text-cuerpo"
+                        >
+                            <li
+                                v-for="[estado, total] in estados"
+                                :key="estado"
+                                class="flex justify-between gap-bloque"
+                            >
+                                <span>{{
+                                    $t(`enums.estado_tarea.${estado}`)
+                                }}</span>
+                                <span class="font-medium">{{ total }}</span>
+                            </li>
+                        </ul>
+                        <p v-else class="text-cuerpo text-texto-suave">
+                            {{ $t('proyectos.resumen.sin_tareas') }}
                         </p>
-                    </template>
-                    <p v-else class="text-cuerpo text-texto-suave">
-                        {{ $t('proyectos.resumen.sin_reuniones') }}
-                    </p>
+                    </div>
+
+                    <div class="flex flex-col gap-corto sm:px-bloque">
+                        <p class="text-fino font-medium text-texto-suave">
+                            {{ $t('proyectos.resumen.periodo_abierto') }}
+                        </p>
+                        <template v-if="props.resumen.periodo_abierto">
+                            <p class="text-cuerpo font-medium">
+                                {{
+                                    $t('proyectos.resumen.periodo_numero', {
+                                        consecutivo: String(
+                                            props.resumen.periodo_abierto
+                                                .consecutivo,
+                                        ),
+                                    })
+                                }}
+                            </p>
+                            <p class="text-cuerpo text-texto-suave">
+                                {{
+                                    $t(
+                                        'proyectos.resumen.dias_transcurridos',
+                                        {
+                                            dias: String(
+                                                props.resumen.periodo_abierto
+                                                    .dias_transcurridos,
+                                            ),
+                                        },
+                                    )
+                                }}
+                            </p>
+                            <!-- Pasarse de la fecha de fin es válido: el cierre es manual. -->
+                            <div
+                                v-if="props.resumen.periodo_abierto.vencido"
+                                class="flex flex-col gap-fino"
+                            >
+                                <Badge variant="outline" class="self-start">
+                                    {{ $t('proyectos.resumen.vencido') }}
+                                </Badge>
+                                <span class="text-fino text-texto-suave">
+                                    {{ $t('proyectos.resumen.vencido_ayuda') }}
+                                </span>
+                            </div>
+                        </template>
+                        <p v-else class="text-cuerpo text-texto-suave">
+                            {{ $t('proyectos.resumen.sin_periodo_abierto') }}
+                        </p>
+                        <p class="text-fino text-texto-suave">
+                            {{
+                                $t('proyectos.resumen.periodos_cerrados', {
+                                    total: String(
+                                        props.resumen.periodos_cerrados_count,
+                                    ),
+                                })
+                            }}
+                        </p>
+                        <p
+                            v-if="props.resumen.total_pagado_usd !== null"
+                            class="text-fino text-texto-suave"
+                        >
+                            {{
+                                $t('proyectos.resumen.total_pagado', {
+                                    monto: props.resumen.total_pagado_usd,
+                                })
+                            }}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col gap-corto sm:pl-bloque">
+                        <p class="text-fino font-medium text-texto-suave">
+                            {{ $t('proyectos.resumen.ultima_reunion') }}
+                        </p>
+                        <template v-if="props.resumen.ultima_reunion">
+                            <p class="text-cuerpo font-medium">
+                                {{ props.resumen.ultima_reunion.titulo }}
+                            </p>
+                            <p class="font-mono text-fino text-texto-suave">
+                                {{ props.resumen.ultima_reunion.fecha }}
+                            </p>
+                        </template>
+                        <p v-else class="text-cuerpo text-texto-suave">
+                            {{ $t('proyectos.resumen.sin_reuniones') }}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </Deferred>
         </section>
 
         <!-- Módulos: contenido real desde la fase 05 -->
@@ -419,36 +475,55 @@ const eliminar = (): void => {
             </div>
         </section>
 
-        <!--
-            De aquí abajo, secciones sin contenido todavía. Cada una dice qué
-            fase la llena. **Nunca datos de mentira**: un placeholder con cifras
-            inventadas se olvida y acaba en producción.
-        -->
-        <template v-else-if="props.seccion === 'periodos'">
-            <SeccionPendiente
-                :titulo="$t('proyectos.secciones.periodos')"
-                :fase="9"
-            >
-                <Button as-child variant="outline" size="sm">
+        <!-- Periodos y pagos: contenido real desde la fase 09 -->
+        <section
+            v-else-if="props.seccion === 'periodos'"
+            class="flex flex-col gap-bloque"
+        >
+            <div class="flex flex-col items-start gap-corto">
+                <Deferred data="resumen">
+                    <template #fallback>
+                        <Skeleton class="h-5 w-48" />
+                    </template>
+                    <p v-if="props.resumen" class="text-cuerpo text-texto-suave">
+                        {{ $t('proyectos.resumen.periodo_abierto') }}:
+                        <span v-if="props.resumen.periodo_abierto">
+                            {{
+                                $t('proyectos.resumen.periodo_numero', {
+                                    consecutivo: String(
+                                        props.resumen.periodo_abierto
+                                            .consecutivo,
+                                    ),
+                                })
+                            }}
+                        </span>
+                        <span v-else>{{
+                            $t('proyectos.resumen.sin_periodo_abierto')
+                        }}</span>
+                    </p>
+                </Deferred>
+                <Button as-child size="sm">
                     <Link :href="periodosIndex(props.proyecto.id)">{{
-                        $t('comun.ver')
+                        $t('proyectos.secciones.periodos')
                     }}</Link>
                 </Button>
-            </SeccionPendiente>
+            </div>
 
             <!-- Ocultarlo no es el permiso: PagoPolicy niega la ruta igualmente. -->
-            <SeccionPendiente
+            <div
                 v-if="props.puede.verPagos"
-                :titulo="$t('proyectos.secciones.pagos')"
-                :fase="9"
+                class="flex flex-col items-start gap-corto"
             >
+                <p class="text-cuerpo text-texto-suave">
+                    {{ $t('proyectos.secciones.pagos') }}
+                </p>
                 <Button as-child variant="outline" size="sm">
                     <Link :href="pagosIndex(props.proyecto.id)">{{
                         $t('comun.ver')
                     }}</Link>
                 </Button>
-            </SeccionPendiente>
-        </template>
+            </div>
+        </section>
 
         <template v-else-if="props.seccion === 'bitacora'">
             <SeccionPendiente

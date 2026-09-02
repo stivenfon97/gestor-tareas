@@ -9,6 +9,7 @@ use App\Models\Cliente;
 use App\Models\Proyecto;
 use App\Models\Tarea;
 use Database\Seeders\RolesYPermisosSeeder;
+use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
     $this->seed(RolesYPermisosSeeder::class);
@@ -255,8 +256,19 @@ it('devuelve el concentrador del proyecto con su resumen y sin datos de relleno'
 
     $props = $respuesta->viewData('page')['props'];
 
-    expect($props['resumen']['tareas_por_estado'])->toBe([])
-        ->and($props['resumen']['periodo_abierto'])->toBeNull()
-        ->and($props['resumen']['ultima_reunion'])->toBeNull()
-        ->and($props['proyecto']['modulos_count'])->toBe(0);
+    expect($props['proyecto']['modulos_count'])->toBe(0)
+        // Diferido desde la fase 09: no llega en la respuesta inicial.
+        ->and($props)->not->toHaveKey('resumen');
+
+    // El resumen sí llega en la recarga parcial que dispara `<Deferred>`.
+    $respuesta->assertInertia(
+        fn (Assert $pagina) => $pagina->loadDeferredProps(
+            fn (Assert $diferido) => $diferido
+                ->where('resumen.tareas_por_estado', [])
+                ->where('resumen.periodo_abierto', null)
+                ->where('resumen.ultima_reunion', null)
+                ->where('resumen.periodos_cerrados_count', 0)
+                ->where('resumen.total_pagado_usd', '0.00'),
+        ),
+    );
 });

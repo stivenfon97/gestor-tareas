@@ -119,6 +119,7 @@ return [
         'tarea_de_otro_proyecto' => 'That task does not belong to this project.',
         'modulo_de_otro_proyecto' => 'The module does not belong to this project.',
         'periodo_de_otro_proyecto' => 'The period does not belong to this project.',
+        'periodo_cerrado' => 'That period is already closed: it does not accept new tasks.',
         'origen_de_otro_proyecto' => 'The origin task does not belong to this project.',
         'origen_solo_correccion_o_soporte' => 'Only a fix or support task can have an origin task.',
         'origen_a_si_misma' => 'A task cannot be its own origin.',
