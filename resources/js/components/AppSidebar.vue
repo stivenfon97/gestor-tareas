@@ -22,6 +22,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { usePermisos } from '@/composables/usePermisos';
 import { dashboard } from '@/routes';
@@ -89,14 +90,27 @@ const footerNavItems: NavItem[] = [
 
 <template>
     <Sidebar collapsible="icon" variant="sidebar">
+        <!--
+            El conmutador del menú vive aquí desde la fase 08. Antes estaba en
+            una franja de 48px que cruzaba la pantalla para alojarlo a él y al
+            de tema, y nada más. Plegado a iconos el logotipo se esconde y queda
+            solo el conmutador, que es lo que hace falta para volver a abrirlo.
+        -->
         <SidebarHeader>
             <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
+                <SidebarMenuItem
+                    class="flex items-center gap-fino group-data-[collapsible=icon]:justify-center"
+                >
+                    <SidebarMenuButton
+                        size="lg"
+                        as-child
+                        class="group-data-[collapsible=icon]:hidden"
+                    >
                         <Link :href="dashboard()">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
+                    <SidebarTrigger class="shrink-0" />
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>

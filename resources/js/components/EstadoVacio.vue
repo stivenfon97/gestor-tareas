@@ -8,8 +8,12 @@
  * cuando tiene doscientas, y se queda pensando que perdió datos—.
  *
  * Este componente solo pinta lo que le dan: quién decide cuál de los dos es el
- * caso es `TablaDatos`, y lo decide porque el servidor le dice si hay filtros
- * activos, no porque lo adivine.
+ * caso es la vista que lo usa, y lo decide porque el servidor le dice si hay
+ * filtros activos, no porque lo adivine.
+ *
+ * Vive en `components/` y no dentro de `TablaDatos/` desde la fase 08: lo usan
+ * también el tablero y la lista agrupada, y un componente genérico metido en la
+ * carpeta de otro componente es una dependencia invertida esperando a romperse.
  */
 defineProps<{
     titulo: string;

@@ -20,6 +20,7 @@ return [
     'sin_modulo' => 'No module',
     'periodo' => 'Period',
     'sin_periodo' => 'No period',
+    'periodo_numero' => 'Period :consecutivo',
     'tipo' => 'Type',
     'prioridad' => 'Priority',
     'descripcion' => 'Description',
@@ -115,6 +116,7 @@ return [
     ],
 
     'validacion' => [
+        'tarea_de_otro_proyecto' => 'That task does not belong to this project.',
         'modulo_de_otro_proyecto' => 'The module does not belong to this project.',
         'periodo_de_otro_proyecto' => 'The period does not belong to this project.',
         'origen_de_otro_proyecto' => 'The origin task does not belong to this project.',

@@ -15,6 +15,10 @@ use Illuminate\Http\Request;
  * cuenta: si lo hiciera, el formato del parámetro pasaría a ser un contrato
  * implícito entre dos capas que nadie prueba.
  *
+ * **Solo lo que es de una tabla.** Los filtros y la agrupación los lee
+ * `EstadoEnLaUrl`, que también sirve al tablero, a la lista agrupada y al
+ * calendario: ninguno de los tres tiene columnas ni páginas.
+ *
  * **No filtra ni ordena nada**: de eso se encarga spatie/laravel-query-builder
  * con sus `allowedFilters` y `allowedSorts`. Esto solo lee lo que llegó.
  */
@@ -47,22 +51,6 @@ final class EstadoDeTabla
             'campo' => ltrim($campo, '-'),
             'direccion' => str_starts_with($campo, '-') ? 'desc' : 'asc',
         ], $campos));
-    }
-
-    /**
-     * Filtros activos, tal y como llegaron.
-     *
-     * @return array<string, string>
-     */
-    public static function filtros(Request $request): array
-    {
-        $filtros = $request->input('filter', []);
-
-        if (! is_array($filtros)) {
-            return [];
-        }
-
-        return array_map(static fn (mixed $valor): string => (string) $valor, $filtros);
     }
 
     /**

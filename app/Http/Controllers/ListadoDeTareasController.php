@@ -6,13 +6,17 @@ namespace App\Http\Controllers;
 
 use App\Enums\EstadoTarea;
 use App\Enums\PrioridadTarea;
+use App\Enums\TipoDeVista;
 use App\Enums\TipoTarea;
 use App\Models\Proyecto;
 use App\Models\Tarea;
 use App\Models\User;
 use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use App\Services\ResolverRolProyecto;
+use App\Services\VistasGuardadas;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -35,9 +39,17 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class ListadoDeTareasController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request): Response|RedirectResponse
     {
         $usuario = $request->user();
+
+        // El listado global solo aplica vistas **globales**: una de proyecto
+        // filtraría por módulos que aquí no significan nada.
+        $predeterminada = VistasGuardadas::predeterminada($request, TipoDeVista::Tabla, null);
+
+        if ($predeterminada !== null) {
+            return redirect()->route('tareas.index', $predeterminada);
+        }
 
         $tareas = QueryBuilder::for(Tarea::class)
             ->visiblesPara($usuario)
@@ -87,7 +99,8 @@ class ListadoDeTareasController extends Controller
             // listado global y no en el de un proyecto.
             'proyecto' => null,
             'tareas' => $tareas,
-            'filtros' => EstadoDeTabla::filtros($request),
+            'filtros' => EstadoEnLaUrl::filtros($request),
+            'vistas' => VistasGuardadas::para($usuario, TipoDeVista::Tabla, null),
             'orden' => EstadoDeTabla::orden($request, '-updated_at'),
             'columnasVisibles' => EstadoDeTabla::columnas($request),
             'opciones' => [

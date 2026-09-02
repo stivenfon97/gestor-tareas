@@ -13,6 +13,7 @@ use App\Models\Reporte;
 use App\Models\Reunion;
 use App\Models\Tarea;
 use App\Models\User;
+use App\Models\VistaGuardada;
 use App\Policies\ClientePolicy;
 use App\Policies\EquipoPolicy;
 use App\Policies\MediaPolicy;
@@ -24,6 +25,7 @@ use App\Policies\ProyectoPolicy;
 use App\Policies\ReportePolicy;
 use App\Policies\ReunionPolicy;
 use App\Policies\TareaPolicy;
+use App\Policies\VistaGuardadaPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +54,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Las once policies se registran explícitamente para que el listado sea
+     * Las doce policies se registran explícitamente para que el listado sea
      * legible de un vistazo: si una falta, se ve aquí.
      */
     protected function registrarPolicies(): void
@@ -68,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Reporte::class, ReportePolicy::class);
         Gate::policy(Equipo::class, EquipoPolicy::class);
         Gate::policy(Media::class, MediaPolicy::class);
+        Gate::policy(VistaGuardada::class, VistaGuardadaPolicy::class);
 
         // Único atajo por encima de las policies. Deliberadamente solo para el
         // administrador: cualquier otro `before` convierte las policies en

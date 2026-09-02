@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\TipoDeVista;
 use App\Models\User;
 use App\Models\VistaGuardada;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -23,21 +24,20 @@ class VistaGuardadaFactory extends Factory
         return [
             'usuario_id' => User::factory(),
             'proyecto_id' => null,
-            'nombre' => fake()->randomElement([
-                'Mis pendientes', 'Bloqueadas', 'Del periodo actual', 'Correcciones abiertas',
-            ]),
-            'tipo' => fake()->randomElement(['tabla', 'kanban', 'lista', 'calendario']),
-            'configuracion' => [
-                'filtros' => ['estado' => ['pendiente', 'en_proceso']],
-                'agrupacion' => 'modulo_id',
-                'columnas' => ['codigo', 'nombre', 'estado', 'prioridad'],
-            ],
+            'nombre' => ucfirst($this->faker->words(2, true)),
+            'tipo' => TipoDeVista::Tabla->value,
+            'configuracion' => ['filter' => ['estado' => 'pendiente']],
             'es_predeterminada' => false,
         ];
     }
 
     public function predeterminada(): static
     {
-        return $this->state(fn (array $attributes): array => ['es_predeterminada' => true]);
+        return $this->state(fn (): array => ['es_predeterminada' => true]);
+    }
+
+    public function deTipo(TipoDeVista $tipo): static
+    {
+        return $this->state(fn (): array => ['tipo' => $tipo->value]);
     }
 }

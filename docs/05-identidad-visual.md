@@ -704,3 +704,55 @@ apariencia de algo en lo que se pueda pulsar. Pasa a `outline`.
 
 El rótulo dice **qué va a pasar**, no en qué estado está: en un cliente activo pone
 «Desactivar» y en uno inactivo, «Activar».
+
+---
+
+## 14. La barra superior de la aplicación
+
+Añadido en la fase 08. Al retirar la miga de pan en la 07d, esa franja de 48px quedó
+cruzando la pantalla con el conmutador del menú a un extremo, el de tema al otro y nada en
+medio: **el mismo defecto que la 07d había corregido abajo, reaparecido arriba**.
+
+La regla no cambia —ninguna banda existe solo para alojar botones—, así que la barra
+desaparece donde no tiene trabajo y se queda donde sí lo tiene:
+
+| Ancho | Qué pasa |
+|---|---|
+| **A partir de `md`** | No hay barra. El conmutador del menú se va a la cabecera del propio menú lateral, que es donde se busca lo que abre y cierra el menú; plegado a iconos queda él solo, que es lo que hace falta para volver a abrirlo. |
+| **Por debajo de `md`** | Se queda, y se gana el sitio: el menú es un cajón cerrado, así que esta barra es la **única puerta a la navegación** y el único sitio donde la aplicación dice cómo se llama. |
+
+El conmutador de tema se va al **menú de usuario**, en los dos anchos. Llega igual de
+rápido, se alcanza con el menú lateral plegado y no cuesta un píxel de alto. Siguen siendo
+tres posiciones y no dos: con solo claro y oscuro, elegir «claro» a mediodía deja la
+aplicación en claro por la noche aunque el sistema entero haya cambiado.
+
+### 14.1 — Los controles de la tabla suben al panel
+
+El menú «Opciones» estaba en el pie. Funcionaba, pero los controles de una tabla se buscan
+arriba. Sube a una barra de estado **dentro** del panel, con el total de resultados al
+lado.
+
+No reconstruye la banda que retiró la 07d: aquella cruzaba la pantalla **fuera** del panel
+y solo alojaba botones; esta va dentro del borde y lleva información. El pie queda con la
+paginación, y desaparece entero cuando hay una sola página.
+
+### 14.2 — Las columnas que miden lo que miden
+
+`ajustada` en la API de columna de `TablaDatos`. La columna de acciones de clientes
+absorbía todo el ancho sobrante —la tabla es `w-full` y el reparto proporcional se lo
+llevaba—, dejando un vacío entre el último dato y unos botones pegados al canto derecho.
+
+Para columnas de contenido fijo —acciones, badges de estado, contadores— el ancho correcto
+es el de su contenido, y el sobrante se reparte entre las columnas de texto, que es donde
+hace falta.
+
+### 14.3 — Las columnas del tablero no se estiran
+
+`items-start` en la fila de columnas. Sin eso, todas toman la altura de la más llena: un
+tablero con cuarenta entregadas dejaba cinco columnas vacías de cuatro mil píxeles y la
+página entera había que recorrerla para no ver nada.
+
+Cada columna rueda por dentro con un tope. A diferencia de la tabla (§12.4), aquí **sí**
+se admite una tarjeta cortada por el borde inferior: en una columna estrecha con su propia
+barra de desplazamiento, la tarjeta a medias es la señal convencional de que hay más
+abajo, y no la ambigüedad de una tabla que parecía haber terminado.

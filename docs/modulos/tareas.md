@@ -240,6 +240,29 @@ rol de proyecto sea `lider`.
 
 ## Decisiones de diseño
 
+### Arrastrar por estado y arrastrar por cualquier otra cosa no es lo mismo
+
+Es la trampa conceptual de la fase 08. Sobre la pantalla, las dos son «coger una tarjeta y
+soltarla en otra columna». Por debajo son operaciones distintas:
+
+| Agrupado por | Qué es soltar | Por dónde pasa |
+|---|---|---|
+| **Estado** | Un **cambio de estado** | `EstadoTareaController` → `CambiarEstadoTarea`: matriz de once transiciones, motivo obligatorio en dos destinos, fechas automáticas, historial |
+| **Módulo** o **prioridad** | Un cambio de campo | `MoverTareaEnTableroController`: un `update` y nada más |
+| **Tipo** | Nada: no se mueve | El tipo se fija al crear y no cambia (D1.3), así que sus columnas se leen y se reordenan pero **no son destinos** |
+
+Los tres caminos están escritos aparte, en el servidor y en el cliente. Unificarlos en
+uno que reciba «columna destino» obligaría a un `if` dentro para decidir si aplica la
+matriz, y **ese `if` es exactamente el que alguien simplifica** el día que no sepa por qué
+está. Dos endpoints distintos no se simplifican por descuido.
+
+Reordenar dentro de una columna es una tercera cosa, y también tiene su ruta
+(`proyectos/{p}/tareas/orden`): no cambia ninguna clasificación, solo la posición, y manda
+la columna entera en una sola petición.
+
+Detalle del recorrido completo, con sus tres caminos de vuelta, en
+`docs/diagramas/arrastre-en-el-tablero.md`.
+
 ### El estado tiene endpoint propio, separado del formulario
 
 **Elegido:** `PUT tareas/{tarea}/estado`, autorizado con `cambiarEstado` y no con

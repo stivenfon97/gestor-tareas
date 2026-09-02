@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AgendaDeTareasController;
 use App\Http\Controllers\ArchivoController;
 use App\Http\Controllers\AsignarEquipoAProyectoController;
 use App\Http\Controllers\CapturaRapidaController;
@@ -12,17 +13,22 @@ use App\Http\Controllers\Gestion\EquipoController;
 use App\Http\Controllers\Gestion\EstadoUsuarioController;
 use App\Http\Controllers\Gestion\MiembroEquipoController;
 use App\Http\Controllers\Gestion\UsuarioController;
+use App\Http\Controllers\ListaAgrupadaController;
 use App\Http\Controllers\ListadoDeTareasController;
 use App\Http\Controllers\ModuloController;
+use App\Http\Controllers\MoverTareaEnTableroController;
 use App\Http\Controllers\NotaTareaController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PeriodoController;
 use App\Http\Controllers\ProyectoController;
 use App\Http\Controllers\ProyectoUsuarioController;
 use App\Http\Controllers\ReordenarModulosController;
+use App\Http\Controllers\ReordenarTareasController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ReunionController;
+use App\Http\Controllers\TableroController;
 use App\Http\Controllers\TareaController;
+use App\Http\Controllers\VistaGuardadaController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -109,6 +115,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('proyectos/{proyecto}/tareas/rapida/previsualizar', [CapturaRapidaController::class, 'previsualizar'])->name('proyectos.tareas.rapida.previsualizar');
     Route::post('proyectos/{proyecto}/tareas/rapida', [CapturaRapidaController::class, 'store'])->name('proyectos.tareas.rapida.store');
 
+    /*
+     * Las otras tres formas de ver las mismas tareas (fase 08).
+     *
+     * El tablero tiene endpoint propio y no un parámetro sobre el listado: un
+     * paginador plano y un conjunto de columnas con su total son formas de
+     * datos distintas, y forzarlas en la misma respuesta las hace peores a las
+     * dos. `tablero/columna` sirve el «cargar más» de **una** columna en JSON:
+     * una recarga parcial de Inertia rearmaría el tablero entero.
+     */
+    Route::get('proyectos/{proyecto}/tablero', [TableroController::class, 'index'])->name('proyectos.tablero.index');
+    Route::get('proyectos/{proyecto}/tablero/columna', [TableroController::class, 'columna'])->name('proyectos.tablero.columna');
+    Route::get('proyectos/{proyecto}/agenda', [AgendaDeTareasController::class, 'index'])->name('proyectos.agenda.index');
+    Route::get('proyectos/{proyecto}/lista', [ListaAgrupadaController::class, 'index'])->name('proyectos.lista.index');
+
+    // Reordenar dentro de una columna: una petición por operación con el orden
+    // del conjunto afectado, nunca una por tarjeta movida.
+    Route::put('proyectos/{proyecto}/tareas/orden', [ReordenarTareasController::class, 'update'])->name('proyectos.tareas.orden');
+
+    /*
+     * Mover entre columnas **cuando la columna no es un estado**. Agrupado por
+     * estado el camino es otro (`tareas.estado.update`), y esa separación es
+     * deliberada: soltar una tarjeta en «Terminada» valida once transiciones,
+     * exige motivo y escribe historial; soltarla en otro módulo no hace nada de
+     * eso. Un endpoint único con un `if` dentro es el `if` que alguien
+     * simplifica el día que no sepa por qué está.
+     */
+    Route::put('proyectos/{proyecto}/tareas/{tarea}/columna', [MoverTareaEnTableroController::class, 'update'])->name('proyectos.tareas.columna');
+
     Route::get('proyectos/{proyecto}/periodos', [PeriodoController::class, 'index'])->name('proyectos.periodos.index');
     Route::get('proyectos/{proyecto}/pagos', [PagoController::class, 'index'])->name('proyectos.pagos.index');
     Route::get('proyectos/{proyecto}/reuniones', [ReunionController::class, 'index'])->name('proyectos.reuniones.index');
@@ -138,6 +172,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Único camino a un adjunto. Nunca una URL directa al disco.
     Route::get('archivos/{media}', [ArchivoController::class, 'show'])->name('archivos.descargar');
+
+    /*
+     * Vistas guardadas. Son **privadas de cada usuario**: no llevan `{usuario}`
+     * en la ruta y la policy comprueba la propiedad de la fila. Compartirlas
+     * suena bien y no lo es —dos personas con la misma vista acaban discutiendo
+     * sobre qué debería mostrar—; el día que haga falta, se añade un campo.
+     */
+    Route::post('vistas', [VistaGuardadaController::class, 'store'])->name('vistas.store');
+    Route::put('vistas/{vista}', [VistaGuardadaController::class, 'update'])->name('vistas.update');
+    Route::post('vistas/{vista}/duplicar', [VistaGuardadaController::class, 'duplicar'])->name('vistas.duplicar');
+    Route::delete('vistas/{vista}', [VistaGuardadaController::class, 'destroy'])->name('vistas.destroy');
 });
 
 require __DIR__.'/settings.php';

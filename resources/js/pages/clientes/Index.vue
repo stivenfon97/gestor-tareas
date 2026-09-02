@@ -80,6 +80,10 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
         id: 'estado',
         etiqueta: trans('comun.estado'),
         valor: (cliente) => (cliente.activo ? '1' : '0'),
+        // Un badge y un botón miden lo que miden. Sin esto se repartían entre
+        // los dos el ancho sobrante de la tabla y quedaba un hueco entre el
+        // estado y unos botones pegados al canto derecho de la pantalla.
+        ajustada: true,
         filtro: {
             tipo: 'opciones',
             clave: 'activo',
@@ -89,13 +93,12 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
             ],
         },
         prioritaria: true,
-        anchoMinimo: '7rem',
     },
     {
         id: 'acciones',
         etiqueta: trans('comun.acciones'),
         alineacion: 'derecha',
-        anchoMinimo: '8rem',
+        ajustada: true,
     },
 ]);
 

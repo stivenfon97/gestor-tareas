@@ -1,30 +1,18 @@
-import type { RequestPayload } from '@inertiajs/core';
-import { router } from '@inertiajs/vue3';
-import { onBeforeUnmount } from 'vue';
 import type { Direccion, OrdenDeColumna } from '@/components/TablaDatos/tipos';
+import { useEstadoEnLaUrl } from './useEstadoEnLaUrl';
 
 /**
- * Sincroniza el estado de un listado —orden, página, filtros y columnas
- * visibles— **con la URL**.
+ * La capa de tabla sobre `useEstadoEnLaUrl`.
  *
- * Un listado cuyo estado solo vive en memoria no se puede compartir ni
- * recuperar tras recargar: «las tareas en espera del proyecto X» deja de ser un
- * enlace y pasa a ser una instrucción de siete pasos.
+ * Aquí vive lo que **solo** es de una tabla: el orden multicolumna, las
+ * columnas visibles y la paginación. Los filtros, el retraso al escribir y la
+ * navegación son del núcleo, que el tablero de la fase 08 usa igual sin heredar
+ * nada de esto.
  *
- * El flujo es de un solo sentido a propósito:
- *
- * ```
- * URL ──► servidor ──► props ──► lo que se pinta
- *  ▲                                  │
- *  └──────── estas acciones ◄─────────┘
- * ```
- *
- * El composable **no guarda copia del estado**: lo lee de los getters, que
- * apuntan a las props del servidor. Así no hay dos fuentes de verdad que puedan
- * separarse cuando una petición falla o el usuario usa el botón «atrás».
- *
- * No sabe nada de tablas: el Kanban de la fase 08 comparte filtros y orden con
- * el listado aunque no comparta la forma, y usa esto igual.
+ * Por qué se partió: el tablero comparte filtros con el listado pero no tiene
+ * columnas ni páginas, y si hubiera copiado el retraso al escribir y la
+ * construcción de `filter[…]` esas dos copias habrían divergido a la tercera
+ * vista.
  */
 export type LecturaDeEstado = {
     /** Ruta del listado (`index(proyecto).url`). */
@@ -38,40 +26,37 @@ export type LecturaDeEstado = {
 
 type Cambios = {
     orden?: OrdenDeColumna[];
-    filtros?: Record<string, string>;
     columnas?: string[] | null;
     pagina?: number;
     porPagina?: number;
 };
 
-/** Milisegundos que se espera antes de consultar mientras se escribe. */
-const RETRASO_AL_ESCRIBIR = 300;
+/**
+ * Los parámetros que aporta la tabla. Es un objeto plano y no `RequestPayload`
+ * porque este último admite también `FormData`, que no tiene claves.
+ */
+type ParametrosPlanos = Record<string, string | number>;
+
+/** Tamaño de página de fábrica. Coincide con `EstadoDeTabla::TAMANOS[0]`. */
+const POR_PAGINA_POR_DEFECTO = 30;
 
 export function useEstadoDeTabla(lectura: LecturaDeEstado) {
-    let temporizador: ReturnType<typeof setTimeout> | undefined;
-
-    onBeforeUnmount(() => clearTimeout(temporizador));
-
-    const construirParametros = (cambios: Cambios): RequestPayload => {
+    /**
+     * Lo propio de la tabla, listo para viajar.
+     *
+     * **`page` no está aquí a propósito.** Es lo que hace que cualquier cambio
+     * que no sea de página vuelva a la primera: quedarse en la página 7 después
+     * de filtrar deja la pantalla vacía sin explicar por qué.
+     */
+    const parametrosDeTabla = (cambios: Cambios = {}): ParametrosPlanos => {
         const orden = cambios.orden ?? lectura.orden();
-        const filtros = cambios.filtros ?? lectura.filtros();
         const columnas =
             cambios.columnas !== undefined
                 ? cambios.columnas
                 : lectura.columnas();
         const porPagina = cambios.porPagina ?? lectura.porPagina();
 
-        const activos = Object.fromEntries(
-            Object.entries(filtros).filter(
-                ([, valor]) => valor !== '' && valor !== null,
-            ),
-        );
-
-        const parametros: RequestPayload = {};
-
-        if (Object.keys(activos).length > 0) {
-            parametros.filter = activos;
-        }
+        const parametros: ParametrosPlanos = {};
 
         if (orden.length > 0) {
             // `sort=-prioridad,codigo`: el orden de la lista es la prioridad del
@@ -87,38 +72,31 @@ export function useEstadoDeTabla(lectura: LecturaDeEstado) {
             parametros.columnas = columnas.join(',');
         }
 
-        if (porPagina !== 30) {
+        if (porPagina !== POR_PAGINA_POR_DEFECTO) {
             parametros.por_pagina = porPagina;
         }
 
-        // Cualquier cambio que no sea de página vuelve a la primera: quedarse en
-        // la página 7 después de filtrar deja la pantalla vacía sin explicar por qué.
+        return parametros;
+    };
+
+    const nucleo = useEstadoEnLaUrl({
+        get url() {
+            return lectura.url;
+        },
+        filtros: () => lectura.filtros(),
+        otros: () => parametrosDeTabla(),
+    });
+
+    /** Navega conservando los filtros actuales y cambiando lo de la tabla. */
+    const navegar = (cambios: Cambios, retrasar = false): void => {
+        const parametros = parametrosDeTabla(cambios);
         const pagina = cambios.pagina ?? 1;
 
         if (pagina > 1) {
             parametros.page = pagina;
         }
 
-        return parametros;
-    };
-
-    const navegar = (cambios: Cambios, retrasar = false): void => {
-        clearTimeout(temporizador);
-
-        const ir = () =>
-            router.get(lectura.url, construirParametros(cambios), {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
-
-        if (retrasar) {
-            temporizador = setTimeout(ir, RETRASO_AL_ESCRIBIR);
-
-            return;
-        }
-
-        ir();
+        nucleo.navegarConFiltros(parametros, retrasar);
     };
 
     /**
@@ -180,19 +158,6 @@ export function useEstadoDeTabla(lectura: LecturaDeEstado) {
 
     const limpiarOrden = (): void => navegar({ orden: [] });
 
-    const aplicarFiltro = (
-        clave: string,
-        valor: string,
-        retrasar = false,
-    ): void => {
-        navegar(
-            { filtros: { ...lectura.filtros(), [clave]: valor } },
-            retrasar,
-        );
-    };
-
-    const limpiarFiltros = (): void => navegar({ filtros: {} });
-
     /**
      * @param visibles Lista completa de columnas visibles, en orden de declaración.
      * @param porDefecto Las que la página considera visibles de fábrica.
@@ -216,8 +181,8 @@ export function useEstadoDeTabla(lectura: LecturaDeEstado) {
         alternarOrden,
         quitarDelOrden,
         limpiarOrden,
-        aplicarFiltro,
-        limpiarFiltros,
+        aplicarFiltro: nucleo.aplicarFiltro,
+        limpiarFiltros: nucleo.limpiarFiltros,
         fijarColumnas,
         irAPagina,
         cambiarPorPagina,
