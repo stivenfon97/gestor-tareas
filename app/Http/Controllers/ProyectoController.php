@@ -13,6 +13,7 @@ use App\Models\Proyecto;
 use App\Models\Reporte;
 use App\Models\Reunion;
 use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use App\Services\ResolverRolProyecto;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,7 +68,7 @@ class ProyectoController extends Controller
 
         return Inertia::render('proyectos/Index', [
             'proyectos' => $proyectos,
-            'filtros' => EstadoDeTabla::filtros($request),
+            'filtros' => EstadoEnLaUrl::filtros($request),
             'orden' => EstadoDeTabla::orden($request, 'nombre'),
             'columnasVisibles' => EstadoDeTabla::columnas($request),
             'estados' => $this->estadosDisponibles(),

@@ -15,13 +15,13 @@ import {
     ref,
     watch,
 } from 'vue';
+import EstadoVacio from '@/components/EstadoVacio.vue';
 import { Button } from '@/components/ui/button';
 import { useDensidad } from '@/composables/useDensidad';
 import { useEstadoDeTabla } from '@/composables/useEstadoDeTabla';
 import { cn } from '@/lib/utils';
 import CabeceraDeColumna from './CabeceraDeColumna.vue';
 import EsqueletoDeTabla from './EsqueletoDeTabla.vue';
-import EstadoVacio from './EstadoVacio.vue';
 import FiltroDeCabecera from './FiltroDeCabecera.vue';
 import LeyendaDeColumna from './LeyendaDeColumna.vue';
 import MenuCompacto from './MenuCompacto.vue';
@@ -309,7 +309,18 @@ watch(columnasVisiblesEnOrden, () => nextTick(medirAnclajes));
 const estiloAnclado = (columna: ColumnaDeTabla<T>): Record<string, string> => {
     const estilos: Record<string, string> = {};
 
-    if (columna.anchoMinimo !== undefined) {
+    /*
+     * `width: 1%` sobre una tabla de disposición automática es la forma de
+     * decir «esta columna mide lo que mide su contenido»: el navegador reparte
+     * el ancho sobrante entre las demás. Con `nowrap` en la celda, el resultado
+     * es una columna pegada a su contenido.
+     *
+     * `anchoMinimo` se ignora aquí a propósito: un mínimo declarado volvería a
+     * reservar ancho, que es exactamente lo que esta marca evita.
+     */
+    if (columna.ajustada === true) {
+        estilos.width = '1%';
+    } else if (columna.anchoMinimo !== undefined) {
         estilos.minWidth = columna.anchoMinimo;
     }
 
@@ -660,6 +671,53 @@ const alternarColumna = (id: string, visible: boolean): void => {
         <div
             class="flex min-w-0 flex-col overflow-hidden rounded-md border border-borde-fuerte bg-panel"
         >
+            <!--
+                Barra de estado de la tabla: cuántos resultados hay y el menú
+                que opera sobre ella.
+
+                Va **arriba y dentro del panel**. En el pie funcionaba, pero los
+                controles de una tabla se buscan arriba. Y no reconstruye la
+                banda que retiró la 07d: aquella cruzaba la pantalla **fuera**
+                del panel para alojar dos botones y nada más; esta va dentro del
+                borde, lleva el total de resultados —que es información, no un
+                control— y sustituye a la franja que antes ocupaba el pie.
+            -->
+            <div
+                class="flex items-center justify-between gap-corto border-b border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
+            >
+                <div class="flex min-w-0 items-center gap-corto">
+                    <MenuCompacto
+                        :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
+                        :visibles="visiblesPedidas"
+                        :densidad="densidad"
+                        :hay-filtros-activos="hayFiltrosActivos"
+                        :hay-orden-multiple="props.orden.length > 1"
+                        @alternar-columna="alternarColumna"
+                        @restablecer-columnas="
+                            estado.fijarColumnas(
+                                columnasPorDefecto,
+                                columnasPorDefecto,
+                            )
+                        "
+                        @fijar-densidad="fijarDensidad"
+                        @limpiar-filtros="estado.limpiarFiltros()"
+                        @limpiar-orden="estado.limpiarOrden()"
+                    />
+
+                    <span class="truncate">
+                        {{
+                            $t('comun.tabla.total_resultados', {
+                                total: String(props.paginacion.total),
+                            })
+                        }}
+                    </span>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-corto">
+                    <slot name="acciones" />
+                </div>
+            </div>
+
             <!-- Tarjetas apiladas: por debajo de `md` la tabla deja de ser tabla. -->
             <!-- Sin alto máximo en móvil: un contenedor con su propio scroll
              dentro de una página que también rueda es un pulgar peleándose con
@@ -919,6 +977,7 @@ const alternarColumna = (id: string, visible: boolean): void => {
                                 :class="
                                     cn(
                                         'bg-inherit px-celda align-middle',
+                                        columna.ajustada && 'whitespace-nowrap',
                                         columna.alineacion === 'derecha' &&
                                             'text-right',
                                         columna.mono && 'font-mono text-fino',
@@ -981,57 +1040,17 @@ const alternarColumna = (id: string, visible: boolean): void => {
             </div>
 
             <!--
-                Pie: parte del panel, con su propio ritmo interno.
-
-                Aquí viven también los controles de la tabla. Antes ocupaban una
-                franja horizontal entera entre la cabecera de la página y el
-                panel, cuya única función era alojar dos botones. Agrupados en
-                un solo menú y metidos en una barra que ya existía, no cuestan
-                ni un píxel de alto nuevo.
+                Pie: solo paginación, y **solo cuando hay más de una página**.
+                Con una sola, «Por página · Página 1 de 1 · ‹ ›» son cuatro
+                controles que no llevan a ninguna parte: dos nacen
+                deshabilitados y el tercero informa de que no hay nada más. El
+                total de resultados, que sí dice algo, vive arriba.
             -->
             <div
-                class="flex items-center justify-between gap-corto border-t border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
+                v-if="hayVariasPaginas"
+                class="flex items-center justify-end gap-corto border-t border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
             >
-                <div class="flex min-w-0 items-center gap-corto">
-                    <MenuCompacto
-                        :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
-                        :visibles="visiblesPedidas"
-                        :densidad="densidad"
-                        :hay-filtros-activos="hayFiltrosActivos"
-                        :hay-orden-multiple="props.orden.length > 1"
-                        @alternar-columna="alternarColumna"
-                        @restablecer-columnas="
-                            estado.fijarColumnas(
-                                columnasPorDefecto,
-                                columnasPorDefecto,
-                            )
-                        "
-                        @fijar-densidad="fijarDensidad"
-                        @limpiar-filtros="estado.limpiarFiltros()"
-                        @limpiar-orden="estado.limpiarOrden()"
-                    />
-
-                    <span class="truncate">
-                        {{
-                            $t('comun.tabla.total_resultados', {
-                                total: String(props.paginacion.total),
-                            })
-                        }}
-                    </span>
-
-                    <slot name="acciones" />
-                </div>
-
-                <!--
-                    Con una sola página, «Por página · Página 1 de 1 · ‹ ›» son
-                    cuatro controles que no llevan a ninguna parte: dos de ellos
-                    nacen deshabilitados y el tercero informa de que no hay nada
-                    más. Con una página solo queda el total, que sí dice algo.
-                -->
-                <div
-                    v-if="hayVariasPaginas"
-                    class="flex items-center gap-corto"
-                >
+                <div class="flex items-center gap-corto">
                     <!-- En móvil sobran: con el pulgar se pasa página, no se
                      elige un tamaño ni se lee «página 2 de 9». -->
                     <label v-if="!esMovil" class="flex items-center gap-fino">

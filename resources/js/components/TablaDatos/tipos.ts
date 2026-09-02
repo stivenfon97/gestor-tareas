@@ -84,6 +84,21 @@ export type ColumnaDeTabla<T> = {
 
     /** Longitud CSS (`'12rem'`). Va a `style`, nunca a una clase de Tailwind. */
     anchoMinimo?: string;
+
+    /**
+     * La columna mide **lo que mide su contenido** y no reparte el ancho
+     * sobrante de la tabla.
+     *
+     * Sin esto, la columna de acciones de clientes absorbía todo el hueco: la
+     * tabla es `w-full` y el reparto proporcional se lo llevaba, dejando un
+     * vacío entre el último dato y unos botones pegados al canto derecho de la
+     * pantalla. Para columnas de contenido fijo —acciones, badges de estado,
+     * contadores— el ancho correcto es el del contenido.
+     *
+     * Incompatible con `anchoMinimo`: un mínimo declarado vuelve a reservar
+     * ancho, que es justo lo que esto evita.
+     */
+    ajustada?: boolean;
 };
 
 /** Una acción que opera sobre las filas seleccionadas. */

@@ -11,6 +11,7 @@ use App\Models\Periodo;
 use App\Models\Proyecto;
 use App\Models\Tarea;
 use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -60,7 +61,7 @@ class ClienteController extends Controller
 
         return Inertia::render('clientes/Index', [
             'clientes' => $clientes,
-            'filtros' => EstadoDeTabla::filtros($request),
+            'filtros' => EstadoEnLaUrl::filtros($request),
             'orden' => EstadoDeTabla::orden($request, 'nombre'),
             'columnasVisibles' => EstadoDeTabla::columnas($request),
             'puede' => ['crear' => Gate::allows('create', Cliente::class)],

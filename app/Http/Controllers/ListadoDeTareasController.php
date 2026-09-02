@@ -11,6 +11,7 @@ use App\Models\Proyecto;
 use App\Models\Tarea;
 use App\Models\User;
 use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use App\Services\ResolverRolProyecto;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ class ListadoDeTareasController extends Controller
             // listado global y no en el de un proyecto.
             'proyecto' => null,
             'tareas' => $tareas,
-            'filtros' => EstadoDeTabla::filtros($request),
+            'filtros' => EstadoEnLaUrl::filtros($request),
             'orden' => EstadoDeTabla::orden($request, '-updated_at'),
             'columnasVisibles' => EstadoDeTabla::columnas($request),
             'opciones' => [

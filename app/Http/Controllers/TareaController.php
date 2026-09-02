@@ -16,6 +16,7 @@ use App\Models\Tarea;
 use App\Services\ArbolDeModulos;
 use App\Services\CambiarEstadoTarea;
 use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,7 +77,7 @@ class TareaController extends Controller
         return Inertia::render('tareas/Index', [
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'tareas' => $tareas,
-            'filtros' => EstadoDeTabla::filtros($request),
+            'filtros' => EstadoEnLaUrl::filtros($request),
             // El orden viaja ya descompuesto: la tabla necesita saber en qué
             // posición va cada campo para dibujar la prioridad de orden.
             'orden' => EstadoDeTabla::orden($request, 'codigo'),
