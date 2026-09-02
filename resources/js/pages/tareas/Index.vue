@@ -9,6 +9,8 @@ import type { OrdenDeColumna } from '@/components/TablaDatos';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
+import SelectorDeVista from '@/components/tareas/SelectorDeVista.vue';
+import VistasGuardadas from '@/components/tareas/VistasGuardadas.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { trans } from '@/lib/i18n';
@@ -18,6 +20,7 @@ import { create as capturaRapida } from '@/routes/proyectos/tareas/rapida';
 import { index as listado, show } from '@/routes/tareas';
 import type { RespuestaPaginada } from '@/types/paginacion';
 import type { FilaTarea, OpcionesDeTarea, TipoTarea } from '@/types/tareas';
+import type { ConfiguracionDeVista, VistaGuardada } from '@/types/vistas';
 
 /**
  * Sirve a los dos alcances: el listado de un proyecto
@@ -40,8 +43,37 @@ const props = defineProps<{
     orden: OrdenDeColumna[];
     columnasVisibles: string[] | null;
     opciones: OpcionesDeTarea;
+    vistas: VistaGuardada[];
+    tipoDeVista: 'tabla';
     puede: { crear: boolean };
 }>();
+
+/**
+ * La configuración de ahora, que es lo que guardaría una vista nueva.
+ *
+ * Es literalmente lo que hay en la URL: el estado de un listado vive ahí desde
+ * la fase 07, así que una vista guardada no necesita ningún formato propio.
+ */
+const configuracionActual = computed((): ConfiguracionDeVista => {
+    const activos = Object.entries(props.filtros).filter(
+        ([, valor]) => valor !== '' && valor !== null,
+    );
+    const orden = props.orden
+        .map(({ campo, direccion }) =>
+            direccion === 'desc' ? `-${campo}` : campo,
+        )
+        .join(',');
+
+    return {
+        ...(activos.length > 0
+            ? { filter: Object.fromEntries(activos) as Record<string, string> }
+            : {}),
+        ...(orden !== '' ? { sort: orden } : {}),
+        ...(props.columnasVisibles !== null
+            ? { columnas: props.columnasVisibles.join(',') }
+            : {}),
+    };
+});
 
 /*
  * Las columnas se declaran **aquí**, no dentro de `TablaDatos`: el componente no
@@ -283,6 +315,20 @@ const enLote = async (
                         }}</Link>
                     </Button>
                 </template>
+            </template>
+            <template #meta>
+                <SelectorDeVista
+                    v-if="props.proyecto"
+                    :proyecto="props.proyecto"
+                    actual="tabla"
+                    :filtros="props.filtros"
+                />
+                <VistasGuardadas
+                    :vistas="props.vistas"
+                    tipo="tabla"
+                    :proyecto-id="props.proyecto?.id ?? null"
+                    :configuracion-actual="configuracionActual"
+                />
             </template>
         </CabeceraDePagina>
 

@@ -132,17 +132,17 @@ class TableroController extends Controller
         $columnas = match ($agrupacion) {
             AgrupacionTablero::Estado => array_map(static fn (EstadoTarea $caso): array => [
                 'clave' => $caso->value,
-                'etiqueta' => $caso->etiqueta(),
+                'etiqueta' => __($caso->etiqueta()),
             ], EstadoTarea::cases()),
 
             AgrupacionTablero::Prioridad => array_map(static fn (PrioridadTarea $caso): array => [
                 'clave' => $caso->value,
-                'etiqueta' => $caso->etiqueta(),
+                'etiqueta' => __($caso->etiqueta()),
             ], PrioridadTarea::cases()),
 
             AgrupacionTablero::Tipo => array_map(static fn (TipoTarea $caso): array => [
                 'clave' => $caso->value,
-                'etiqueta' => $caso->etiqueta(),
+                'etiqueta' => __($caso->etiqueta()),
             ], TipoTarea::cases()),
 
             AgrupacionTablero::Modulo => array_map(
@@ -176,7 +176,7 @@ class TableroController extends Controller
     {
         return array_map(static fn (AgrupacionTablero $caso): array => [
             'valor' => $caso->value,
-            'etiqueta' => $caso->etiqueta(),
+            'etiqueta' => __($caso->etiqueta()),
         ], AgrupacionTablero::delTablero());
     }
 
@@ -188,7 +188,7 @@ class TableroController extends Controller
     {
         return array_map(static fn ($caso): array => [
             'valor' => $caso->value,
-            'etiqueta' => $caso->etiqueta(),
+            'etiqueta' => __($caso->etiqueta()),
         ], $casos);
     }
 }

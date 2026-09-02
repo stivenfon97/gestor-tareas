@@ -22,9 +22,14 @@ enum TipoDeVista: string
     case Lista = 'lista';
     case Calendario = 'calendario';
 
+    /**
+     * La **clave** de traducción, no el texto: es lo que devuelven todos los
+     * enums del proyecto, y mezclar los dos criterios acaba en pantallas donde
+     * la mitad de las etiquetas sale como su ruta.
+     */
     public function etiqueta(): string
     {
-        return __('vistas.tipos.'.$this->value);
+        return 'vistas.tipos.'.$this->value;
     }
 
     /** @return array<int, string> */

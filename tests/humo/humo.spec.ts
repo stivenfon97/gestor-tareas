@@ -39,6 +39,12 @@ const PANTALLAS: Pantalla[] = [
     { nombre: 'proyectos', ruta: () => '/proyectos' },
     { nombre: 'proyecto-detalle', ruta: (id) => `/proyectos/${id}` },
     { nombre: 'tareas', ruta: () => '/tareas' },
+    // Las tres formas de ver lo mismo que trajo la fase 08. Entran aquí por lo
+    // mismo que las otras cinco: las claves sin traducir y el desbordamiento a
+    // lo ancho no los ve ninguna prueba de servidor.
+    { nombre: 'tablero', ruta: (id) => `/proyectos/${id}/tablero` },
+    { nombre: 'lista', ruta: (id) => `/proyectos/${id}/lista` },
+    { nombre: 'agenda', ruta: (id) => `/proyectos/${id}/agenda` },
 ];
 
 /*

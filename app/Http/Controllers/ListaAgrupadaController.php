@@ -64,7 +64,7 @@ class ListaAgrupadaController extends Controller
             'agrupacion' => $agrupacion->value,
             'agrupaciones' => array_map(static fn (AgrupacionTablero $caso): array => [
                 'valor' => $caso->value,
-                'etiqueta' => $caso->etiqueta(),
+                'etiqueta' => __($caso->etiqueta()),
             ], AgrupacionTablero::deLaLista()),
             'grupos' => $armar(
                 FiltrosDeTareas::paraProyecto($request, $proyecto)->getEloquentBuilder(),
@@ -97,7 +97,7 @@ class ListaAgrupadaController extends Controller
         $grupos = match ($agrupacion) {
             AgrupacionTablero::Estado => array_map(static fn (EstadoTarea $caso): array => [
                 'clave' => $caso->value,
-                'etiqueta' => $caso->etiqueta(),
+                'etiqueta' => __($caso->etiqueta()),
             ], EstadoTarea::cases()),
 
             AgrupacionTablero::Modulo => array_map(
@@ -139,7 +139,7 @@ class ListaAgrupadaController extends Controller
     {
         return array_map(static fn ($caso): array => [
             'valor' => $caso->value,
-            'etiqueta' => $caso->etiqueta(),
+            'etiqueta' => __($caso->etiqueta()),
         ], $casos);
     }
 }

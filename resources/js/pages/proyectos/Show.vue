@@ -15,11 +15,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { trans } from '@/lib/i18n';
 import { destroy, edit, show } from '@/routes/proyectos';
+import { index as agendaIndex } from '@/routes/proyectos/agenda';
+import { index as listaIndex } from '@/routes/proyectos/lista';
 import { index as miembrosIndex } from '@/routes/proyectos/miembros';
 import { index as modulosIndex } from '@/routes/proyectos/modulos';
 import { index as pagosIndex } from '@/routes/proyectos/pagos';
 import { index as periodosIndex } from '@/routes/proyectos/periodos';
 import { index as reunionesIndex } from '@/routes/proyectos/reuniones';
+import { index as tableroIndex } from '@/routes/proyectos/tablero';
 import { index as tareasIndex } from '@/routes/proyectos/tareas';
 
 const props = defineProps<{
@@ -390,12 +393,30 @@ const eliminar = (): void => {
                 {{ props.proyecto.tareas_count }}
             </p>
             <!-- Primaria, no `outline`: es el destino de la pestaña, no una
-                 opción más entre varias. -->
-            <Button as-child size="sm">
-                <Link :href="tareasIndex(props.proyecto.id)">{{
-                    $t('proyectos.ver_tareas')
-                }}</Link>
-            </Button>
+                 opción más entre varias. Las otras tres formas de ver lo mismo
+                 van al lado, en secundaria: son alternativas, no el camino. -->
+            <div class="flex flex-wrap items-center gap-corto">
+                <Button as-child size="sm">
+                    <Link :href="tareasIndex(props.proyecto.id)">{{
+                        $t('proyectos.ver_tareas')
+                    }}</Link>
+                </Button>
+                <Button as-child variant="outline" size="sm">
+                    <Link :href="tableroIndex(props.proyecto.id)">{{
+                        $t('tablero.vistas.tablero')
+                    }}</Link>
+                </Button>
+                <Button as-child variant="outline" size="sm">
+                    <Link :href="listaIndex(props.proyecto.id)">{{
+                        $t('tablero.vistas.lista')
+                    }}</Link>
+                </Button>
+                <Button as-child variant="outline" size="sm">
+                    <Link :href="agendaIndex(props.proyecto.id)">{{
+                        $t('tablero.vistas.calendario')
+                    }}</Link>
+                </Button>
+            </div>
         </section>
 
         <!--

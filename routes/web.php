@@ -16,6 +16,7 @@ use App\Http\Controllers\Gestion\UsuarioController;
 use App\Http\Controllers\ListaAgrupadaController;
 use App\Http\Controllers\ListadoDeTareasController;
 use App\Http\Controllers\ModuloController;
+use App\Http\Controllers\MoverTareaEnTableroController;
 use App\Http\Controllers\NotaTareaController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PeriodoController;
@@ -131,6 +132,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Reordenar dentro de una columna: una petición por operación con el orden
     // del conjunto afectado, nunca una por tarjeta movida.
     Route::put('proyectos/{proyecto}/tareas/orden', [ReordenarTareasController::class, 'update'])->name('proyectos.tareas.orden');
+
+    /*
+     * Mover entre columnas **cuando la columna no es un estado**. Agrupado por
+     * estado el camino es otro (`tareas.estado.update`), y esa separación es
+     * deliberada: soltar una tarjeta en «Terminada» valida once transiciones,
+     * exige motivo y escribe historial; soltarla en otro módulo no hace nada de
+     * eso. Un endpoint único con un `if` dentro es el `if` que alguien
+     * simplifica el día que no sepa por qué está.
+     */
+    Route::put('proyectos/{proyecto}/tareas/{tarea}/columna', [MoverTareaEnTableroController::class, 'update'])->name('proyectos.tareas.columna');
 
     Route::get('proyectos/{proyecto}/periodos', [PeriodoController::class, 'index'])->name('proyectos.periodos.index');
     Route::get('proyectos/{proyecto}/pagos', [PagoController::class, 'index'])->name('proyectos.pagos.index');
