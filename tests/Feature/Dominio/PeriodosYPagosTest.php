@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Actions\AbrirPeriodo;
 use App\Enums\EstadoPeriodo;
+use App\Exceptions\PeriodoAbiertoExistente;
 use App\Models\Pago;
 use App\Models\Periodo;
 use App\Models\Proyecto;
@@ -132,4 +134,41 @@ it('un proyecto sí admite varios periodos cerrados y uno abierto a la vez', fun
 
     expect($proyecto->periodos()->count())->toBe(3)
         ->and($proyecto->periodoAbierto()->first()->is($abierto))->toBeTrue();
+});
+
+it('AbrirPeriodo asigna el consecutivo siguiente al máximo existente', function () {
+    $proyecto = Proyecto::factory()->create();
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 1]);
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 2]);
+
+    $abrir = app(AbrirPeriodo::class);
+    $nuevo = $abrir($proyecto, ['fecha_inicio' => '2026-06-01', 'notas' => null]);
+
+    expect($nuevo->consecutivo)->toBe(3)
+        ->and($nuevo->estado)->toBe(EstadoPeriodo::Abierto)
+        ->and($nuevo->fecha_fin)->toBeNull();
+
+    // Repetido en secuencia: cada apertura ve la anterior ya persistida, que
+    // es justo lo que el bloqueo de la fila del proyecto garantiza incluso
+    // bajo creación concurrente -las dos peticiones se serializan sobre la
+    // misma fila en lugar de leer el mismo `max()` a la vez-. La suite corre
+    // sobre SQLite en memoria, con una sola conexión: dos transacciones
+    // concurrentes de verdad no se pueden ejercitar aquí, igual que
+    // `ContadorTarea::siguienteCodigo()` tampoco lo hace en esta suite.
+    Periodo::whereKey($nuevo->id)->update(['estado' => EstadoPeriodo::Cerrado, 'fecha_fin' => '2026-06-30']);
+    $siguiente = $abrir($proyecto->fresh(), ['fecha_inicio' => '2026-07-01', 'notas' => null]);
+
+    expect($siguiente->consecutivo)->toBe(4);
+});
+
+it('AbrirPeriodo rechaza abrir un segundo periodo mientras uno sigue abierto', function () {
+    $proyecto = Proyecto::factory()->create();
+    Periodo::factory()->create(['proyecto_id' => $proyecto->id, 'consecutivo' => 1]);
+
+    $abrir = app(AbrirPeriodo::class);
+
+    expect(fn () => $abrir($proyecto, ['fecha_inicio' => '2026-06-01', 'notas' => null]))
+        ->toThrow(PeriodoAbiertoExistente::class);
+
+    expect($proyecto->periodos()->count())->toBe(1);
 });
