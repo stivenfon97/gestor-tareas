@@ -78,7 +78,6 @@ class TareaController extends Controller
             'tareas' => $tareas,
             'filtros' => EstadoEnLaUrl::filtros($request),
             'vistas' => VistasGuardadas::para($request->user(), TipoDeVista::Tabla, $proyecto),
-            'tipoDeVista' => TipoDeVista::Tabla->value,
             // El orden viaja ya descompuesto: la tabla necesita saber en qué
             // posición va cada campo para dibujar la prioridad de orden.
             'orden' => EstadoDeTabla::orden($request, 'codigo'),

@@ -91,7 +91,6 @@ class AgendaDeTareasController extends Controller
             ],
             'filtros' => EstadoEnLaUrl::filtros($request),
             'vistas' => VistasGuardadas::para($request->user(), TipoDeVista::Calendario, $proyecto),
-            'tipoDeVista' => TipoDeVista::Calendario->value,
             'opciones' => [
                 'estados' => $this->comoOpciones(EstadoTarea::cases()),
                 'tipos' => $this->comoOpciones(TipoTarea::cases()),

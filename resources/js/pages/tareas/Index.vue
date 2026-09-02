@@ -44,7 +44,6 @@ const props = defineProps<{
     columnasVisibles: string[] | null;
     opciones: OpcionesDeTarea;
     vistas: VistaGuardada[];
-    tipoDeVista: 'tabla';
     puede: { crear: boolean };
 }>();
 

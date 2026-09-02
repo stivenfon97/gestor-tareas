@@ -69,10 +69,8 @@ class TableroController extends Controller
             'agrupacion' => $agrupacion->value,
             'agrupaciones' => $this->agrupaciones(),
             'columnas' => $columnas,
-            'limite' => ArmarTablero::LIMITE,
             'filtros' => EstadoEnLaUrl::filtros($request),
             'vistas' => VistasGuardadas::para($request->user(), TipoDeVista::Kanban, $proyecto),
-            'tipoDeVista' => TipoDeVista::Kanban->value,
             'opciones' => [
                 'estados' => $this->comoOpciones(EstadoTarea::cases()),
                 'tipos' => $this->comoOpciones(TipoTarea::cases()),

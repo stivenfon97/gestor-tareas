@@ -42,10 +42,8 @@ const props = defineProps<{
     agrupacion: Agrupacion;
     agrupaciones: Array<{ valor: string; etiqueta: string }>;
     columnas: ColumnaDeTablero[];
-    limite: number;
     filtros: Record<string, string>;
     vistas: VistaGuardada[];
-    tipoDeVista: 'kanban';
     opciones: OpcionesDeTarea;
     puede: { crear: boolean; mover: boolean };
 }>();

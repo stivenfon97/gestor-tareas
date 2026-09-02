@@ -40,10 +40,8 @@ const props = defineProps<{
     agrupacion: Agrupacion;
     agrupaciones: Array<{ valor: string; etiqueta: string }>;
     grupos: ColumnaDeTablero[];
-    limite: number;
     filtros: Record<string, string>;
     vistas: VistaGuardada[];
-    tipoDeVista: 'lista';
     opciones: OpcionesDeTarea;
 }>();
 

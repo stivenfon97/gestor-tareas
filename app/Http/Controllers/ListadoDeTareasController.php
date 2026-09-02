@@ -101,7 +101,6 @@ class ListadoDeTareasController extends Controller
             'tareas' => $tareas,
             'filtros' => EstadoEnLaUrl::filtros($request),
             'vistas' => VistasGuardadas::para($usuario, TipoDeVista::Tabla, null),
-            'tipoDeVista' => TipoDeVista::Tabla->value,
             'orden' => EstadoDeTabla::orden($request, '-updated_at'),
             'columnasVisibles' => EstadoDeTabla::columnas($request),
             'opciones' => [

@@ -43,7 +43,6 @@ const props = defineProps<{
     sinFecha: { total: number; tareas: TarjetaDeAgenda[] };
     filtros: Record<string, string>;
     vistas: VistaGuardada[];
-    tipoDeVista: 'calendario';
     opciones: OpcionesDeTarea;
 }>();
 

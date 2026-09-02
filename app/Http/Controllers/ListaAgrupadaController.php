@@ -71,10 +71,8 @@ class ListaAgrupadaController extends Controller
                 $agrupacion,
                 $this->gruposDe($agrupacion, $proyecto, $rutas),
             ),
-            'limite' => ArmarTablero::LIMITE,
             'filtros' => EstadoEnLaUrl::filtros($request),
             'vistas' => VistasGuardadas::para($request->user(), TipoDeVista::Lista, $proyecto),
-            'tipoDeVista' => TipoDeVista::Lista->value,
             'opciones' => [
                 'estados' => $this->comoOpciones(EstadoTarea::cases()),
                 'tipos' => $this->comoOpciones(TipoTarea::cases()),
