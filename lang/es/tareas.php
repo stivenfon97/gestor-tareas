@@ -124,6 +124,7 @@ return [
         'tarea_de_otro_proyecto' => 'Esa tarea no es de este proyecto.',
         'modulo_de_otro_proyecto' => 'El módulo no pertenece a este proyecto.',
         'periodo_de_otro_proyecto' => 'El periodo no pertenece a este proyecto.',
+        'periodo_cerrado' => 'Ese periodo ya está cerrado: no admite tareas nuevas.',
         'origen_de_otro_proyecto' => 'La tarea de origen no pertenece a este proyecto.',
         'origen_solo_correccion_o_soporte' => 'Solo una tarea de tipo corrección o soporte puede tener tarea de origen.',
         'origen_a_si_misma' => 'Una tarea no puede ser su propio origen.',

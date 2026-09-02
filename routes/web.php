@@ -6,6 +6,7 @@ use App\Http\Controllers\AgendaDeTareasController;
 use App\Http\Controllers\ArchivoController;
 use App\Http\Controllers\AsignarEquipoAProyectoController;
 use App\Http\Controllers\CapturaRapidaController;
+use App\Http\Controllers\CierrePeriodoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\EstadoClienteController;
 use App\Http\Controllers\EstadoTareaController;
@@ -143,8 +144,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
      */
     Route::put('proyectos/{proyecto}/tareas/{tarea}/columna', [MoverTareaEnTableroController::class, 'update'])->name('proyectos.tareas.columna');
 
+    /*
+     * Periodos. `estado` no viaja aquí: la única transición, abrir → cerrar,
+     * es una operación en lote con traslado y pago detrás, y tiene su propia
+     * pantalla (`CierrePeriodoController`) en lugar de vivir en un `update`.
+     */
     Route::get('proyectos/{proyecto}/periodos', [PeriodoController::class, 'index'])->name('proyectos.periodos.index');
+    Route::post('proyectos/{proyecto}/periodos', [PeriodoController::class, 'store'])->name('proyectos.periodos.store');
+    Route::get('periodos/{periodo}', [PeriodoController::class, 'show'])->name('periodos.show');
+    Route::put('periodos/{periodo}', [PeriodoController::class, 'update'])->name('periodos.update');
+    Route::get('periodos/{periodo}/cierre', [CierrePeriodoController::class, 'create'])->name('periodos.cierre.create');
+    Route::post('periodos/{periodo}/cierre', [CierrePeriodoController::class, 'store'])->name('periodos.cierre.store');
+
+    // Pagos. El dinero no se le muestra al cliente: lo niega `PagoPolicy`.
     Route::get('proyectos/{proyecto}/pagos', [PagoController::class, 'index'])->name('proyectos.pagos.index');
+    Route::get('proyectos/{proyecto}/pagos/crear', [PagoController::class, 'create'])->name('proyectos.pagos.create');
+    Route::post('proyectos/{proyecto}/pagos', [PagoController::class, 'store'])->name('proyectos.pagos.store');
+    // Antes de `pagos/{pago}`: con el orden al revés, `pagos/trm` no llegaría
+    // aquí nunca, como pasa con `tareas` y `tareas/{tarea}`.
+    Route::get('pagos/trm', [PagoController::class, 'trm'])->name('pagos.trm');
+    Route::get('pagos/{pago}/editar', [PagoController::class, 'edit'])->name('pagos.edit');
+    Route::put('pagos/{pago}', [PagoController::class, 'update'])->name('pagos.update');
+
     Route::get('proyectos/{proyecto}/reuniones', [ReunionController::class, 'index'])->name('proyectos.reuniones.index');
     Route::post('proyectos/{proyecto}/reportes', [ReporteController::class, 'store'])->name('proyectos.reportes.store');
 

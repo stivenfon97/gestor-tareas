@@ -31,7 +31,10 @@ const ANCHOS = [
     { nombre: '1440', ancho: 1440, alto: 900 },
 ];
 
-type Pantalla = { nombre: string; ruta: (proyecto: number) => string };
+type Pantalla = {
+    nombre: string;
+    ruta: (proyecto: number, periodoAbierto: number) => string;
+};
 
 const PANTALLAS: Pantalla[] = [
     { nombre: 'dashboard', ruta: () => '/dashboard' },
@@ -45,6 +48,17 @@ const PANTALLAS: Pantalla[] = [
     { nombre: 'tablero', ruta: (id) => `/proyectos/${id}/tablero` },
     { nombre: 'lista', ruta: (id) => `/proyectos/${id}/lista` },
     { nombre: 'agenda', ruta: (id) => `/proyectos/${id}/agenda` },
+    // Periodos, pagos y el cierre, de la fase 09.
+    { nombre: 'periodos', ruta: (id) => `/proyectos/${id}/periodos` },
+    { nombre: 'pagos', ruta: (id) => `/proyectos/${id}/pagos` },
+    {
+        nombre: 'periodo-detalle',
+        ruta: (_id, periodoAbierto) => `/periodos/${periodoAbierto}`,
+    },
+    {
+        nombre: 'cierre',
+        ruta: (_id, periodoAbierto) => `/periodos/${periodoAbierto}/cierre`,
+    },
 ];
 
 /*
@@ -246,6 +260,30 @@ const primerProyecto = async (pagina: Page): Promise<number> => {
     return Number(id);
 };
 
+/**
+ * El periodo abierto del proyecto. `DesarrolloSeeder` deja siempre uno, y la
+ * pantalla de cierre solo admite un periodo abierto (`CierrePeriodoController`
+ * responde 404 sobre uno cerrado).
+ */
+const periodoAbiertoDe = async (
+    pagina: Page,
+    proyecto: number,
+): Promise<number> => {
+    await pagina.goto(`/proyectos/${proyecto}/periodos`);
+    await pagina.waitForLoadState('networkidle');
+
+    const id = await pagina.evaluate(() =>
+        [...document.querySelectorAll('a[href]')]
+            .map((enlace) => enlace.getAttribute('href') ?? '')
+            .map((href) => href.match(/^\/periodos\/(\d+)$/)?.[1])
+            .find((encontrado) => encontrado !== undefined),
+    );
+
+    expect(id, 'no hay ningún periodo sembrado').toBeDefined();
+
+    return Number(id);
+};
+
 for (const tema of ['light', 'dark'] as const) {
     test.describe(`tema ${tema}`, () => {
         test.use({ colorScheme: tema });
@@ -263,6 +301,7 @@ for (const tema of ['light', 'dark'] as const) {
                 const pagina = await contexto.newPage();
 
                 const proyecto = await primerProyecto(pagina);
+                const periodoAbierto = await periodoAbiertoDe(pagina, proyecto);
                 const fallos: string[] = [];
 
                 // Sin esto la comprobación de filtros pasaría en vacío el día
@@ -270,7 +309,7 @@ for (const tema of ['light', 'dark'] as const) {
                 let filtrosMedidos = 0;
 
                 for (const pantalla of PANTALLAS) {
-                    await pagina.goto(pantalla.ruta(proyecto));
+                    await pagina.goto(pantalla.ruta(proyecto, periodoAbierto));
                     // Inertia pinta en el cliente: sin esto se mide el esqueleto.
                     await pagina.waitForLoadState('networkidle');
 
