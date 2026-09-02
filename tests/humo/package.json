@@ -6,6 +6,7 @@
         "humo": "playwright test"
     },
     "devDependencies": {
-        "@playwright/test": "1.62.1"
+        "@playwright/test": "1.62.1",
+        "mermaid": "11.17.2"
     }
 }

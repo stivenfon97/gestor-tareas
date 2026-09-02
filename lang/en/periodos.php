@@ -31,10 +31,10 @@ return [
 
     'cierre' => [
         'resumen' => 'What is being closed',
-        'resumen_ayuda' => ':total tasks in total, :pendientes unfinished.',
-        'traslado' => 'Carrying over what is unfinished',
+        'resumen_ayuda' => ':total tasks in total, :pendientes not yet delivered.',
+        'traslado' => 'Carrying over what has not been delivered',
         'traslado_ayuda' => 'Checked by default: carried over to the next period keeping their status. Uncheck the ones that stay here.',
-        'sin_pendientes' => 'There are no unfinished tasks in this period.',
+        'sin_pendientes' => 'There are no undelivered tasks in this period.',
         'siguiente' => 'Opening the next period',
         'pago' => 'Register the payment now',
         'pago_ayuda' => 'Optional: closing without a payment is valid, it can be added later.',

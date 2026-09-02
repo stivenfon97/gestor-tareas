@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronLeft, ChevronRight } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
@@ -9,6 +9,12 @@ import PanelDeFiltrosDeTareas from '@/components/tareas/PanelDeFiltrosDeTareas.v
 import SelectorDeVista from '@/components/tareas/SelectorDeVista.vue';
 import VistasGuardadas from '@/components/tareas/VistasGuardadas.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { show as mostrarTarea } from '@/routes/tareas';
@@ -55,6 +61,25 @@ const CLAVES_DE_DIA = [
     'sabado',
     'domingo',
 ] as const;
+
+/**
+ * Tope de tarjetas por celda. Una celda con cuarenta tareas estira la fila y
+ * rompe la cuadrícula; con fechas repartidas, un día con doce tareas haría lo
+ * mismo. La altura de la fila no puede depender del contenido, así que el
+ * tope es fijo y lo que sobra se ve en un diálogo, no en la celda.
+ */
+const LIMITE_POR_CELDA = 3;
+
+type Casilla = {
+    iso: string;
+    dia: number;
+    delMes: boolean;
+    esHoy: boolean;
+    tareas: TarjetaDeAgenda[];
+};
+
+/** La casilla cuyo "+N más" se abrió, o `null` si el diálogo está cerrado. */
+const diaAbierto = ref<Casilla | null>(null);
 
 const inicioDelMes = computed(() => new Date(`${props.mes}-01T00:00:00`));
 
@@ -234,7 +259,10 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
                                 </span>
 
                                 <Link
-                                    v-for="tarea in casilla.tareas"
+                                    v-for="tarea in casilla.tareas.slice(
+                                        0,
+                                        LIMITE_POR_CELDA,
+                                    )"
                                     :key="tarea.id"
                                     :href="mostrarTarea(tarea.id)"
                                     class="flex items-stretch gap-fino rounded-sm border border-borde bg-panel px-fino py-minimo hover:bg-fila-hover"
@@ -248,6 +276,22 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
                                         {{ tarea.nombre }}
                                     </span>
                                 </Link>
+
+                                <button
+                                    v-if="casilla.tareas.length > LIMITE_POR_CELDA"
+                                    type="button"
+                                    class="truncate rounded-sm px-fino py-minimo text-left text-fino text-texto-suave hover:bg-fila-hover hover:text-texto"
+                                    @click="diaAbierto = casilla"
+                                >
+                                    {{
+                                        $t('tablero.agenda.mas_tareas', {
+                                            cantidad: String(
+                                                casilla.tareas.length -
+                                                    LIMITE_POR_CELDA,
+                                            ),
+                                        })
+                                    }}
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -321,5 +365,38 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
                 </p>
             </div>
         </details>
+
+        <!-- Lo que no cupo en la celda. Los datos ya llegaron con la página:
+             no hace falta otra petición para abrir el día. -->
+        <Dialog :open="diaAbierto !== null" @update:open="diaAbierto = null">
+            <DialogContent v-if="diaAbierto">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{
+                            $t('tablero.agenda.tareas_del_dia', {
+                                fecha: diaAbierto.iso,
+                            })
+                        }}
+                    </DialogTitle>
+                </DialogHeader>
+                <ul class="flex flex-col gap-corto">
+                    <li v-for="tarea in diaAbierto.tareas" :key="tarea.id">
+                        <Link
+                            :href="mostrarTarea(tarea.id)"
+                            class="flex items-stretch gap-fino rounded-sm border border-borde bg-panel px-corto py-fino hover:bg-fila-hover"
+                        >
+                            <BarraPrioridad :prioridad="tarea.prioridad" />
+                            <IconoTipo :tipo="tarea.tipo" />
+                            <span class="font-mono text-fino text-texto-suave">
+                                {{ tarea.codigo }}
+                            </span>
+                            <span class="min-w-0 flex-1 truncate text-texto">
+                                {{ tarea.nombre }}
+                            </span>
+                        </Link>
+                    </li>
+                </ul>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

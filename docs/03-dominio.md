@@ -150,9 +150,11 @@ tasa de un pago viejo no debe reescribir lo que ya se cobró. El cálculo va por
 sobre cadenas: en coma flotante se pierden centavos y el reporte deja de cuadrar.
 *Implementado en `PagoObserver::saving()`.*
 
-**D4.7 — Una tarea no terminada puede arrastrarse al siguiente periodo** conservando
-`periodo_origen_id`. Eso permite distinguir el trabajo que nació en el periodo del que
-venía heredado.
+**D4.7 — Una tarea en un estado no terminal puede arrastrarse al siguiente periodo**
+conservando `periodo_origen_id`. Eso permite distinguir el trabajo que nació en el
+periodo del que venía heredado. "No terminal" es D2.6/D2.7 (solo `entregada` y
+`cancelada` lo son), no "distinta de `terminada`": ver D4.13, que lo confirma sin
+ambigüedad porque el nombre del estado se presta a confundirse con la propia palabra.
 
 **D4.8 — Un proyecto admite un solo periodo `abierto` a la vez, garantizado por la base
 de datos.** Columna generada `proyecto_si_abierto` (`VIRTUAL`: en MySQL 8.4 una `STORED`
@@ -179,6 +181,16 @@ un cierre a medias es el peor estado posible del sistema.
 usuario.** La TRM se consulta con un tiempo de espera corto y un solo intento; si la API
 no responde, el formulario de pago sigue funcionando con captura manual y `origen_tasa`
 queda como `manual`. *Implementado en `ConsultarTrm`.*
+
+**D4.13 — El traslado incluye la tarea en estado `terminada`.** *Confirmado en la fase
+10, ampliando lo que decía el prompt original de la fase 09.* Una tarea `terminada`
+pero sin entregar sigue siendo trabajo abierto: el commit está en la nube pero el
+cliente todavía no lo confirmó, y esa entrega va a ocurrir en el periodo siguiente —
+que es donde debe contar (D2.6). Solo se excluyen del traslado los dos estados
+terminales, `entregada` y `cancelada` (D2.6, D2.7;
+`EstadoTarea::esTerminal()`). *Implementado en `CerrarPeriodo`,
+`CierrePeriodoController::create()` y `CierrePeriodoRequest`, los tres con
+`whereNotIn('estado', [Entregada, Cancelada])`.*
 
 ## 5. Personas y permisos
 
