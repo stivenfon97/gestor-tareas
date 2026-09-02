@@ -20,6 +20,7 @@ return [
     'sin_modulo' => 'Sin módulo',
     'periodo' => 'Periodo',
     'sin_periodo' => 'Sin periodo',
+    'periodo_numero' => 'Periodo :consecutivo',
     'tipo' => 'Tipo',
     'prioridad' => 'Prioridad',
     'descripcion' => 'Descripción',
@@ -120,6 +121,7 @@ return [
     ],
 
     'validacion' => [
+        'tarea_de_otro_proyecto' => 'Esa tarea no es de este proyecto.',
         'modulo_de_otro_proyecto' => 'El módulo no pertenece a este proyecto.',
         'periodo_de_otro_proyecto' => 'El periodo no pertenece a este proyecto.',
         'origen_de_otro_proyecto' => 'La tarea de origen no pertenece a este proyecto.',

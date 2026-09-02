@@ -6,9 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Enums\EstadoTarea;
 use App\Enums\PrioridadTarea;
+use App\Enums\TipoDeVista;
 use App\Enums\TipoTarea;
 use App\Http\Requests\TareaRequest;
-use App\Models\Modulo;
 use App\Models\NotaTarea;
 use App\Models\Periodo;
 use App\Models\Proyecto;
@@ -17,15 +17,15 @@ use App\Services\ArbolDeModulos;
 use App\Services\CambiarEstadoTarea;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
+use App\Services\FiltrosDeTareas;
+use App\Services\VistasGuardadas;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
-use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * Tareas: alta, edición, listado y detalle.
@@ -36,28 +36,27 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class TareaController extends Controller
 {
-    public function index(Request $request, Proyecto $proyecto): Response
+    public function index(Request $request, Proyecto $proyecto): Response|RedirectResponse
     {
         Gate::authorize('viewAny', [Tarea::class, $proyecto]);
+
+        $predeterminada = VistasGuardadas::predeterminada($request, TipoDeVista::Tabla, $proyecto);
+
+        // Al entrar con la URL desnuda se aplica la vista predeterminada, y se
+        // aplica **navegando**: así la barra de direcciones dice qué se está
+        // viendo y el enlace se puede compartir.
+        if ($predeterminada !== null) {
+            return redirect()->route('proyectos.tareas.index', ['proyecto' => $proyecto] + $predeterminada);
+        }
 
         // Una consulta para todo el árbol del proyecto, reutilizada por las
         // filas y por el desplegable de filtro.
         $rutas = ArbolDeModulos::rutasDe($proyecto);
 
-        $tareas = QueryBuilder::for(Tarea::class)
-            // El scope va antes que cualquier filtro: sin él, un filtro mal
-            // puesto devolvería tareas de proyectos ajenos.
-            ->visiblesPara($request->user())
-            ->where('proyecto_id', $proyecto->getKey())
-            ->allowedFilters(
-                AllowedFilter::exact('estado'),
-                AllowedFilter::exact('tipo'),
-                AllowedFilter::exact('prioridad'),
-                AllowedFilter::exact('periodo_id'),
-                AllowedFilter::callback('modulo_id', $this->filtroDeModulo(...)),
-                AllowedFilter::callback('arrastradas', $this->filtroDeArrastradas(...)),
-                AllowedFilter::callback('texto', $this->filtroDeTexto(...)),
-            )
+        // Los filtros los declara `FiltrosDeTareas`: los comparten las cuatro
+        // vistas de la fase 08, y uno que existiera aquí y no en el tablero
+        // convertiría cambiar de vista en perder lo que habías buscado.
+        $tareas = FiltrosDeTareas::paraProyecto($request, $proyecto)
             ->defaultSort('codigo')
             ->allowedSorts(
                 AllowedSort::field('codigo'),
@@ -78,6 +77,8 @@ class TareaController extends Controller
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'tareas' => $tareas,
             'filtros' => EstadoEnLaUrl::filtros($request),
+            'vistas' => VistasGuardadas::para($request->user(), TipoDeVista::Tabla, $proyecto),
+            'tipoDeVista' => TipoDeVista::Tabla->value,
             // El orden viaja ya descompuesto: la tabla necesita saber en qué
             // posición va cada campo para dibujar la prioridad de orden.
             'orden' => EstadoDeTabla::orden($request, 'codigo'),
@@ -237,50 +238,6 @@ class TareaController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('tareas.eliminada')]);
 
         return to_route('proyectos.tareas.index', $proyecto);
-    }
-
-    /**
-     * Filtro por módulo **incluyendo sus descendientes**: quien filtra por
-     * "Clientes" espera ver también las de "Clientes › Facturación".
-     *
-     * @param  Builder<Tarea>  $consulta
-     */
-    private function filtroDeModulo(Builder $consulta, mixed $valor): void
-    {
-        $modulo = Modulo::query()->find((int) $valor);
-
-        if ($modulo === null) {
-            $consulta->whereRaw('1 = 0');
-
-            return;
-        }
-
-        $consulta->whereIn('modulo_id', [$modulo->getKey(), ...ArbolDeModulos::descendientes($modulo)]);
-    }
-
-    /** @param Builder<Tarea> $consulta */
-    private function filtroDeArrastradas(Builder $consulta, mixed $valor): void
-    {
-        filter_var($valor, FILTER_VALIDATE_BOOLEAN)
-            ? $consulta->whereNotNull('periodo_origen_id')
-            : $consulta->whereNull('periodo_origen_id');
-    }
-
-    /**
-     * Texto libre sobre nombre, código y descripción: es como se busca de
-     * verdad, sin acordarse de en qué campo estaba lo que se recuerda.
-     *
-     * @param  Builder<Tarea>  $consulta
-     */
-    private function filtroDeTexto(Builder $consulta, mixed $valor): void
-    {
-        $termino = '%'.str_replace(['%', '_'], ['\%', '\_'], (string) $valor).'%';
-
-        $consulta->where(function (Builder $interna) use ($termino): void {
-            $interna->where('nombre', 'like', $termino)
-                ->orWhere('codigo', 'like', $termino)
-                ->orWhere('descripcion', 'like', $termino);
-        });
     }
 
     /**

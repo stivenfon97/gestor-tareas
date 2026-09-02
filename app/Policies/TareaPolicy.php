@@ -47,6 +47,21 @@ class TareaPolicy
             && $usuario->can(Permiso::TareasMover->value);
     }
 
+    /**
+     * Mover y reordenar tarjetas en el tablero.
+     *
+     * Pregunta por el **proyecto** y no por una tarea porque el tablero
+     * reordena un conjunto: preguntar por cada tarjeta de la columna sería la
+     * misma respuesta treinta veces. Para mover **entre** columnas agrupando
+     * por estado manda además `cambiarEstado`, que es lo que autoriza
+     * `EstadoTareaController`.
+     */
+    public function moverEnTablero(User $usuario, Proyecto $proyecto): bool
+    {
+        return ResolverRolProyecto::escribe($usuario, $proyecto)
+            && $usuario->can(Permiso::TareasMover->value);
+    }
+
     public function delete(User $usuario, Tarea $tarea): bool
     {
         return ResolverRolProyecto::gestiona($usuario, $tarea->proyecto);
