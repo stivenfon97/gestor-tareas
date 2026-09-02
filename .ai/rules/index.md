@@ -21,6 +21,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Policies/** | .ai/rules/policies.md |
 | resources/lang/** | .ai/rules/resources-lang.md |
 | routes/** | .ai/rules/routes.md |
+| database/seeders/** | .ai/rules/seeders.md |
 | app/Services/**, app/Services/CambiarEstadoTarea.php | .ai/rules/services.md |
 | resources/js/components/TablaDatos/** | .ai/rules/tabla-datos.md |
 | tests/** | .ai/rules/tests.md |

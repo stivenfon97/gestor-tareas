@@ -154,6 +154,32 @@ sobre cadenas: en coma flotante se pierden centavos y el reporte deja de cuadrar
 `periodo_origen_id`. Eso permite distinguir el trabajo que nació en el periodo del que
 venía heredado.
 
+**D4.8 — Un proyecto admite un solo periodo `abierto` a la vez, garantizado por la base
+de datos.** Columna generada `proyecto_si_abierto` (`VIRTUAL`: en MySQL 8.4 una `STORED`
+que depende de una columna con clave foránea revienta el `ALTER`) más índice único, el
+mismo mecanismo que la vista predeterminada de la fase 08. *Implementado en
+`2026_09_02_120000_garantizar_un_periodo_abierto_por_proyecto`.*
+
+**D4.9 — Un periodo `cerrado` no admite tareas nuevas ni traslados hacia él.** Una tarea
+solo puede apuntar a un periodo `abierto`, salvo que sea el que ya tenía —editar el resto
+de una tarea no puede fallar porque su periodo se cerró después—. *Implementado en
+`TareaRequest::periodoAbiertoOSinCambios()`.*
+
+**D4.10 — Trasladar una tarea entre periodos no es un cambio de estado.** La tarea
+conserva el suyo, no pasa por `CambiarEstadoTarea` y no escribe en `historial_estados`.
+`orden` tampoco se toca: sigue siendo del proyecto, no del periodo, porque cada vista que
+lo usa ordena dentro de su propio filtro y un valor compartido entre periodos nunca
+colisiona con el de otro grupo. *Implementado en `CerrarPeriodo`.*
+
+**D4.11 — El cierre es una operación en lote, en una sola transacción.** Cerrar el
+periodo, trasladar lo seleccionado y abrir el siguiente ocurren juntos o no ocurre nada:
+un cierre a medias es el peor estado posible del sistema.
+
+**D4.12 — Ninguna consulta a un servicio externo bloquea el registro de datos del
+usuario.** La TRM se consulta con un tiempo de espera corto y un solo intento; si la API
+no responde, el formulario de pago sigue funcionando con captura manual y `origen_tasa`
+queda como `manual`. *Implementado en `ConsultarTrm`.*
+
 ## 5. Personas y permisos
 
 **D5.1 — Un usuario tiene un solo rol por proyecto**, garantizado por el `unique` en

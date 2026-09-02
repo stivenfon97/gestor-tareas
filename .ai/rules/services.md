@@ -26,3 +26,6 @@ Reparto, que no es duplicación sino profundidad:
 - **`TareaObserver@updated`** escribe `historial_estados`. **Nunca el servicio**: si el historial dependiera de que alguien llame al servicio, algún día habría un camino que no lo llama y quedaría un hueco silencioso.
 
 El estado tiene endpoint propio (`PUT tareas/{tarea}/estado`, `EstadoTareaController`) y **no viaja en el formulario general**: mezclarlo permitiría saltarse la matriz enviándolo entre los demás campos. Autoriza con `cambiarEstado`, no con `update`.
+
+## Ninguna consulta a un servicio externo bloquea el registro de datos del usuario
+`ConsultarTrm` es el patrón: tiempo de espera corto (3s), un solo intento (sin `retry()`), y cualquier fallo —caída, timeout, forma de respuesta inesperada— se traga devolviendo `null` en lugar de propagar una excepción. El formulario que consume el servicio (registro de pago) sigue funcionando con captura manual; `origen_tasa` queda como `manual`. Se cachea solo un valor resuelto (`Cache::forever` por fecha), nunca un fallo, para que una caída puntual no deje una clave "envenenada" sin reintentar. Cualquier integración externa nueva sigue este mismo contrato.
