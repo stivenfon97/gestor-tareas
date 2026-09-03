@@ -41,7 +41,12 @@ type FilaHistorial = {
 };
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     periodos: Periodo[];
     reportes: FilaHistorial[];
     puede: { generar: boolean };
