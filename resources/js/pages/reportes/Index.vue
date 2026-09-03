@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { formatearFechaHora } from '@/lib/formato';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { store } from '@/routes/proyectos/reportes';
 import { descargar } from '@/routes/reportes';
@@ -285,10 +286,8 @@ const esDuplicado = (reporte: FilaHistorial): boolean =>
                         :key="reporte.id"
                         class="border-t border-borde hover:bg-fila-hover"
                     >
-                        <td
-                            class="px-celda py-corto font-mono text-texto-suave"
-                        >
-                            {{ reporte.generado_en }}
+                        <td class="px-celda py-corto text-texto-suave">
+                            {{ formatearFechaHora(reporte.generado_en) }}
                         </td>
                         <td class="px-celda py-corto">
                             <Badge

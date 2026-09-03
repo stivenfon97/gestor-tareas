@@ -6,7 +6,7 @@ import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatearMonto } from '@/lib/formato';
+import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { show as periodoShow } from '@/routes/periodos';
 import { show as reunionShow } from '@/routes/reuniones';
@@ -311,7 +311,7 @@ const skeletonFilas = [1, 2, 3];
                             </Link>
                             <p class="text-fino text-texto-suave">
                                 {{ reunion.proyecto.nombre }} ·
-                                {{ reunion.fecha }}
+                                {{ formatearFecha(reunion.fecha) }}
                             </p>
                         </li>
                     </ul>

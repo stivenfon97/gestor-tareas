@@ -11,6 +11,7 @@ import IconoTipo from '@/components/tareas/IconoTipo.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { formatearFecha, formatearFechaHora } from '@/lib/formato';
 import { index as tareasDelProyecto } from '@/routes/proyectos/tareas';
 import { show as mostrarReunion } from '@/routes/reuniones';
 import { destroy, edit, show, update } from '@/routes/tareas';
@@ -196,10 +197,12 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                 {{ props.tarea.periodo ?? $t('tareas.sin_periodo') }}</span
             >
             <span v-if="props.tarea.fecha_inicio">
-                {{ $t('tareas.fecha_inicio') }}: {{ props.tarea.fecha_inicio }}
+                {{ $t('tareas.fecha_inicio') }}:
+                {{ formatearFecha(props.tarea.fecha_inicio) }}
             </span>
             <span v-if="props.tarea.fecha_fin">
-                {{ $t('tareas.fecha_fin') }}: {{ props.tarea.fecha_fin }}
+                {{ $t('tareas.fecha_fin') }}:
+                {{ formatearFecha(props.tarea.fecha_fin) }}
             </span>
             <span v-if="props.tarea.creada_por">
                 {{ $t('tareas.creada_por') }}: {{ props.tarea.creada_por }}
@@ -499,7 +502,7 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                         />
                     </div>
                     <p class="text-xs text-muted-foreground">
-                        {{ registro.cuando }}
+                        {{ formatearFechaHora(registro.cuando) }}
                         <span v-if="registro.usuario">
                             {{
                                 $t('tareas.historial.por', {

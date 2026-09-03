@@ -4,6 +4,7 @@ import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { show as mostrarPago } from '@/routes/pagos';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create } from '@/routes/proyectos/pagos';
@@ -99,16 +100,14 @@ const props = defineProps<{
                                 }}
                             </Link>
                         </td>
-                        <td
-                            class="px-celda py-corto font-mono text-texto-suave"
-                        >
-                            {{ pago.fecha_pago }}
+                        <td class="px-celda py-corto text-texto-suave">
+                            {{ formatearFecha(pago.fecha_pago) }}
                         </td>
                         <td class="px-celda py-corto text-texto">
-                            {{ $t('pagos.usd') }} {{ pago.monto_usd }}
+                            {{ formatearMonto(pago.monto_usd, 'USD') }}
                         </td>
                         <td class="px-celda py-corto text-texto">
-                            {{ $t('pagos.cop') }} {{ pago.monto_cop }}
+                            {{ formatearMonto(pago.monto_cop, 'COP') }}
                         </td>
                         <td class="px-celda py-corto">
                             <Badge variant="outline">

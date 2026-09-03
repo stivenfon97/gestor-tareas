@@ -14,6 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { destroy, edit, show } from '@/routes/proyectos';
 import { index as agendaIndex } from '@/routes/proyectos/agenda';
@@ -385,7 +386,10 @@ const eliminar = (): void => {
                         >
                             {{
                                 $t('proyectos.resumen.total_pagado', {
-                                    monto: props.resumen.total_pagado_usd,
+                                    monto: formatearMonto(
+                                        props.resumen.total_pagado_usd,
+                                        'USD',
+                                    ),
                                 })
                             }}
                         </p>
@@ -399,8 +403,12 @@ const eliminar = (): void => {
                             <p class="text-cuerpo font-medium">
                                 {{ props.resumen.ultima_reunion.titulo }}
                             </p>
-                            <p class="font-mono text-fino text-texto-suave">
-                                {{ props.resumen.ultima_reunion.fecha }}
+                            <p class="text-fino text-texto-suave">
+                                {{
+                                    formatearFecha(
+                                        props.resumen.ultima_reunion.fecha,
+                                    )
+                                }}
                             </p>
                         </template>
                         <p v-else class="text-cuerpo text-texto-suave">
@@ -555,7 +563,9 @@ const eliminar = (): void => {
                         <template v-if="props.resumen.ultima_reunion">
                             {{ trans('proyectos.resumen.ultima_reunion') }}:
                             {{ props.resumen.ultima_reunion.titulo }} ({{
-                                props.resumen.ultima_reunion.fecha
+                                formatearFecha(
+                                    props.resumen.ultima_reunion.fecha,
+                                )
                             }})
                         </template>
                         <template v-else>{{

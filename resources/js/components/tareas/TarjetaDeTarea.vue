@@ -5,6 +5,7 @@ import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
 import { Badge } from '@/components/ui/badge';
+import { formatearFecha } from '@/lib/formato';
 import { show } from '@/routes/tareas';
 import type { TarjetaDeTarea } from '@/types/vistas';
 
@@ -84,9 +85,9 @@ withDefaults(
                 </Badge>
                 <span
                     v-if="tarea.fecha_fin"
-                    class="ml-auto font-mono text-fino text-texto-tenue"
+                    class="ml-auto text-fino text-texto-tenue"
                 >
-                    {{ tarea.fecha_fin }}
+                    {{ formatearFecha(tarea.fecha_fin) }}
                 </span>
             </div>
         </div>

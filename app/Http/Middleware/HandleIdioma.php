@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,9 +17,12 @@ use Symfony\Component\HttpFoundation\Response;
  * El texto de la interfaz lo resuelve `laravel-vue-i18n` en el cliente
  * (`resources/js/composables/useIdioma.ts` llama a `loadLanguageAsync()` sin
  * recargar la página), así que esto no existe para pintar nada: existe para
- * los dos sitios que sí se resuelven en el servidor — los mensajes de
- * validación de Laravel (`lang/{es,en}/validation.php`) y el `lang` del
- * `<html>` en la primera carga (`resources/views/app.blade.php`).
+ * los sitios que sí se resuelven en el servidor — los mensajes de validación
+ * de Laravel (`lang/{es,en}/validation.php`), el `diffForHumans()` de Carbon
+ * (`SecurityController`: sin esto, "hace 3 días" salía siempre en inglés,
+ * fuera cual fuera el idioma de la interfaz — Carbon no sigue
+ * `app()->getLocale()` solo) y el `lang` del `<html>` en la primera carga
+ * (`resources/views/app.blade.php`).
  */
 class HandleIdioma
 {
@@ -35,6 +39,8 @@ class HandleIdioma
         if (is_string($idioma) && in_array($idioma, self::IDIOMAS_DISPONIBLES, true)) {
             app()->setLocale($idioma);
         }
+
+        Carbon::setLocale(app()->getLocale());
 
         return $next($request);
     }

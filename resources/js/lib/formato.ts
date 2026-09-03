@@ -41,7 +41,7 @@ export function formatearFecha(
         return '';
     }
 
-    const [anio, mes, dia] = fechaIso.split('-').map(Number);
+    const [anio, mes, dia] = fechaIso.split(/[- T]/).map(Number);
 
     if (!anio || !mes || !dia) {
         return fechaIso;
@@ -49,6 +49,63 @@ export function formatearFecha(
 
     return new Intl.DateTimeFormat(localeIntl(), opciones).format(
         new Date(anio, mes - 1, dia),
+    );
+}
+
+/**
+ * Formatea una fecha y hora (`toDateTimeString()`, `YYYY-MM-DD HH:mm:ss`)
+ * según el idioma activo. Para el historial de estados y cualquier otro
+ * registro con hora, no solo fecha.
+ */
+export function formatearFechaHora(
+    fechaHoraIso: string | null | undefined,
+    opciones: Intl.DateTimeFormatOptions = {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    },
+): string {
+    if (!fechaHoraIso) {
+        return '';
+    }
+
+    const [anio, mes, dia, hora, minuto, segundo] = fechaHoraIso
+        .split(/[- T:]/)
+        .map(Number);
+
+    if (!anio || !mes || !dia) {
+        return fechaHoraIso;
+    }
+
+    return new Intl.DateTimeFormat(localeIntl(), opciones).format(
+        new Date(anio, mes - 1, dia, hora || 0, minuto || 0, segundo || 0),
+    );
+}
+
+/**
+ * Formatea un mes en formato `YYYY-MM` (el que usa la agenda para navegar,
+ * `tablero/agenda?mes=2026-09`) como "septiembre de 2026" / "September 2026"
+ * según el idioma activo. Sin esto, la cabecera del calendario mostraba el
+ * parámetro de la URL tal cual.
+ */
+export function formatearMes(
+    mesIso: string | null | undefined,
+    opciones: Intl.DateTimeFormatOptions = {
+        month: 'long',
+        year: 'numeric',
+    },
+): string {
+    if (!mesIso) {
+        return '';
+    }
+
+    const [anio, mes] = mesIso.split('-').map(Number);
+
+    if (!anio || !mes) {
+        return mesIso;
+    }
+
+    return new Intl.DateTimeFormat(localeIntl(), opciones).format(
+        new Date(anio, mes - 1, 1),
     );
 }
 
