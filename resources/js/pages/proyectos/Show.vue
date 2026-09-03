@@ -2,6 +2,7 @@
 import { Deferred, Head, Link, router } from '@inertiajs/vue3';
 import { MoreHorizontal } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import ConfirmarPorNombre from '@/components/ConfirmarPorNombre.vue';
 import SeccionPendiente from '@/components/SeccionPendiente.vue';
@@ -22,9 +23,14 @@ import { index as miembrosIndex } from '@/routes/proyectos/miembros';
 import { index as modulosIndex } from '@/routes/proyectos/modulos';
 import { index as pagosIndex } from '@/routes/proyectos/pagos';
 import { index as periodosIndex } from '@/routes/proyectos/periodos';
+import {
+    destroy as borrarRespaldo,
+    store as subirRespaldo,
+} from '@/routes/proyectos/respaldos';
 import { index as reunionesIndex } from '@/routes/proyectos/reuniones';
 import { index as tableroIndex } from '@/routes/proyectos/tablero';
 import { index as tareasIndex } from '@/routes/proyectos/tareas';
+import type { Adjunto } from '@/types/archivos';
 
 const props = defineProps<{
     proyecto: {
@@ -69,7 +75,15 @@ const props = defineProps<{
         verPagos: boolean;
         verReuniones: boolean;
         generarReportes: boolean;
+        gestionarRespaldos: boolean;
     };
+    /**
+     * Ausente del todo para quien no gestiona el proyecto: la clave ni
+     * siquiera llega vacía. Ocultarla en la interfaz no basta —el JSON de
+     * Inertia viaja completo y se lee desde el navegador—, así que quien no
+     * puede verla no la recibe.
+     */
+    respaldos?: Adjunto[];
 }>();
 
 const estados = computed(() =>
@@ -526,21 +540,52 @@ const eliminar = (): void => {
         </section>
 
         <template v-else-if="props.seccion === 'bitacora'">
-            <SeccionPendiente
-                :titulo="$t('proyectos.secciones.reuniones')"
-                :fase="10"
-            >
-                <Button as-child variant="outline" size="sm">
+            <section class="flex flex-col items-start gap-corto">
+                <h3 class="text-cuerpo font-medium text-texto">
+                    {{ trans('proyectos.secciones.reuniones') }}
+                </h3>
+                <Deferred data="resumen">
+                    <template #fallback>
+                        <Skeleton class="h-5 w-48" />
+                    </template>
+                    <p v-if="props.resumen" class="text-cuerpo text-texto-suave">
+                        <template v-if="props.resumen.ultima_reunion">
+                            {{ trans('proyectos.resumen.ultima_reunion') }}:
+                            {{ props.resumen.ultima_reunion.titulo }} ({{
+                                props.resumen.ultima_reunion.fecha
+                            }})
+                        </template>
+                        <template v-else>{{
+                            trans('proyectos.resumen.sin_reuniones')
+                        }}</template>
+                    </p>
+                </Deferred>
+                <Button as-child size="sm">
                     <Link :href="reunionesIndex(props.proyecto.id)">{{
-                        $t('comun.ver')
+                        trans('reuniones.bitacora')
                     }}</Link>
                 </Button>
-            </SeccionPendiente>
+            </section>
 
-            <SeccionPendiente
-                :titulo="$t('proyectos.secciones.archivos')"
-                :fase="10"
-            />
+            <section
+                v-if="props.puede.gestionarRespaldos"
+                class="flex flex-col gap-corto"
+            >
+                <h3 class="text-cuerpo font-medium text-texto">
+                    {{ trans('archivos.coleccion.respaldos_bd') }}
+                </h3>
+                <PanelDeAdjuntos
+                    coleccion="respaldos_bd"
+                    :adjuntos="props.respaldos ?? []"
+                    :subir-url="subirRespaldo(props.proyecto.id).url"
+                    :borrar-url="
+                        (adjunto) =>
+                            borrarRespaldo([props.proyecto.id, adjunto.id]).url
+                    "
+                    :puede-subir="true"
+                    :puede-borrar="true"
+                />
+            </section>
         </template>
 
         <SeccionPendiente

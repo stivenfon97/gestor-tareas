@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
@@ -11,8 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { index as tareasDelProyecto } from '@/routes/proyectos/tareas';
+import { show as mostrarReunion } from '@/routes/reuniones';
 import { destroy, edit, show, update } from '@/routes/tareas';
+import {
+    destroy as borrarAdjunto,
+    store as subirAdjunto,
+} from '@/routes/tareas/adjuntos';
 import { store as guardarNota } from '@/routes/tareas/notas';
+import type { Adjunto } from '@/types/archivos';
 import type {
     EstadoTarea,
     PrioridadTarea,
@@ -69,12 +76,15 @@ const props = defineProps<{
         estado: EstadoTarea;
         tipo: TipoTarea;
     }>;
+    reuniones: Array<{ id: number; fecha: string; titulo: string }>;
+    adjuntos: { imagenes: Adjunto[]; documentos: Adjunto[] };
     puede: {
         editar: boolean;
         cambiarEstado: boolean;
         eliminar: boolean;
         comentar: boolean;
         verLoInterno: boolean;
+        gestionarAdjuntos: boolean;
     };
 }>();
 
@@ -108,6 +118,9 @@ const agregarNota = (): void => {
 const eliminar = (): void => {
     router.delete(destroy(props.tarea.id).url);
 };
+
+const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
+    borrarAdjunto([props.tarea.id, adjunto.id]).url;
 </script>
 
 <template>
@@ -325,6 +338,59 @@ const eliminar = (): void => {
             <p v-else class="text-sm text-muted-foreground">
                 {{ $t('tareas.sin_correcciones') }}
             </p>
+        </section>
+
+        <!-- Reuniones de las que salió: mismo scope de visibilidad que la
+             bitácora, así que una reunión interna no aparece aquí para
+             quien no la vería en su propio listado. -->
+        <section class="flex flex-col gap-2">
+            <h3 class="text-base font-medium">
+                {{ $t('tareas.reuniones.titulo') }}
+            </h3>
+            <ul v-if="props.reuniones.length" class="flex flex-col gap-1">
+                <li v-for="reunion in props.reuniones" :key="reunion.id">
+                    <Link
+                        :href="mostrarReunion(reunion.id)"
+                        class="flex items-center gap-2 text-sm underline-offset-4 hover:underline"
+                    >
+                        <span class="font-mono text-xs text-muted-foreground">{{
+                            reunion.fecha
+                        }}</span>
+                        <span>{{ reunion.titulo }}</span>
+                    </Link>
+                </li>
+            </ul>
+            <p v-else class="text-sm text-muted-foreground">
+                {{ $t('tareas.reuniones.vacio') }}
+            </p>
+        </section>
+
+        <!-- Adjuntos -->
+        <section class="flex flex-col gap-3">
+            <h3 class="text-base font-medium">
+                {{ $t('archivos.coleccion.imagenes') }}
+            </h3>
+            <PanelDeAdjuntos
+                coleccion="imagenes"
+                :adjuntos="props.adjuntos.imagenes"
+                :subir-url="subirAdjunto(props.tarea.id).url"
+                :borrar-url="adjuntosBorrarUrl"
+                :puede-subir="props.puede.gestionarAdjuntos"
+                :puede-borrar="props.puede.gestionarAdjuntos"
+            />
+        </section>
+        <section class="flex flex-col gap-3">
+            <h3 class="text-base font-medium">
+                {{ $t('archivos.coleccion.documentos') }}
+            </h3>
+            <PanelDeAdjuntos
+                coleccion="documentos"
+                :adjuntos="props.adjuntos.documentos"
+                :subir-url="subirAdjunto(props.tarea.id).url"
+                :borrar-url="adjuntosBorrarUrl"
+                :puede-subir="props.puede.gestionarAdjuntos"
+                :puede-borrar="props.puede.gestionarAdjuntos"
+            />
         </section>
 
         <!-- Notas -->
