@@ -5,7 +5,6 @@ import { computed, ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import ConfirmarPorNombre from '@/components/ConfirmarPorNombre.vue';
-import SeccionPendiente from '@/components/SeccionPendiente.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +22,7 @@ import { index as miembrosIndex } from '@/routes/proyectos/miembros';
 import { index as modulosIndex } from '@/routes/proyectos/modulos';
 import { index as pagosIndex } from '@/routes/proyectos/pagos';
 import { index as periodosIndex } from '@/routes/proyectos/periodos';
+import { index as reportesIndex } from '@/routes/proyectos/reportes';
 import {
     destroy as borrarRespaldo,
     store as subirRespaldo,
@@ -74,7 +74,7 @@ const props = defineProps<{
         gestionarModulos: boolean;
         verPagos: boolean;
         verReuniones: boolean;
-        generarReportes: boolean;
+        verReportes: boolean;
         gestionarRespaldos: boolean;
     };
     /**
@@ -132,7 +132,7 @@ const pestanas = computed(() =>
         {
             id: 'reportes',
             etiqueta: trans('proyectos.secciones.reportes'),
-            visible: props.puede.generarReportes,
+            visible: props.puede.verReportes,
         },
     ].filter((pestana) => pestana.visible),
 );
@@ -591,10 +591,18 @@ const eliminar = (): void => {
             </section>
         </template>
 
-        <SeccionPendiente
+        <section
             v-else-if="props.seccion === 'reportes'"
-            :titulo="$t('proyectos.secciones.reportes')"
-            :fase="11"
-        />
+            class="flex flex-col items-start gap-corto"
+        >
+            <p class="text-cuerpo text-texto-suave">
+                {{ $t('proyectos.secciones.reportes') }}
+            </p>
+            <Button as-child size="sm">
+                <Link :href="reportesIndex(props.proyecto.id)">{{
+                    $t('comun.ver')
+                }}</Link>
+            </Button>
+        </section>
     </div>
 </template>
