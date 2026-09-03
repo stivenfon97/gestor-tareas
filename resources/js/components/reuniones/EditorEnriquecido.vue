@@ -54,7 +54,11 @@ const urlDelEnlace = ref('');
 const editor = useEditor({
     content: json.value,
     extensions: [
-        StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+        // `link: false`: StarterKit trae su propia extensión de enlace: sin
+        // desactivarla, choca con la que se configura abajo (con
+        // openOnClick y rel/target forzados) y TipTap avisa de "Duplicate
+        // extension names" en consola.
+        StarterKit.configure({ heading: { levels: [1, 2, 3] }, link: false }),
         Highlight,
         Link.configure({
             openOnClick: false,

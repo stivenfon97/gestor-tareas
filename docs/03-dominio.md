@@ -236,12 +236,33 @@ cliente?" quedaría sin respuesta.
 `{PREFIJO}_P{consecutivo}_{fecha}_cliente.xlsx`. Dos archivos con el mismo nombre en la
 carpeta de descargas es justo el escenario que provoca enviarle los pagos al cliente.
 
-## 8. Archivos *(fase 10)*
+## 8. Archivos
 
 **D8.1 — Límites definitivos**: imágenes 5 MB, documentos 20 MB, respaldos `.sql`
-256 MB.
+256 MB. *Implementado en `App\Services\Adjuntos` (constantes `LIMITE_*`), leídas a la
+vez por `acceptsFile()` de cada modelo y por `Adjuntos::reglasDeArchivo()`.*
 
-**D8.2 — Los respaldos `.sql` van a disco privado**, jamás al público.
+**D8.2 — Los respaldos `.sql` van a disco privado**, jamás al público. Cuelgan
+únicamente de `Proyecto` — `imagenes` y `documentos` cuelgan de `Tarea` y `Reunion`.
 
 **D8.3 — Solo la colección `imagenes` lleva conversiones.** Un dump de 250 MB nunca
 debe pasar por procesamiento de imagen.
+
+**D8.4 — El tipo de un archivo se valida por su contenido real, nunca por su
+extensión.** `mimetypes:` (lee con `finfo`), nunca `mimes:` (infiere por extensión); lo
+mismo en `acceptsMimeTypes()` de Medialibrary. Un `.sql` que en realidad es un `.php`
+subido a un disco público es ejecución remota. *Implementado en
+`Adjuntos::reglasDeArchivo()` y en `registerMediaCollections()` de cada modelo.*
+
+**D8.5 — Un adjunto de `Tarea` o `Proyecto` se trata siempre como interno**, porque
+ninguno de los dos tiene una marca de visibilidad propia (a diferencia de `Reunion`,
+que sí la tiene y donde el adjunto hereda la del dueño). Un `cliente` no ve ninguno, ni
+en pantalla ni en el JSON de la página — la clave falta del todo en las props cuando
+`ResolverRolProyecto::veLoInterno()` es falso (D6.2). *Implementado en
+`MediaPolicy::visibilidadDe()` y en el gateo de `adjuntos`/`respaldos` en
+`TareaController::show`/`ProyectoController::show`.*
+
+**D8.6 — Ningún archivo se sirve por URL directa al disco.** Todo adjunto pasa por
+`archivos.descargar` (`ArchivoController`), que evalúa `MediaPolicy` antes de emitir un
+byte — incluida la conversión `miniatura`, servida por la misma ruta con
+`?conversion=miniatura` en vez de abrir una segunda.

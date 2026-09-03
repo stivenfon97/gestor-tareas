@@ -171,8 +171,9 @@ Ese limite vive en **cuatro sitios** que deben cambiarse juntos:
 
 1. `docker/php/php.ini` → `upload_max_filesize`, `post_max_size`
 2. `docker/nginx/default.conf` → `client_max_body_size`
-3. Las reglas de validacion de Laravel *(se configuran en la fase 10)*
-4. Las colecciones de Medialibrary *(se configuran en la fase 10)*
+3. Las reglas de validacion de Laravel → `App\Services\Adjuntos::reglasDeArchivo()`
+4. Las colecciones de Medialibrary → `acceptsFile()` en cada modelo, con los mismos
+   limites de `App\Services\Adjuntos` (fase 10)
 
 Cambiar uno solo produce fallos silenciosos que parecen bugs de la aplicacion:
 Nginx corta la peticion antes de que PHP la vea, o PHP la descarta antes de que

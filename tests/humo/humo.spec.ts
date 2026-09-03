@@ -33,7 +33,7 @@ const ANCHOS = [
 
 type Pantalla = {
     nombre: string;
-    ruta: (proyecto: number, periodoAbierto: number) => string;
+    ruta: (proyecto: number, periodoAbierto: number, reunion: number) => string;
 };
 
 const PANTALLAS: Pantalla[] = [
@@ -58,6 +58,12 @@ const PANTALLAS: Pantalla[] = [
     {
         nombre: 'cierre',
         ruta: (_id, periodoAbierto) => `/periodos/${periodoAbierto}/cierre`,
+    },
+    // Bitácora y detalle de una reunión, de la fase 10.
+    { nombre: 'reuniones', ruta: (id) => `/proyectos/${id}/reuniones` },
+    {
+        nombre: 'reunion-detalle',
+        ruta: (_id, _periodoAbierto, reunion) => `/reuniones/${reunion}`,
     },
 ];
 
@@ -284,6 +290,29 @@ const periodoAbiertoDe = async (
     return Number(id);
 };
 
+/**
+ * Una reunión del proyecto. `DesarrolloSeeder` siembra tres por proyecto
+ * (`crearBitacora`), así que siempre hay alguna que abrir.
+ */
+const primeraReunionDe = async (
+    pagina: Page,
+    proyecto: number,
+): Promise<number> => {
+    await pagina.goto(`/proyectos/${proyecto}/reuniones`);
+    await pagina.waitForLoadState('networkidle');
+
+    const id = await pagina.evaluate(() =>
+        [...document.querySelectorAll('a[href]')]
+            .map((enlace) => enlace.getAttribute('href') ?? '')
+            .map((href) => href.match(/^\/reuniones\/(\d+)$/)?.[1])
+            .find((encontrado) => encontrado !== undefined),
+    );
+
+    expect(id, 'no hay ninguna reunión sembrada').toBeDefined();
+
+    return Number(id);
+};
+
 for (const tema of ['light', 'dark'] as const) {
     test.describe(`tema ${tema}`, () => {
         test.use({ colorScheme: tema });
@@ -302,6 +331,7 @@ for (const tema of ['light', 'dark'] as const) {
 
                 const proyecto = await primerProyecto(pagina);
                 const periodoAbierto = await periodoAbiertoDe(pagina, proyecto);
+                const reunion = await primeraReunionDe(pagina, proyecto);
                 const fallos: string[] = [];
 
                 // Sin esto la comprobación de filtros pasaría en vacío el día
@@ -309,7 +339,7 @@ for (const tema of ['light', 'dark'] as const) {
                 let filtrosMedidos = 0;
 
                 for (const pantalla of PANTALLAS) {
-                    await pagina.goto(pantalla.ruta(proyecto, periodoAbierto));
+                    await pagina.goto(pantalla.ruta(proyecto, periodoAbierto, reunion));
                     // Inertia pinta en el cliente: sin esto se mide el esqueleto.
                     await pagina.waitForLoadState('networkidle');
 

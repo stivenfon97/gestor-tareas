@@ -34,8 +34,8 @@ Si vienes por primera vez, en este orden:
 |---|---|---|---|
 | [Autenticación](modulos/autenticacion.md) | ✅ | [Periodos](modulos/periodos.md) | parcial · fase 09 |
 | [Clientes](modulos/clientes.md) | ✅ | [Pagos](modulos/pagos.md) | parcial · fase 09 |
-| [Proyectos](modulos/proyectos.md) | ✅ | [Bitácora](modulos/bitacora.md) | fase 10 |
-| [Módulos](modulos/modulos.md) | ✅ | [Archivos](modulos/archivos.md) | fase 10 |
+| [Proyectos](modulos/proyectos.md) | ✅ | [Bitácora](modulos/bitacora.md) | ✅ |
+| [Módulos](modulos/modulos.md) | ✅ | [Archivos](modulos/archivos.md) | ✅ |
 | [Tareas](modulos/tareas.md) | ✅ | [Reportes](modulos/reportes.md) | fase 11 |
 | [Vistas guardadas](modulos/vistas.md) | fase 08 | [Dashboard](modulos/dashboard.md) | fase 12 |
 | [Tabla de datos](modulos/tabla-de-datos.md) | ✅ | | |

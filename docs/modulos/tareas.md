@@ -379,8 +379,13 @@ modo que añadir una prioridad nueva no obliga a tocar el SQL.
 - **Kanban** (fase 08). Mueve tarjetas llamando al mismo `PUT tareas/{tarea}/estado`, que
   ya devuelve las transiciones disponibles del estado nuevo. La columna `orden` está para
   eso y todavía no se usa.
-- **Editor enriquecido en las notas** (fase 10). Hoy son texto plano; TipTap sustituye el
-  `textarea` sin tocar el modelo, que ya guarda `contenido`.
+- **Editor enriquecido en las notas.** La fase 10 lo trajo para reuniones
+  (`contenido_json`/`contenido_html`, ver [`bitacora.md`](bitacora.md)) pero
+  deliberadamente no para notas: `notas_tarea.contenido` sigue siendo una sola columna
+  de texto, sin el `contenido_json`/`contenido_html` que la reunión sí tiene, y
+  `tareas/Show.vue` ya cubre el flujo real de notas sin pasar por `recursos/Listado`.
+  Si algún día hace falta, el modelo pide primero una migración —añadir las dos
+  columnas—, no solo cambiar el `textarea` por `EditorEnriquecido.vue`.
 - **Arrastre de tareas al cerrar un periodo** (fase 09). `periodo_origen_id` y el scope
   `arrastradas` ya existen; falta la acción que las mueve al cerrar.
 - **Nuevos estados.** Añadir un caso a `EstadoTarea` obliga a tocar tres sitios: el enum,

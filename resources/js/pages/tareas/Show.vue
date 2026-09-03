@@ -398,7 +398,6 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                 />
             </section>
         </template>
-        </section>
 
         <!-- Notas -->
         <section class="flex flex-col gap-3">
