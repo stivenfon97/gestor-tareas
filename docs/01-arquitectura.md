@@ -138,8 +138,12 @@ Tres decisiones que gobiernan esta capa:
 
 **El componente genérico no conoce ningún dominio.** Columnas, filtros y acciones se
 declaran desde la página. Es lo que permite que el mismo componente sirva a clientes,
-proyectos y tareas hoy, y a periodos, pagos y reuniones en las fases 09 a 11. Detalle
-completo en [`modulos/tabla-de-datos.md`](modulos/tabla-de-datos.md).
+proyectos y tareas. Periodos, pagos, reuniones y el historial de reportes quedaron, al
+cerrar el proyecto, con su propia tabla `<table>` hecha a mano en vez de `TablaDatos`
+—las fases 09 a 11 lo dejaron como punto de extensión pendiente y ninguna llegó a
+hacerlo—: son listados cortos, sin paginación ni filtros de columna, así que la falta no
+se nota en el uso diario, pero es deuda real y no una decisión tomada. Detalle en
+[`modulos/tabla-de-datos.md`](modulos/tabla-de-datos.md).
 
 **El estado del listado vive en la URL, no en memoria.** Orden, página, filtros y
 columnas visibles viajan como parámetros. Un listado cuyo estado solo vive en Vue no se
@@ -151,6 +155,37 @@ en ningún componente, y ningún nombre de clase construido en tiempo de ejecuci
 escáner de Tailwind 4 lee el código como texto y una clase interpolada falla **solo en el
 build de producción**. El plan de diseño, con su autocrítica y el inventario de tokens,
 está en [`05-identidad-visual.md`](05-identidad-visual.md).
+
+## Preferencias de usuario: tema e idioma (fase 12)
+
+Dos preferencias —tema y desde la fase 12 también idioma— siguen el mismo patrón, y
+deliberadamente **no** viven en una columna de `users`:
+
+```
+Selector en UserMenuContent  ──►  cookie sin cifrar (365 días)
+        │                                  │
+        │ cambio inmediato,                ▼
+        │ sin recarga              App\Http\Middleware\Handle{Appearance,Idioma}
+        ▼                                  │
+  loadLanguageAsync() /                    ▼
+  toggle de clase `dark`          app()->setLocale() + Carbon::setLocale()
+                                    (mensajes de validación, <html lang>)
+```
+
+El texto de la interfaz viaja siempre como **clave** de traducción
+(`enums.estado_tarea.pendiente`), nunca ya resuelta desde el servidor — es la misma regla
+que dice "ningún texto visible dentro del componente" aplicada también al backend. Por
+eso cambiar de idioma no necesita ningún viaje al servidor: el cliente vuelve a resolver
+las mismas claves con otro diccionario. La cookie solo importa para lo poco que el
+servidor sí resuelve en su propio idioma (mensajes de validación de Laravel,
+`diffForHumans()` de Carbon) y para el `lang` del `<html>` en la primera carga. Razonado
+con más detalle, incluida la alternativa descartada, en
+[`06-historial-de-decisiones.md`](06-historial-de-decisiones.md#el-idioma-se-persiste-en-cookie-no-en-una-columna-de-users).
+
+Fechas y montos no viajan resueltos a texto tampoco: el servidor manda ISO
+(`toDateString()`/`toDateTimeString()`) y el `string` crudo del cast `decimal`, y
+`resources/js/lib/formato.ts` los formatea con `Intl` según el idioma activo. Un dato de
+negocio nunca lleva su propio formato de presentación incrustado.
 
 ## Convenciones transversales
 
@@ -168,5 +203,6 @@ Las que más se notan:
 | Ningún color literal | `resources/js/components/**` |
 | La tabla no conoce dominio; su estado va en la URL | `resources/js/components/TablaDatos/**` |
 | Toda clave de español existe también en inglés | `lang/**` |
+| Fecha y monto se formatean con `resources/js/lib/formato.ts`, nunca a pelo | `resources/js/**` |
 
 Ver [`README.md`](README.md#dónde-vive-cada-cosa) para el reparto entre `.ai/` y `docs/`.

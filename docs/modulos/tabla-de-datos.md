@@ -325,8 +325,12 @@ ve, que es peor que no hacerlo porque parece que funciona.
 - **Fase 08 (Kanban y vistas guardadas).** El Kanban no reutiliza `TablaDatos` —no
   comparten forma— pero sí `useEstadoDeTabla`: filtros y orden son los mismos y ya están
   en la URL. Las vistas guardadas son, literalmente, una cadena de consulta con nombre.
-- **Fases 09, 10 y 11.** Periodos, pagos, reuniones y reportes sustituyen sus
-  `recursos/Listado.vue` provisionales por este componente.
+- **Periodos, pagos, reuniones y el historial de reportes siguen con su propia
+  `<table>` hecha a mano**, no con `TablaDatos`. Las fases 09 a 11 lo dejaron marcado
+  como punto de extensión y ninguna llegó a hacerlo — al cerrar el proyecto en la fase 12
+  sigue pendiente. Son listados cortos y sin paginación, así que la falta no se nota en
+  el uso diario, pero adoptar `TablaDatos` les daría columnas ocultables, orden
+  multicolumna y vista de tarjeta en móvil gratis.
 - **Acciones en lote reales.** Hoy la única es copiar códigos, que no necesita servidor.
   Mover tareas de periodo en bloque es trabajo de la fase 09 y ya tiene sitio donde
   engancharse.
