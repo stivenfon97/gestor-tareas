@@ -11,6 +11,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | resources/css/** | .ai/rules/css.md |
 | docker/** | .ai/rules/docker.md |
 | app/Enums/** | .ai/rules/enums.md |
+| app/Exports/** | .ai/rules/exports.md |
 | docker-compose.yml, .env*, .gitignore | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
 | lang/** | .ai/rules/lang.md |

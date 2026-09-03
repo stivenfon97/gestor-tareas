@@ -217,24 +217,50 @@ Un dato que llega al navegador y se esconde con CSS es un dato filtrado.
 
 **D6.3 — El cliente no ve pagos, reuniones internas ni archivos internos.**
 
-## 7. Reportes *(fase 11)*
+## 7. Reportes
 
 **D7.1 — Hay dos reportes en archivos separados**: el **completo** (uso interno,
 incluye pagos) y el **de cliente** (solo tarea, estado, descripción y módulo). Nunca en
-el mismo archivo.
+el mismo archivo. *Implementado en `App\Exports\ReporteCompletoExport` (cuatro hojas) y
+`App\Exports\HojaClienteExport` (una hoja); nunca se instancian juntas.*
 
-**D7.2 — Los `.xlsx` no se persisten en disco.** Se generan bajo demanda.
+**D7.2 — Los `.xlsx` no se persisten en disco.** Se generan bajo demanda, síncronos, con
+descarga directa. *`ReporteController::descargar()` llama a `Excel::download()`, que
+escribe un temporal en `storage/framework/cache/laravel-excel` y lo borra al terminar de
+enviarlo — nunca un disco de la aplicación.*
 
-**D7.3 — La trazabilidad la da el `snapshot`**, que guarda las filas exactas exportadas.
-Permite dos modos de descarga: **actual** (recalcula con los datos de hoy) e **histórico**
-(reconstruye desde el snapshot, idéntico a lo que se envió). Sin él, regenerar en
-noviembre el reporte de julio produciría un archivo distinto y la pregunta "¿qué vio el
-cliente?" quedaría sin respuesta.
+**D7.3 — La trazabilidad la da el `snapshot`**, que guarda las filas exactas exportadas,
+desnormalizadas -texto, no ids-. Permite dos modos de descarga: **actual** (recalcula con
+los datos de hoy) e **histórico** (reconstruye desde el snapshot, idéntico a lo que se
+envió). Sin él, regenerar en noviembre el reporte de julio produciría un archivo
+distinto y la pregunta "¿qué vio el cliente?" quedaría sin respuesta. *Implementado en
+`App\Actions\GenerarReporte`.*
 
 **D7.4 — El sufijo del nombre es obligatorio**:
 `{PREFIJO}_P{consecutivo}_{fecha}_completo.xlsx` y
 `{PREFIJO}_P{consecutivo}_{fecha}_cliente.xlsx`. Dos archivos con el mismo nombre en la
 carpeta de descargas es justo el escenario que provoca enviarle los pagos al cliente.
+
+**D7.5 — Una sola ruta de descarga sirve a la «actual» y a la «histórica».**
+`ReporteController::store()` solo escribe la fila -es la parte auditable-;
+`ReporteController::descargar()` solo lee del snapshot, nunca de la base de datos en
+vivo. La descarga «actual» es, literalmente, pedir esa misma ruta con el id que se
+acaba de crear: no hay una generación de archivo distinta para el primer clic. Evita dos
+caminos de construcción del Excel que puedan divergir.
+
+**D7.6 — El snapshot de tipo `cliente` no contiene resumen, notas ni pagos en absoluto**,
+no solo esas hojas sin pintar. `GenerarReporte` construye una estructura distinta según
+el tipo: la de cliente nunca tiene esas claves. Es la garantía real de que no hay
+filtración posible -no hay dato que omitir en el Excel porque la fila nunca lo tuvo-, no
+una columna que se decide no mostrar.
+
+**D7.7 — La paleta de rellenos del Excel es propia, no la de la interfaz.** Los tokens de
+`resources/css/app.css` están calibrados para pantalla y modo oscuro: los seis son
+pasteles muy pálidos, con luminosidad casi idéntica entre sí, y en la escala de grises de
+una impresora colapsan en el mismo gris casi blanco. `App\Exports\PaletaEstadoExcel`
+fija en cambio un salto de luminosidad deliberado entre los seis estados conservando el
+matiz de cada familia, para que sigan siendo seis grises distintos impresos en blanco y
+negro.
 
 ## 8. Archivos
 
