@@ -1,19 +1,22 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Browser, Page } from '@playwright/test';
 import { CAPTURAS, ESTADO_DE_SESION } from './rutas';
 
 /**
- * Comprobación de humo. Hace exactamente cuatro cosas y ninguna más:
+ * Comprobación de humo. Hace exactamente cinco cosas y ninguna más:
  *
- * 1. Recorre cinco pantallas y falla si el texto visible contiene algo con
- *    forma de clave de traducción.
+ * 1. Recorre las catorce pantallas y falla si el texto visible contiene algo
+ *    con forma de clave de traducción.
  * 2. En cada una, a tres anchos, falla si el documento desborda a lo ancho.
  * 3. Comprueba dos defectos de composición que solo existen en el navegador:
  *    una fila cortada por el borde de la tabla y un control de filtro
  *    estrujado por su columna.
  * 4. Captura cada pantalla y cada ancho, en claro y en oscuro.
+ * 5. Repite las catorce pantallas una vez en inglés (fase 12), a un solo
+ *    ancho y tema: los puntos 1 a 4 ya cubren composición en español: esto
+ *    solo hace falta para lo que cambia con el idioma.
  *
  * El punto 3 se añadió en la fase 07d, y va aquí y no en Pest porque ninguna
  * de las dos cosas existe hasta que un navegador reparte el ancho: `Tipo` se
@@ -313,117 +316,183 @@ const primeraReunionDe = async (
     return Number(id);
 };
 
+/**
+ * Recorre las catorce pantallas con un tema, un ancho y un idioma dados, y
+ * falla acumulando todos los problemas encontrados.
+ *
+ * Extraído a función en la fase 12 para poder repetir el mismo recorrido en
+ * inglés (`HandleIdioma` lee la cookie `idioma`, igual que hace el navegador
+ * cuando alguien cambia el idioma desde el menú de usuario) sin duplicar las
+ * ciento y pico líneas de comprobaciones.
+ */
+async function recorrerPantallas(
+    browser: Browser,
+    opciones: {
+        tema: 'light' | 'dark';
+        ancho: number;
+        alto: number;
+        nombreAncho: string;
+        /** Por defecto `es`, que es el idioma con el que se sembraron los datos. */
+        idioma?: 'es' | 'en';
+    },
+): Promise<void> {
+    const { tema, ancho, alto, nombreAncho, idioma = 'es' } = opciones;
+    // Sufijo de archivo y de mensaje, vacío para el caso por defecto: así las
+    // capturas en español no cambian de nombre por esta fase.
+    const sufijoIdioma = idioma === 'es' ? '' : `-${idioma}`;
+
+    await mkdir(CAPTURAS, { recursive: true });
+
+    const contexto = await browser.newContext({
+        viewport: { width: ancho, height: alto },
+        colorScheme: tema,
+        // La sesión la abrió `globalSetup`, una sola vez.
+        storageState: ESTADO_DE_SESION,
+    });
+
+    if (idioma !== 'es') {
+        // Mismo mecanismo que `useIdioma().cambiarIdioma()`: una cookie sin
+        // cifrar que lee `App\Http\Middleware\HandleIdioma`.
+        await contexto.addCookies([
+            {
+                name: 'idioma',
+                value: idioma,
+                url: process.env.HUMO_URL ?? 'http://nginx',
+            },
+        ]);
+    }
+
+    const pagina = await contexto.newPage();
+
+    const proyecto = await primerProyecto(pagina);
+    const periodoAbierto = await periodoAbiertoDe(pagina, proyecto);
+    const reunion = await primeraReunionDe(pagina, proyecto);
+    const fallos: string[] = [];
+
+    // Sin esto la comprobación de filtros pasaría en vacío el día que un
+    // cambio dejara de renderizar los disparadores.
+    let filtrosMedidos = 0;
+
+    for (const pantalla of PANTALLAS) {
+        await pagina.goto(pantalla.ruta(proyecto, periodoAbierto, reunion));
+        // Inertia pinta en el cliente: sin esto se mide el esqueleto.
+        await pagina.waitForLoadState('networkidle');
+
+        /*
+         * Que la pantalla tenga texto, antes de mirar qué texto es.
+         *
+         * Las dos comprobaciones de abajo pasan **en vacío** sobre una
+         * página en blanco: no hay claves crudas y no hay desbordamiento. Y
+         * una página en blanco es justo lo que deja un bundle que no carga,
+         * que es el fallo más gordo que puede haber. Sin esto, la
+         * comprobación de humo daría verde sobre una aplicación que no
+         * arranca.
+         */
+        const visible = await pagina.evaluate(
+            () => document.body.innerText.trim().length,
+        );
+
+        if (visible < 50) {
+            fallos.push(
+                `${pantalla.nombre}${sufijoIdioma}: la pantalla llegó vacía (${visible} caracteres). ¿Cargó el bundle?`,
+            );
+        }
+
+        const claves = await clavesEnPantalla(pagina);
+
+        if (claves.length > 0) {
+            fallos.push(
+                `${pantalla.nombre}${sufijoIdioma}: claves sin traducir → ${claves.join(', ')}`,
+            );
+        }
+
+        const sobra = await desbordamiento(pagina);
+
+        if (sobra > 0) {
+            fallos.push(
+                `${pantalla.nombre}${sufijoIdioma} @${nombreAncho}px: el documento desborda ${sobra}px a lo ancho`,
+            );
+        }
+
+        const cortadas = await filasCortadas(pagina);
+
+        if (cortadas > 0) {
+            fallos.push(
+                `${pantalla.nombre}${sufijoIdioma} @${nombreAncho}px: ${cortadas} fila(s) cortadas por el borde de la tabla`,
+            );
+        }
+
+        /*
+         * La captura va **antes** de tocar los filtros: abrirlos deja capas
+         * flotantes desvaneciéndose sobre la tabla, y la captura es para
+         * mirar la pantalla en reposo.
+         */
+        await pagina.screenshot({
+            path: join(
+                CAPTURAS,
+                `${pantalla.nombre}-${nombreAncho}-${tema}${sufijoIdioma}.png`,
+            ),
+            fullPage: true,
+        });
+
+        const filtros = await medirFiltros(pagina);
+
+        filtrosMedidos += filtros.medidos;
+
+        if (filtros.estrujados.length > 0) {
+            fallos.push(
+                `${pantalla.nombre}${sufijoIdioma} @${nombreAncho}px: controles de filtro por debajo de ${FILTRO_MINIMO}px → ${filtros.estrujados.join(', ')}`,
+            );
+        }
+    }
+
+    if (filtrosMedidos === 0) {
+        fallos.push(
+            `@${nombreAncho}px${sufijoIdioma}: no se midió ni un control de filtro. ¿Se dejaron de pintar los disparadores?`,
+        );
+    }
+
+    await contexto.close();
+
+    // Se acumulan y se reportan juntos: parar en el primero obliga a dar
+    // cinco vueltas para ver cinco problemas.
+    expect(fallos, fallos.join('\n')).toEqual([]);
+}
+
 for (const tema of ['light', 'dark'] as const) {
     test.describe(`tema ${tema}`, () => {
         test.use({ colorScheme: tema });
 
         for (const medida of ANCHOS) {
             test(`${medida.nombre}px`, async ({ browser }) => {
-                await mkdir(CAPTURAS, { recursive: true });
-
-                const contexto = await browser.newContext({
-                    viewport: { width: medida.ancho, height: medida.alto },
-                    colorScheme: tema,
-                    // La sesión la abrió `globalSetup`, una sola vez.
-                    storageState: ESTADO_DE_SESION,
+                await recorrerPantallas(browser, {
+                    tema,
+                    ancho: medida.ancho,
+                    alto: medida.alto,
+                    nombreAncho: medida.nombre,
                 });
-                const pagina = await contexto.newPage();
-
-                const proyecto = await primerProyecto(pagina);
-                const periodoAbierto = await periodoAbiertoDe(pagina, proyecto);
-                const reunion = await primeraReunionDe(pagina, proyecto);
-                const fallos: string[] = [];
-
-                // Sin esto la comprobación de filtros pasaría en vacío el día
-                // que un cambio dejara de renderizar los disparadores.
-                let filtrosMedidos = 0;
-
-                for (const pantalla of PANTALLAS) {
-                    await pagina.goto(pantalla.ruta(proyecto, periodoAbierto, reunion));
-                    // Inertia pinta en el cliente: sin esto se mide el esqueleto.
-                    await pagina.waitForLoadState('networkidle');
-
-                    /*
-                     * Que la pantalla tenga texto, antes de mirar qué texto es.
-                     *
-                     * Las dos comprobaciones de abajo pasan **en vacío** sobre
-                     * una página en blanco: no hay claves crudas y no hay
-                     * desbordamiento. Y una página en blanco es justo lo que
-                     * deja un bundle que no carga, que es el fallo más gordo
-                     * que puede haber. Sin esto, la comprobación de humo daría
-                     * verde sobre una aplicación que no arranca.
-                     */
-                    const visible = await pagina.evaluate(
-                        () => document.body.innerText.trim().length,
-                    );
-
-                    if (visible < 50) {
-                        fallos.push(
-                            `${pantalla.nombre}: la pantalla llegó vacía (${visible} caracteres). ¿Cargó el bundle?`,
-                        );
-                    }
-
-                    const claves = await clavesEnPantalla(pagina);
-
-                    if (claves.length > 0) {
-                        fallos.push(
-                            `${pantalla.nombre}: claves sin traducir → ${claves.join(', ')}`,
-                        );
-                    }
-
-                    const sobra = await desbordamiento(pagina);
-
-                    if (sobra > 0) {
-                        fallos.push(
-                            `${pantalla.nombre} @${medida.nombre}px: el documento desborda ${sobra}px a lo ancho`,
-                        );
-                    }
-
-                    const cortadas = await filasCortadas(pagina);
-
-                    if (cortadas > 0) {
-                        fallos.push(
-                            `${pantalla.nombre} @${medida.nombre}px: ${cortadas} fila(s) cortadas por el borde de la tabla`,
-                        );
-                    }
-
-                    /*
-                     * La captura va **antes** de tocar los filtros: abrirlos
-                     * deja capas flotantes desvaneciéndose sobre la tabla, y
-                     * la captura es para mirar la pantalla en reposo.
-                     */
-                    await pagina.screenshot({
-                        path: join(
-                            CAPTURAS,
-                            `${pantalla.nombre}-${medida.nombre}-${tema}.png`,
-                        ),
-                        fullPage: true,
-                    });
-
-                    const filtros = await medirFiltros(pagina);
-
-                    filtrosMedidos += filtros.medidos;
-
-                    if (filtros.estrujados.length > 0) {
-                        fallos.push(
-                            `${pantalla.nombre} @${medida.nombre}px: controles de filtro por debajo de ${FILTRO_MINIMO}px → ${filtros.estrujados.join(', ')}`,
-                        );
-                    }
-
-                }
-
-                if (filtrosMedidos === 0) {
-                    fallos.push(
-                        `@${medida.nombre}px: no se midió ni un control de filtro. ¿Se dejaron de pintar los disparadores?`,
-                    );
-                }
-
-                await contexto.close();
-
-                // Se acumulan y se reportan juntos: parar en el primero obliga
-                // a dar cinco vueltas para ver cinco problemas.
-                expect(fallos, fallos.join('\n')).toEqual([]);
             });
         }
     });
 }
+
+/*
+ * Recorrido completo en inglés, de las mismas catorce pantallas. Un solo
+ * ancho y tema -1440px, claro- en vez de las seis combinaciones: la matriz de
+ * tema × ancho ya comprueba composición visual en español, y repetirla entera
+ * en inglés multiplicaría el tiempo de `make humo` por dos para comprobar la
+ * misma composición dos veces. Lo que este bloque comprueba que los otros no
+ * pueden -claves sin traducir y formatos de fecha/monto que se colaran en
+ * inglés- no depende del ancho ni del tema.
+ */
+test.describe('idioma en', () => {
+    test('1440px', async ({ browser }) => {
+        await recorrerPantallas(browser, {
+            tema: 'light',
+            ancho: 1440,
+            alto: 900,
+            nombreAncho: '1440',
+            idioma: 'en',
+        });
+    });
+});
