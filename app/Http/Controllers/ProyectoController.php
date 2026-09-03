@@ -13,6 +13,7 @@ use App\Models\Proyecto;
 use App\Models\Reporte;
 use App\Models\Reunion;
 use App\Models\User;
+use App\Services\Adjuntos;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use App\Services\ResolverRolProyecto;
@@ -125,6 +126,12 @@ class ProyectoController extends Controller
             'usuarios as miembros_count',
         ]);
 
+        // Ni siquiera con el flag en falso: si `respaldos` viajara vacío para
+        // cualquiera, la lección de la fase 09 (PeriodoController mandaba el
+        // pago entero aunque `verPagos` fuera falso) se repetiría aquí. La
+        // clave falta del todo para quien no gestiona el proyecto.
+        $puedeGestionarRespaldos = ResolverRolProyecto::gestiona($usuario, $proyecto);
+
         return Inertia::render('proyectos/Show', [
             'proyecto' => [
                 'id' => $proyecto->id,
@@ -157,8 +164,11 @@ class ProyectoController extends Controller
                 'verPagos' => $usuario->can('viewAny', [Pago::class, $proyecto]),
                 'verReuniones' => $usuario->can('viewAny', [Reunion::class, $proyecto]),
                 'generarReportes' => $usuario->can('create', [Reporte::class, $proyecto]),
+                'gestionarRespaldos' => $puedeGestionarRespaldos,
             ],
-        ]);
+        ] + ($puedeGestionarRespaldos ? [
+            'respaldos' => $proyecto->getMedia('respaldos_bd')->map(Adjuntos::comoArray(...)),
+        ] : []));
     }
 
     public function edit(Proyecto $proyecto): Response

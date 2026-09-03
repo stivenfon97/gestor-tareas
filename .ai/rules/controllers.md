@@ -25,3 +25,10 @@ Ningún controlador escribe `estado` sobre una `Tarea`. El único que lo cambia 
 `TareaRequest` no acepta `estado` ni `tipo`: el primero tiene endpoint propio y el segundo se fija al crear y no cambia (D1.3). Si añades un endpoint que mueva tareas —el Kanban de la fase 08, una acción masiva—, llama al servicio.
 
 El controlador tampoco recalcula qué transiciones son válidas: las pide con `CambiarEstadoTarea::disponiblesPara()` y las envía a la interfaz.
+
+## Lo que un rol no puede ver tampoco se serializa
+Ocultar un dato en la interfaz no lo oculta: el JSON de Inertia viaja completo y se lee abriendo las herramientas del navegador (así se destapó el bug de PeriodoController en la fase 09, que mandaba el pago entero aunque `verPagos` fuera falso).
+
+Cuando un dato no debe verse para cierto rol, la clave **falta del todo** en el array que se pasa a `Inertia::render()` — nunca viaja vacía ni con un flag `null` que la esconda solo en la interfaz. Patrón: computa la condición antes, y añade la clave condicionalmente con `+ ($condicion ? ['clave' => ...] : [])`. Ejemplos ya aplicados: `respaldos` en `ProyectoController::show` (solo si `ResolverRolProyecto::gestiona()`), `adjuntos` en `TareaController::show` (solo si `veLoInterno()`, porque los adjuntos de tarea no tienen marca de visibilidad propia y se tratan siempre como internos).
+
+Toda prueba de visibilidad comprueba la respuesta (`$respuesta->viewData('page')['props']`), no la pantalla.

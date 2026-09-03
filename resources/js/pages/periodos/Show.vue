@@ -20,7 +20,12 @@ import { index as periodosIndex } from '@/routes/proyectos/periodos';
 import { show as mostrarTarea } from '@/routes/tareas';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     periodo: {
         id: number;
         consecutivo: number;
@@ -208,7 +213,7 @@ const guardar = (): void => {
             </div>
             <p
                 v-if="props.periodo.notas"
-                class="whitespace-pre-line text-cuerpo text-texto"
+                class="text-cuerpo whitespace-pre-line text-texto"
             >
                 {{ props.periodo.notas }}
             </p>
@@ -301,7 +306,10 @@ const guardar = (): void => {
                                     tarea.codigo
                                 }}</span>
                                 <span class="truncate">{{ tarea.nombre }}</span>
-                                <Badge v-if="tarea.arrastrada" variant="outline">
+                                <Badge
+                                    v-if="tarea.arrastrada"
+                                    variant="outline"
+                                >
                                     {{ $t('tareas.arrastrada') }}
                                 </Badge>
                             </Link>
@@ -326,10 +334,7 @@ const guardar = (): void => {
                 {{ $t('periodos.arrastradas_hacia_otro') }}
             </h2>
             <ul class="flex flex-col gap-fino">
-                <li
-                    v-for="tarea in props.arrastradasHaciaOtro"
-                    :key="tarea.id"
-                >
+                <li v-for="tarea in props.arrastradasHaciaOtro" :key="tarea.id">
                     <Link
                         :href="mostrarTarea(tarea.id)"
                         class="flex items-center gap-fino text-cuerpo text-texto hover:underline"
@@ -345,9 +350,7 @@ const guardar = (): void => {
                             →
                             {{
                                 $t('tareas.periodo_numero', {
-                                    consecutivo: String(
-                                        tarea.periodo_destino,
-                                    ),
+                                    consecutivo: String(tarea.periodo_destino),
                                 })
                             }}
                         </span>

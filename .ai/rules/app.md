@@ -34,3 +34,10 @@ El código de tarea es correlativo **por proyecto y continuo de por vida** (`MAQ
 
 ## Trasladar una tarea entre periodos no es un cambio de estado
 Al cerrar un periodo, las tareas que se trasladan al siguiente conservan su `estado`: el traslado actualiza `periodo_id` y `periodo_origen_id` con un `update()` de query builder (`CerrarPeriodo`), nunca con `$tarea->save()` en un bucle ni pasando por `CambiarEstadoTarea`. Reutilizar el servicio de transiciones para esto ensuciaría `historial_estados` con una transición que nunca ocurrió: el estado no cambia, solo el periodo. `orden` tampoco se toca al trasladar: sigue siendo del proyecto, no del periodo (D4.10 en docs/03-dominio.md).
+
+## El tipo de un archivo se valida por contenido real, no por extensión
+Un `.sql` que en realidad es un `.php` subido a un disco público es ejecución remota. El tipo se valida siempre por el contenido real del archivo (`finfo`), nunca por su extensión ni por el nombre que declara.
+
+En Laravel: la regla `mimetypes:` (lee el contenido), nunca `mimes:` (infiere por extensión). En Medialibrary: `acceptsMimeTypes()` en `registerMediaCollections()` de cada modelo. Los límites de tamaño y las listas de MIME reales viven centralizados en `App\Services\Adjuntos` (constantes `LIMITE_*`/`MIME_*` y el método `reglasDeArchivo()`), leídos a la vez por los tres controladores de subida y por los cuatro modelos con `HasMedia` — cambiar un límite no debe implicar buscarlo en varios sitios de PHP.
+
+Los límites de tamaño viven además en `docker/php/php.ini` y `docker/nginx/default.conf` (cuatro sitios en total, ver skill `archivos-y-adjuntos`): si uno de los cuatro queda más bajo que los demás, el fallo que ve el usuario no señala la causa real (Nginx corta antes de que PHP vea nada; PHP descarta antes de validar y dice "campo requerido").

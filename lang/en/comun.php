@@ -15,6 +15,7 @@ return [
     'crear' => 'Create',
     'editar' => 'Edit',
     'eliminar' => 'Delete',
+    'descargar' => 'Download',
     'agregar' => 'Add',
     'quitar' => 'Remove',
     'buscar' => 'Search',

@@ -53,8 +53,8 @@ El cierre, de principio a fin: [`../diagramas/flujo-cierre-periodo.md`](../diagr
 
 ```mermaid
 flowchart LR
-    abierto[["Periodo abierto"]] -->|CierrePeriodoController@create| pantalla["Pantalla de cierre"]
-    pantalla -->|CierrePeriodoController@store| accion["CerrarPeriodo (transacción)"]
+    abierto[["Periodo abierto"]] -->|"CierrePeriodoController@create"| pantalla["Pantalla de cierre"]
+    pantalla -->|"CierrePeriodoController@store"| accion["CerrarPeriodo (transacción)"]
     accion --> cerrado["Periodo cerrado, fecha_fin = hoy"]
     accion --> trasladadas["Tareas seleccionadas → periodo siguiente"]
     accion --> nuevo["Periodo siguiente, abierto"]

@@ -9,7 +9,12 @@ import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create } from '@/routes/proyectos/pagos';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     pagos: Array<{
         id: number;
         periodo_consecutivo: number;
@@ -94,7 +99,9 @@ const props = defineProps<{
                                 }}
                             </Link>
                         </td>
-                        <td class="px-celda py-corto font-mono text-texto-suave">
+                        <td
+                            class="px-celda py-corto font-mono text-texto-suave"
+                        >
                             {{ pago.fecha_pago }}
                         </td>
                         <td class="px-celda py-corto text-texto">

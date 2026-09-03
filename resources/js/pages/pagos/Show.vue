@@ -7,7 +7,12 @@ import { edit } from '@/routes/pagos';
 import { show as periodoShow } from '@/routes/periodos';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     pago: {
         id: number;
         periodo_id: number;
@@ -25,8 +30,14 @@ const props = defineProps<{
 
 const campos = [
     { clave: 'fecha_pago', valor: () => props.pago.fecha_pago },
-    { clave: 'monto_usd', valor: () => `${trans('pagos.usd')} ${props.pago.monto_usd}` },
-    { clave: 'monto_cop', valor: () => `${trans('pagos.cop')} ${props.pago.monto_cop}` },
+    {
+        clave: 'monto_usd',
+        valor: () => `${trans('pagos.usd')} ${props.pago.monto_usd}`,
+    },
+    {
+        clave: 'monto_cop',
+        valor: () => `${trans('pagos.cop')} ${props.pago.monto_cop}`,
+    },
     { clave: 'tasa_cambio', valor: () => props.pago.tasa_cambio },
     {
         clave: 'origen_tasa',

@@ -31,10 +31,10 @@ return [
 
     'cierre' => [
         'resumen' => 'Lo que se cierra',
-        'resumen_ayuda' => ':total tareas en total, :pendientes sin terminar.',
+        'resumen_ayuda' => ':total tareas en total, :pendientes sin entregar.',
         'traslado' => 'Traslado de pendientes',
         'traslado_ayuda' => 'Marcadas por defecto: se trasladan al periodo siguiente conservando su estado. Desmarca las que se quedan aquí.',
-        'sin_pendientes' => 'No hay tareas sin terminar en este periodo.',
+        'sin_pendientes' => 'No hay tareas sin entregar en este periodo.',
         'siguiente' => 'Apertura del siguiente periodo',
         'pago' => 'Registrar el pago ahora',
         'pago_ayuda' => 'Opcional: cerrar sin pago es válido, se puede añadir después.',

@@ -22,6 +22,15 @@ class ArchivoController extends Controller
     {
         Gate::authorize('view', $media);
 
-        return $media->toResponse($request);
+        // La miniatura sigue pasando por esta misma puerta: sin ella harían
+        // falta dos rutas para el mismo permiso. Solo `imagenes` la lleva
+        // (D8.3), así que fuera de ahí no hay nada que servir con ese nombre.
+        $conversion = (string) $request->query('conversion', '');
+
+        if ($conversion !== '' && ($conversion !== 'miniatura' || ! $media->hasGeneratedConversion('miniatura'))) {
+            abort(404);
+        }
+
+        return $media->toResponse($request, $conversion);
     }
 }

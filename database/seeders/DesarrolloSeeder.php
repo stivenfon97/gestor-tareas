@@ -27,6 +27,7 @@ use App\Services\CambiarEstadoTarea;
 use Database\Factories\ReunionFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -320,6 +321,7 @@ class DesarrolloSeeder extends Seeder
                     ]);
 
                 $this->llevarA($tarea, EstadoTarea::Entregada);
+                $this->repartirFechas($tarea, $periodo);
                 $entregadas[] = $tarea;
             }
 
@@ -358,6 +360,7 @@ class DesarrolloSeeder extends Seeder
                     ]);
 
                 $this->llevarA($tarea, $estado);
+                $this->repartirFechas($tarea, $abierto);
             }
         }
 
@@ -375,6 +378,7 @@ class DesarrolloSeeder extends Seeder
                 ]);
 
             $this->llevarA($tarea, $i % 2 === 0 ? EstadoTarea::EnProceso : EstadoTarea::Pendiente);
+            $this->repartirFechas($tarea, $abierto);
         }
 
         // Correcciones nacidas de tareas ya entregadas: un fallo posterior no
@@ -393,6 +397,7 @@ class DesarrolloSeeder extends Seeder
                 ]);
 
             $this->llevarA($correccion, EstadoTarea::EnProceso);
+            $this->repartirFechas($correccion, $abierto);
         }
 
         // Algo de soporte, que es tipo y no estado.
@@ -528,5 +533,47 @@ class DesarrolloSeeder extends Seeder
 
             $cambiar($tarea, $paso, $motivos);
         }
+    }
+
+    /**
+     * Maquillaje de datos de demo: dispersa `fecha_inicio`/`fecha_fin` dentro
+     * de la ventana del periodo al que pertenece la tarea, en vez de dejar
+     * que todas compartan el día en que se corrió el seeder.
+     *
+     * `CambiarEstadoTarea::ajustarFechas()` usa `now()` a propósito (D2.13,
+     * D2.14): esa fecha es la única honesta cuando la aplicación cambia un
+     * estado de verdad, y no debe aceptar una fecha inventada por un seeder.
+     * Por eso esto **no toca el servicio ni pasa por `save()`**: escribe
+     * directo a la tabla con el query builder, fuera de cualquier camino de
+     * escritura real, para que quede claro que solo dispersa fechas que el
+     * servicio ya puso, sin fingir una vía de escritura legítima (corrección
+     * 0.2, fase 10).
+     *
+     * Sin esto, una tarea de un periodo cerrado en junio aparecía con
+     * `fecha_fin` de hoy en el calendario y el dashboard: los 73 casos de la
+     * fase 09 compartían literalmente el mismo día.
+     */
+    protected function repartirFechas(Tarea $tarea, Periodo $periodo): void
+    {
+        $tarea->refresh();
+
+        if ($tarea->fecha_inicio === null && $tarea->fecha_fin === null) {
+            return;
+        }
+
+        $ventanaFin = $periodo->fecha_fin ?? Carbon::now();
+
+        $fechaInicio = $tarea->fecha_inicio !== null
+            ? Carbon::instance(fake()->dateTimeBetween($periodo->fecha_inicio, $ventanaFin))
+            : null;
+
+        $fechaFin = $tarea->fecha_fin !== null
+            ? Carbon::instance(fake()->dateTimeBetween($fechaInicio ?? $periodo->fecha_inicio, $ventanaFin))
+            : null;
+
+        DB::table('tareas')->where('id', $tarea->getKey())->update(array_filter([
+            'fecha_inicio' => $fechaInicio?->toDateString(),
+            'fecha_fin' => $fechaFin?->toDateString(),
+        ], static fn (?string $valor): bool => $valor !== null));
     }
 }

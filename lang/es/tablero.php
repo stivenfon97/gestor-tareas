@@ -63,6 +63,8 @@ return [
         'sin_fecha' => 'Sin fecha de fin',
         'sin_fecha_ayuda' => 'Estas tareas no aparecen en ninguna casilla porque nadie les ha puesto fecha todavía.',
         'sin_fecha_recortadas' => 'Se muestran :mostradas de :total.',
+        'mas_tareas' => '+:cantidad más',
+        'tareas_del_dia' => 'Tareas del :fecha',
         'dias' => [
             'lunes' => 'Lun',
             'martes' => 'Mar',

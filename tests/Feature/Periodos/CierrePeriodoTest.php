@@ -46,6 +46,44 @@ it('la pantalla de cierre resume el periodo y propone el día siguiente para el 
             ));
 });
 
+it('una tarea terminada pero sin entregar se ofrece para trasladar (D4.13)', function () {
+    // Terminada no es terminal (D2.6, D2.7 solo marcan entregada y cancelada):
+    // el commit puede estar en la nube y el cliente sin confirmar la entrega
+    // todavía, así que sigue siendo trabajo abierto.
+    $terminada = Tarea::factory()->for($this->proyecto)->create([
+        'periodo_id' => $this->periodo->id,
+        'estado' => EstadoTarea::Terminada,
+    ]);
+    $entregada = Tarea::factory()->for($this->proyecto)->create([
+        'periodo_id' => $this->periodo->id,
+        'estado' => EstadoTarea::Entregada,
+    ]);
+
+    $this->actingAs($this->lider)
+        ->get(route('periodos.cierre.create', $this->periodo))
+        ->assertOk()
+        ->assertInertia(fn (Assert $pagina) => $pagina
+            ->component('periodos/Cierre')
+            ->where(
+                'pendientes',
+                fn ($pendientes) => collect($pendientes)->pluck('id')->contains($terminada->id)
+                    && ! collect($pendientes)->pluck('id')->contains($entregada->id),
+            ));
+
+    $this->actingAs($this->lider)
+        ->post(route('periodos.cierre.store', $this->periodo), [
+            'tareas_trasladar' => [$terminada->id],
+            'fecha_inicio_siguiente' => '2026-02-01',
+        ])
+        ->assertRedirect();
+
+    $siguiente = Periodo::query()->where('proyecto_id', $this->proyecto->id)->where('consecutivo', 2)->sole();
+
+    expect($terminada->fresh()->periodo_id)->toBe($siguiente->id)
+        ->and($terminada->fresh()->estado)->toBe(EstadoTarea::Terminada)
+        ->and($entregada->fresh()->periodo_id)->toBe($this->periodo->id);
+});
+
 it('un colaborador recibe 403 al intentar cerrar', function () {
     $this->actingAs($this->colaborador)
         ->get(route('periodos.cierre.create', $this->periodo))

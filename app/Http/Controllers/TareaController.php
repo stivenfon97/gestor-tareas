@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\EstadoTarea;
+use App\Enums\Permiso;
 use App\Enums\PrioridadTarea;
 use App\Enums\TipoDeVista;
 use App\Enums\TipoTarea;
@@ -12,12 +13,15 @@ use App\Http\Requests\TareaRequest;
 use App\Models\NotaTarea;
 use App\Models\Periodo;
 use App\Models\Proyecto;
+use App\Models\Reunion;
 use App\Models\Tarea;
+use App\Services\Adjuntos;
 use App\Services\ArbolDeModulos;
 use App\Services\CambiarEstadoTarea;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use App\Services\FiltrosDeTareas;
+use App\Services\ResolverRolProyecto;
 use App\Services\VistasGuardadas;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -141,6 +145,14 @@ class TareaController extends Controller
             'historial.usuario:id,name',
         ]);
 
+        // Los adjuntos de una tarea no tienen marca de visibilidad propia:
+        // `MediaPolicy` los trata siempre como internos (D6.1). Sin este
+        // filtro, un `cliente` vería en el JSON los nombres y la URL de
+        // archivos que `archivos.descargar` de todas formas le negaría con
+        // 403 al pinchar — la misma filtración por otra puerta que la
+        // lección de la fase 09.
+        $veLoInterno = ResolverRolProyecto::veLoInterno($usuario, $tarea->proyecto);
+
         return Inertia::render('tareas/Show', [
             'tarea' => $this->comoDetalle($tarea),
             // La interfaz nunca deduce la matriz: la recibe.
@@ -176,14 +188,35 @@ class TareaController extends Controller
                     'estado' => $hija->estado->value,
                     'tipo' => $hija->tipo->value,
                 ]),
+            // Con el mismo scope que el listado de la bitácora: una reunión
+            // interna vinculada no puede aparecer aquí para quien no la vería
+            // en `proyectos.reuniones.index`.
+            'reuniones' => $tarea->reuniones()
+                ->visiblesPara($usuario)
+                ->orderByDesc('fecha')
+                ->get(['reuniones.id', 'fecha', 'titulo'])
+                ->map(fn (Reunion $reunion): array => [
+                    'id' => $reunion->id,
+                    'fecha' => $reunion->fecha->toDateTimeString(),
+                    'titulo' => $reunion->titulo,
+                ]),
             'puede' => [
                 'editar' => $usuario->can('update', $tarea),
                 'cambiarEstado' => $usuario->can('cambiarEstado', $tarea),
                 'eliminar' => $usuario->can('delete', $tarea),
                 'comentar' => $usuario->can('create', [NotaTarea::class, $tarea]),
                 'verLoInterno' => $usuario->can('viewAny', [NotaTarea::class, $tarea]),
+                'verAdjuntos' => $veLoInterno,
+                'gestionarAdjuntos' => $veLoInterno
+                    && ResolverRolProyecto::escribe($usuario, $tarea->proyecto)
+                    && $usuario->can(Permiso::ArchivosSubir->value),
             ],
-        ]);
+        ] + ($veLoInterno ? [
+            'adjuntos' => [
+                'imagenes' => $tarea->getMedia('imagenes')->map(Adjuntos::comoArray(...)),
+                'documentos' => $tarea->getMedia('documentos')->map(Adjuntos::comoArray(...)),
+            ],
+        ] : []));
     }
 
     public function edit(Tarea $tarea): Response

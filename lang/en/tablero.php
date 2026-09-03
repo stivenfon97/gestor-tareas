@@ -63,6 +63,8 @@ return [
         'sin_fecha' => 'No end date',
         'sin_fecha_ayuda' => 'These tasks are in no cell because nobody has dated them yet.',
         'sin_fecha_recortadas' => 'Showing :mostradas of :total.',
+        'mas_tareas' => '+:cantidad more',
+        'tareas_del_dia' => 'Tasks on :fecha',
         'dias' => [
             'lunes' => 'Mon',
             'martes' => 'Tue',

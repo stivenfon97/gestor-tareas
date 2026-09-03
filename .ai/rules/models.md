@@ -80,3 +80,10 @@ Una vista guardada es **un nombre y una cadena de consulta**: el estado de toda 
 **Una sola predeterminada por usuario y tipo, garantizado por la base**: columna generada `marca_predeterminada` (1 o NULL) más índice único. Ni MySQL ni SQLite tienen índices parciales, y los dos ignoran NULL en un único. Dejarlo en la interfaz permite que dos pestañas dejen dos marcadas, y entonces «la predeterminada» es la que devuelva primero el motor.
 
 **Aplicarla tolera referencias muertas** (`VistasGuardadas::sanear`): un filtro que apunta a un módulo borrado se ignora y se avisa una vez de que se aplicó en parte. Reventar o devolver cero filas fingiendo que no hay trabajo son las dos respuestas malas. Ojo: un `filter[modulo_id]` inexistente puesto a mano en la URL **sí** da cero filas; lo tolerante es aplicar una vista, no filtrar.
+
+## El HTML de un editor se sanea siempre en el servidor
+El HTML de un editor enriquecido (TipTap) llega de una petición HTTP, no del editor: un cliente hostil puede mandar cualquier cosa en `contenido_html` sin pasar por el navegador. Se sanea en el servidor con lista blanca, siempre, sin importar quién lo escribió — nunca se confía en que "hoy solo lo uso yo".
+
+`contenido_html` se renderiza con `v-html`: un fallo de saneado es ejecución de código en el navegador de quien lo abra. Implementado en `App\Services\SanearHtmlDeReunion` (envuelve `symfony/html-sanitizer`, elegido sobre una lista blanca hecha a mano por cubrir mejor mXSS y entidades mal formadas), aplicado en `ReunionController::store`/`update` antes de persistir.
+
+Doble capa: `App\Rules\DocumentoTipTapValido` cierra la misma vía por el lado de `contenido_json`, rechazando cualquier nodo o marca fuera de la lista blanca del editor (sin `image`, a propósito). El esquema del editor (`EditorEnriquecido.vue`) tampoco registra un nodo de imagen, así que una imagen pegada no puede convertirse en contenido embebido ni por accidente.

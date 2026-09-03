@@ -49,8 +49,15 @@ return [
     /*
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
+     *
+     * Este es el techo global, comprobado ANTES que `acceptsFile()` de cada
+     * colección (ver `FileAdder`). Tiene que cubrir la colección más grande
+     * -`respaldos_bd`, 256 MB- o un respaldo válido nunca llegaría a que la
+     * colección decidiera su propio límite. El límite real de cada colección
+     * (imágenes 5 MB, documentos 20 MB) lo pone `acceptsFile()` en
+     * `registerMediaCollections()`, no este valor.
      */
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    'max_file_size' => 1024 * 1024 * 256, // 256MB
 
     /*
      * Uploads whose file name contains any of these extensions will be rejected.

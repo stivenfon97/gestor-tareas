@@ -6,7 +6,12 @@ import FormularioPago from '@/components/pagos/FormularioPago.vue';
 import { show } from '@/routes/pagos';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     pago: {
         id: number;
         periodo_id: number;

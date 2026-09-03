@@ -198,16 +198,23 @@ return [
     */
 
     'attributes' => [
+        'acuerdos' => 'agreements',
         'activo' => 'status',
+        'archivo' => 'file',
+        'asistentes' => 'attendees',
         'cliente_id' => 'client',
+        'coleccion' => 'collection',
         'contacto_email' => 'contact email',
         'contacto_nombre' => 'contact person',
         'contacto_telefono' => 'contact phone',
+        'contenido_html' => 'content',
+        'contenido_json' => 'content',
         'current_password' => 'current password',
         'descripcion' => 'description',
         'email' => 'email address',
         'equipo_id' => 'team',
         'estado' => 'status',
+        'fecha' => 'date',
         'modulo_id' => 'module',
         'motivo_cancelacion' => 'cancellation reason',
         'motivo_espera' => 'blocking reason',
@@ -224,10 +231,13 @@ return [
         'rol' => 'role',
         'rol_global' => 'global role',
         'slug' => 'slug',
+        'tarea_ids' => 'tasks',
         'tarea_origen_id' => 'source task',
         'texto' => 'text',
         'tipo' => 'type',
+        'titulo' => 'title',
         'usuario_id' => 'user',
+        'visibilidad' => 'visibility',
     ],
 
 ];

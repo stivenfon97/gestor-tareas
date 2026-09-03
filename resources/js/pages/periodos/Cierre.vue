@@ -25,7 +25,12 @@ import { store } from '@/routes/periodos/cierre';
  * transacción, con traslado en lote, apertura del siguiente y pago opcional.
  */
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     periodo: { id: number; consecutivo: number; fecha_inicio: string };
     resumen: { total: number; por_estado: Record<string, number> };
     pendientes: Array<{
@@ -166,9 +171,7 @@ const confirmar = (): void => {
                     class="flex items-center gap-corto border-b border-borde px-celda py-fino text-cuerpo last:border-b-0 hover:bg-fila-hover"
                 >
                     <Checkbox
-                        :model-value="
-                            form.tareas_trasladar.includes(tarea.id)
-                        "
+                        :model-value="form.tareas_trasladar.includes(tarea.id)"
                         @update:model-value="alternarTraslado(tarea.id)"
                     />
                     <span class="font-mono text-fino text-texto-suave">{{
@@ -214,10 +217,7 @@ const confirmar = (): void => {
         <!-- 4. Pago, opcional -->
         <section class="flex flex-col gap-corto">
             <label class="flex items-center gap-corto text-cuerpo text-texto">
-                <Checkbox
-                    v-if="props.puedeRegistrarPago"
-                    v-model="conPago"
-                />
+                <Checkbox v-if="props.puedeRegistrarPago" v-model="conPago" />
                 <span class="font-medium">{{
                     $t('periodos.cierre.pago')
                 }}</span>
@@ -299,7 +299,9 @@ const confirmar = (): void => {
         </section>
 
         <!-- 5. Confirmación -->
-        <div class="flex items-center gap-corto border-t border-borde pt-bloque">
+        <div
+            class="flex items-center gap-corto border-t border-borde pt-bloque"
+        >
             <Button @click="confirmando = true">
                 {{ $t('periodos.cerrar') }}
             </Button>

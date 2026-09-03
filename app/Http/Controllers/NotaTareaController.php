@@ -12,26 +12,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Inertia\Response;
 
+/**
+ * Sin `index`: las notas de una tarea se leen ya en `TareaController::show`
+ * (con el mismo scope `visiblesPara`), que es la única pantalla que las
+ * muestra. Un listado aparte —heredado de la fase 04 sobre `recursos/
+ * Listado`— nunca tuvo un enlace real que llevara ahí (fase 10, retiro de
+ * las pantallas provisionales).
+ */
 class NotaTareaController extends Controller
 {
-    public function index(Request $request, Tarea $tarea): Response
-    {
-        Gate::authorize('viewAny', [NotaTarea::class, $tarea]);
-
-        return Inertia::render('recursos/Listado', [
-            'titulo' => 'recursos.notas',
-            'columnas' => ['contenido', 'visibilidad'],
-            // El scope, no la policy: la policy solo cubre el acceso por id.
-            'filas' => NotaTarea::query()
-                ->visiblesPara($request->user())
-                ->where('tarea_id', $tarea->getKey())
-                ->latest('id')
-                ->get(['id', 'contenido', 'visibilidad']),
-        ]);
-    }
-
     /**
      * Una nota nace `interna` salvo que se marque lo contrario: exponerla al
      * cliente es siempre una decisión explícita (D6.1).

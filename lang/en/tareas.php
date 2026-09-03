@@ -38,6 +38,11 @@ return [
     'correcciones_conteo' => ':total fixes',
     'sin_correcciones' => 'This task has caused no fixes.',
 
+    'reuniones' => [
+        'titulo' => 'Meetings',
+        'vacio' => 'This task did not come out of any recorded meeting.',
+    ],
+
     'todas' => [
         'titulo' => 'All tasks',
         'descripcion' => 'Tasks across all of your projects, most recently touched first.',

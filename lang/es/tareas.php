@@ -38,6 +38,11 @@ return [
     'correcciones_conteo' => ':total correcciones',
     'sin_correcciones' => 'Esta tarea no ha generado ninguna corrección.',
 
+    'reuniones' => [
+        'titulo' => 'Reuniones',
+        'vacio' => 'Esta tarea no salió de ninguna reunión registrada.',
+    ],
+
     /*
      * Listado global: todas las tareas visibles del usuario, de todos sus
      * proyectos. Es la pantalla que más se usa y hasta la fase 07b no existía

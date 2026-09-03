@@ -454,3 +454,70 @@
         @apply outline-2 outline-offset-2 outline-marca;
     }
 }
+
+/*
+ * Contenido enriquecido de una reunión (fase 10): las mismas reglas visten el
+ * editor en vivo (`EditorEnriquecido.vue`) y el `contenido_html` ya saneado
+ * que `reuniones/Detalle.vue` renderiza con `v-html`. Un solo sitio evita que
+ * las dos vistas del mismo documento se vean distintas.
+ *
+ * Fuera de `@layer` a propósito: el HTML llega de `v-html`, no de una
+ * plantilla que Tailwind pueda escanear, así que aquí no hay clases de
+ * utilidad que perder si el orden de las capas cambia.
+ */
+.contenido-enriquecido :is(h1, h2, h3) {
+    font-weight: 600;
+    margin-block: 0.5em;
+}
+.contenido-enriquecido h1 {
+    font-size: 1.5em;
+}
+.contenido-enriquecido h2 {
+    font-size: 1.25em;
+}
+.contenido-enriquecido h3 {
+    font-size: 1.1em;
+}
+.contenido-enriquecido :is(ul, ol) {
+    padding-inline-start: 1.5em;
+}
+.contenido-enriquecido ul {
+    list-style: disc;
+}
+.contenido-enriquecido ol {
+    list-style: decimal;
+}
+.contenido-enriquecido p {
+    margin-block: 0.5em;
+}
+.contenido-enriquecido blockquote {
+    border-inline-start: 2px solid var(--color-borde-fuerte);
+    padding-inline-start: 0.75em;
+    color: var(--color-texto-suave);
+}
+.contenido-enriquecido mark {
+    background-color: var(--color-marca-suave);
+    color: inherit;
+}
+.contenido-enriquecido code {
+    background-color: var(--color-panel-cabecera);
+    border-radius: 0.25em;
+    padding: 0.15em 0.35em;
+    font-family: var(--font-mono);
+}
+.contenido-enriquecido a {
+    color: var(--color-marca);
+    text-decoration: underline;
+}
+.contenido-enriquecido table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.contenido-enriquecido :is(th, td) {
+    border: 1px solid var(--color-borde-fuerte);
+    padding: 0.35em 0.5em;
+}
+.contenido-enriquecido th {
+    background-color: var(--color-panel-cabecera);
+    font-weight: 600;
+}

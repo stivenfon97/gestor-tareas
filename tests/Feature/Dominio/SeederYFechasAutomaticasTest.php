@@ -43,3 +43,32 @@ it('el seeder de desarrollo deja las fechas automáticas puestas', function () {
             ->exists(),
     )->toBeFalse();
 });
+
+/**
+ * Corrección 0.2 de la fase 10: `llevarA()` pasa por `CambiarEstadoTarea`, que
+ * pone `fecha_fin` en `now()` a propósito. Sin dispersarlas después, todas las
+ * tareas entregadas del seeder terminaban con la fecha del día en que alguien
+ * corrió el seeder, sin relación con el periodo cerrado al que pertenecían.
+ */
+it('reparte las fecha_fin de un periodo en vez de sellarlas todas el día del seed', function () {
+    $this->seed();
+
+    $fechasPorPeriodo = Tarea::query()
+        ->whereNotNull('periodo_id')
+        ->whereNotNull('fecha_fin')
+        ->get(['periodo_id', 'fecha_fin'])
+        ->groupBy('periodo_id');
+
+    $periodosConVariasTareas = $fechasPorPeriodo->filter(fn ($tareas) => $tareas->count() > 1);
+
+    expect($periodosConVariasTareas)->not->toBeEmpty();
+
+    // Al menos un periodo con varias tareas terminadas debe tener más de una
+    // fecha_fin distinta: si todas comparten el mismo día, las fechas no se
+    // dispersaron y volvió el bug de la fase 09.
+    $algunoDisperso = $periodosConVariasTareas->contains(
+        fn ($tareas) => $tareas->pluck('fecha_fin')->map(fn ($fecha) => $fecha->toDateString())->unique()->count() > 1,
+    );
+
+    expect($algunoDisperso)->toBeTrue();
+});

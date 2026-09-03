@@ -68,7 +68,7 @@ it('no muestra al cliente las reuniones internas en el listado, no solo en el de
 
     $respuesta->assertOk();
 
-    $titulos = collect($respuesta->viewData('page')['props']['filas'])->pluck('titulo')->all();
+    $titulos = collect($respuesta->viewData('page')['props']['reuniones'])->pluck('titulo')->all();
 
     expect($titulos)->toBe([$compartida->titulo])
         ->and($titulos)->not->toContain($interna->titulo);
@@ -96,11 +96,11 @@ it('no muestra al cliente las notas internas en el listado', function () {
     $interna = NotaTarea::factory()->for($tarea)->create(['contenido' => 'Margen real del periodo']);
     $compartida = NotaTarea::factory()->for($tarea)->visibleParaCliente()->create(['contenido' => 'Desplegado en pruebas']);
 
-    $respuesta = $this->actingAs($this->cliente)->get(route('tareas.notas.index', $tarea));
+    $respuesta = $this->actingAs($this->cliente)->get(route('tareas.show', $tarea));
 
     $respuesta->assertOk();
 
-    $contenidos = collect($respuesta->viewData('page')['props']['filas'])->pluck('contenido')->all();
+    $contenidos = collect($respuesta->viewData('page')['props']['notas'])->pluck('contenido')->all();
 
     expect($contenidos)->toBe([$compartida->contenido])
         ->and($contenidos)->not->toContain($interna->contenido);
