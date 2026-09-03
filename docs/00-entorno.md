@@ -255,6 +255,21 @@ Salen de `DesarrolloSeeder` y se pueden cambiar por entorno:
 
 ---
 
+## Selector de idioma
+
+Vive en el menu de usuario, junto al selector de tema, y funciona igual: una cookie
+(`idioma`, sin cifrar -ver `bootstrap/app.php`-, 365 dias) que persiste la preferencia sin
+pasar por una columna en `users` ni una ruta propia.
+
+**No hace falta recargar la pagina.** Todo el texto de la interfaz viaja como **clave**,
+nunca como texto ya resuelto (`enums.estado_tarea.pendiente`, no "Pendiente"), asi que
+`useIdioma().cambiarIdioma()` solo llama a `loadLanguageAsync()` de `laravel-vue-i18n` y
+repinta la pantalla entera al instante. La cookie es para lo poco que **si** se resuelve
+en el servidor: los mensajes de validacion de Laravel y el `lang` del `<html>` en la
+proxima carga completa. La lee `App\Http\Middleware\HandleIdioma`, que corre **antes**
+que `HandleInertiaRequests` -si no, el prop `locale` compartido seguiria viendo el idioma
+viejo en la misma peticion-.
+
 ## Traducciones: como se generan y como anadir una clave
 
 Las traducciones de la interfaz viven en `lang/es/*.php` y `lang/en/*.php`. El
