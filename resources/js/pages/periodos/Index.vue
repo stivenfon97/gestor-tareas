@@ -18,7 +18,12 @@ import { show as mostrarProyecto } from '@/routes/proyectos';
 import { store } from '@/routes/proyectos/periodos';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     periodos: Array<{
         id: number;
         consecutivo: number;
@@ -27,7 +32,11 @@ const props = defineProps<{
         estado: string;
         vencido: boolean;
         tareas_count: number;
-        pago: { monto_usd: string; monto_cop: string; fecha_pago: string } | null;
+        pago: {
+            monto_usd: string;
+            monto_cop: string;
+            fecha_pago: string;
+        } | null;
     }>;
     puede: { gestionar: boolean; verPagos: boolean };
     periodoAbierto: { id: number; consecutivo: number } | null;
@@ -80,8 +89,7 @@ const abrirPeriodo = (): void => {
                                 props.periodoAbierto
                                     ? $t('periodos.ya_hay_abierto_ayuda', {
                                           consecutivo: String(
-                                              props.periodoAbierto
-                                                  .consecutivo,
+                                              props.periodoAbierto.consecutivo,
                                           ),
                                       })
                                     : undefined
@@ -188,10 +196,14 @@ const abrirPeriodo = (): void => {
                                 {{ periodo.consecutivo }}
                             </Link>
                         </td>
-                        <td class="px-celda py-corto font-mono text-texto-suave">
+                        <td
+                            class="px-celda py-corto font-mono text-texto-suave"
+                        >
                             {{ periodo.fecha_inicio }}
                         </td>
-                        <td class="px-celda py-corto font-mono text-texto-suave">
+                        <td
+                            class="px-celda py-corto font-mono text-texto-suave"
+                        >
                             {{ periodo.fecha_fin ?? '—' }}
                         </td>
                         <td class="px-celda py-corto">
@@ -214,7 +226,9 @@ const abrirPeriodo = (): void => {
                                 </Badge>
                             </div>
                         </td>
-                        <td class="px-celda py-corto text-right font-mono text-texto-suave">
+                        <td
+                            class="px-celda py-corto text-right font-mono text-texto-suave"
+                        >
                             {{ periodo.tareas_count }}
                         </td>
                         <td

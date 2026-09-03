@@ -6,7 +6,12 @@ import FormularioPago from '@/components/pagos/FormularioPago.vue';
 import { index as pagosIndex } from '@/routes/proyectos/pagos';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     periodos: Array<{ id: number; consecutivo: number; estado: string }>;
     periodoPreseleccionado: number | null;
     origenesTasa: Array<{ valor: string; etiqueta: string }>;

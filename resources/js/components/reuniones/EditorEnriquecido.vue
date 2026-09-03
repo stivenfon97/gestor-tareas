@@ -95,12 +95,21 @@ const confirmarEnlace = (): void => {
         return;
     }
 
-    editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    editor.value
+        ?.chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: url })
+        .run();
     urlDelEnlace.value = '';
 };
 
 const insertarTabla = (): void => {
-    editor.value?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    editor.value
+        ?.chain()
+        .focus()
+        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+        .run();
 };
 </script>
 
@@ -164,7 +173,9 @@ const insertarTabla = (): void => {
                 :aria-pressed="activo('heading', { level: 1 })"
                 :class="activo('heading', { level: 1 }) && 'bg-fila-hover'"
                 :title="trans('reuniones.editor.encabezado_1')"
-                @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()"
+                @click="
+                    editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                "
             >
                 <Heading1 class="size-4" aria-hidden="true" />
             </Button>
@@ -175,7 +186,9 @@ const insertarTabla = (): void => {
                 :aria-pressed="activo('heading', { level: 2 })"
                 :class="activo('heading', { level: 2 }) && 'bg-fila-hover'"
                 :title="trans('reuniones.editor.encabezado_2')"
-                @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()"
+                @click="
+                    editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                "
             >
                 <Heading2 class="size-4" aria-hidden="true" />
             </Button>
@@ -186,7 +199,9 @@ const insertarTabla = (): void => {
                 :aria-pressed="activo('heading', { level: 3 })"
                 :class="activo('heading', { level: 3 }) && 'bg-fila-hover'"
                 :title="trans('reuniones.editor.encabezado_3')"
-                @click="editor?.chain().focus().toggleHeading({ level: 3 }).run()"
+                @click="
+                    editor?.chain().focus().toggleHeading({ level: 3 }).run()
+                "
             >
                 <Heading3 class="size-4" aria-hidden="true" />
             </Button>

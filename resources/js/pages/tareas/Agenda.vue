@@ -278,7 +278,9 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
                                 </Link>
 
                                 <button
-                                    v-if="casilla.tareas.length > LIMITE_POR_CELDA"
+                                    v-if="
+                                        casilla.tareas.length > LIMITE_POR_CELDA
+                                    "
                                     type="button"
                                     class="truncate rounded-sm px-fino py-minimo text-left text-fino text-texto-suave hover:bg-fila-hover hover:text-texto"
                                     @click="diaAbierto = casilla"

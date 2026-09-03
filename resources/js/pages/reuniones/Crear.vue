@@ -4,7 +4,10 @@ import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import FormularioReunion from '@/components/reuniones/FormularioReunion.vue';
 import { Button } from '@/components/ui/button';
 import { trans } from '@/lib/i18n';
-import { index as indiceDeReuniones, store } from '@/routes/proyectos/reuniones';
+import {
+    index as indiceDeReuniones,
+    store,
+} from '@/routes/proyectos/reuniones';
 import type { Opcion } from '@/types/tareas';
 
 const props = defineProps<{

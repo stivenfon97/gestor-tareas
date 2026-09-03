@@ -19,7 +19,12 @@ type FilaReunion = {
 };
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     reuniones: FilaReunion[];
     filtros: Record<string, string>;
     opciones: { tipos: Opcion[] };
@@ -74,11 +79,9 @@ const limpiarFiltros = (): void => {
 
         <div class="flex flex-wrap items-end gap-corto">
             <div class="grid gap-1">
-                <label
-                    for="filtro-tipo"
-                    class="text-fino text-texto-suave"
-                    >{{ trans('reuniones.filtros.tipo') }}</label
-                >
+                <label for="filtro-tipo" class="text-fino text-texto-suave">{{
+                    trans('reuniones.filtros.tipo')
+                }}</label>
                 <select
                     id="filtro-tipo"
                     v-model="tipo"
@@ -127,7 +130,9 @@ const limpiarFiltros = (): void => {
                     :href="mostrarReunion(reunion.id)"
                     class="flex flex-wrap items-center gap-corto px-celda py-fino hover:bg-fila-hover"
                 >
-                    <span class="w-40 shrink-0 font-mono text-fino text-texto-suave">
+                    <span
+                        class="w-40 shrink-0 font-mono text-fino text-texto-suave"
+                    >
                         {{ reunion.fecha }}
                     </span>
                     <Badge variant="outline">
@@ -136,7 +141,10 @@ const limpiarFiltros = (): void => {
                     <span class="min-w-0 flex-1 truncate text-texto">
                         {{ reunion.titulo }}
                     </span>
-                    <Badge v-if="reunion.visibilidad === 'cliente'" variant="outline">
+                    <Badge
+                        v-if="reunion.visibilidad === 'cliente'"
+                        variant="outline"
+                    >
                         {{ trans('enums.visibilidad.cliente') }}
                     </Badge>
                 </Link>

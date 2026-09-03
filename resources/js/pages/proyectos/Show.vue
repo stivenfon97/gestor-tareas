@@ -292,7 +292,7 @@ const eliminar = (): void => {
                         <div
                             v-for="indice in 3"
                             :key="indice"
-                            class="flex flex-col gap-corto sm:px-bloque sm:first:pr-bloque sm:first:pl-0 sm:last:pl-bloque sm:last:pr-0"
+                            class="flex flex-col gap-corto sm:px-bloque sm:first:pr-bloque sm:first:pl-0 sm:last:pr-0 sm:last:pl-bloque"
                         >
                             <Skeleton class="h-4 w-32" />
                             <Skeleton class="h-5 w-24" />
@@ -346,15 +346,12 @@ const eliminar = (): void => {
                             </p>
                             <p class="text-cuerpo text-texto-suave">
                                 {{
-                                    $t(
-                                        'proyectos.resumen.dias_transcurridos',
-                                        {
-                                            dias: String(
-                                                props.resumen.periodo_abierto
-                                                    .dias_transcurridos,
-                                            ),
-                                        },
-                                    )
+                                    $t('proyectos.resumen.dias_transcurridos', {
+                                        dias: String(
+                                            props.resumen.periodo_abierto
+                                                .dias_transcurridos,
+                                        ),
+                                    })
                                 }}
                             </p>
                             <!-- Pasarse de la fecha de fin es válido: el cierre es manual. -->
@@ -499,7 +496,10 @@ const eliminar = (): void => {
                     <template #fallback>
                         <Skeleton class="h-5 w-48" />
                     </template>
-                    <p v-if="props.resumen" class="text-cuerpo text-texto-suave">
+                    <p
+                        v-if="props.resumen"
+                        class="text-cuerpo text-texto-suave"
+                    >
                         {{ $t('proyectos.resumen.periodo_abierto') }}:
                         <span v-if="props.resumen.periodo_abierto">
                             {{
@@ -548,7 +548,10 @@ const eliminar = (): void => {
                     <template #fallback>
                         <Skeleton class="h-5 w-48" />
                     </template>
-                    <p v-if="props.resumen" class="text-cuerpo text-texto-suave">
+                    <p
+                        v-if="props.resumen"
+                        class="text-cuerpo text-texto-suave"
+                    >
                         <template v-if="props.resumen.ultima_reunion">
                             {{ trans('proyectos.resumen.ultima_reunion') }}:
                             {{ props.resumen.ultima_reunion.titulo }} ({{

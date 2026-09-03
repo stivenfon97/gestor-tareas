@@ -45,7 +45,8 @@ const props = defineProps<{
 }>();
 
 /** `datetime-local` quiere `YYYY-MM-DDTHH:mm`; el servidor manda `Y-m-d H:i:s`. */
-const comoFechaLocal = (fecha: string): string => fecha.replace(' ', 'T').slice(0, 16);
+const comoFechaLocal = (fecha: string): string =>
+    fecha.replace(' ', 'T').slice(0, 16);
 
 /**
  * El momento actual, en hora **local** del navegador. `toISOString()` da UTC
@@ -58,11 +59,13 @@ const ahoraLocal = (): string => {
     return `${ahora.getFullYear()}-${doble(ahora.getMonth() + 1)}-${doble(ahora.getDate())}T${doble(ahora.getHours())}:${doble(ahora.getMinutes())}`;
 };
 
-const fechaInicial = props.reunion ? comoFechaLocal(props.reunion.fecha) : ahoraLocal();
+const fechaInicial = props.reunion
+    ? comoFechaLocal(props.reunion.fecha)
+    : ahoraLocal();
 
 const form = useForm({
     fecha: fechaInicial,
-    tipo: props.reunion?.tipo ?? (props.opciones.tipos[0]?.valor ?? 'reunion'),
+    tipo: props.reunion?.tipo ?? props.opciones.tipos[0]?.valor ?? 'reunion',
     titulo: props.reunion?.titulo ?? '',
     contenido_json: props.reunion?.contenido_json ?? documentoVacio(),
     contenido_html: props.reunion?.contenido_html ?? '',
@@ -71,7 +74,13 @@ const form = useForm({
     asistentes:
         props.reunion && props.reunion.asistentes.length > 0
             ? props.reunion.asistentes.map((asistente) => ({ ...asistente }))
-            : [{ usuario_id: null, nombre: '', organizacion: null } as Asistente],
+            : [
+                  {
+                      usuario_id: null,
+                      nombre: '',
+                      organizacion: null,
+                  } as Asistente,
+              ],
 });
 
 const anadirAsistente = (): void => {
@@ -153,7 +162,12 @@ const enviar = (): void => {
             <Label for="reunion-titulo">{{
                 trans('reuniones.campos.titulo')
             }}</Label>
-            <Input id="reunion-titulo" v-model="form.titulo" required maxlength="255" />
+            <Input
+                id="reunion-titulo"
+                v-model="form.titulo"
+                required
+                maxlength="255"
+            />
             <InputError :message="form.errors.titulo" />
         </div>
 
@@ -203,7 +217,12 @@ const enviar = (): void => {
         <section class="flex flex-col gap-corto">
             <div class="flex items-center justify-between">
                 <Label>{{ trans('reuniones.asistentes.titulo') }}</Label>
-                <Button type="button" variant="outline" size="sm" @click="anadirAsistente">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="anadirAsistente"
+                >
                     <Plus class="size-4" aria-hidden="true" />
                     {{ trans('reuniones.asistentes.anadir') }}
                 </Button>
@@ -241,7 +260,8 @@ const enviar = (): void => {
                         :id="`asistente-organizacion-${indice}`"
                         :model-value="asistente.organizacion ?? ''"
                         @update:model-value="
-                            (valor) => (asistente.organizacion = String(valor) || null)
+                            (valor) =>
+                                (asistente.organizacion = String(valor) || null)
                         "
                     />
                 </div>
@@ -288,7 +308,9 @@ const enviar = (): void => {
             </div>
         </section>
 
-        <div class="flex items-center gap-corto border-t border-borde pt-bloque">
+        <div
+            class="flex items-center gap-corto border-t border-borde pt-bloque"
+        >
             <Button type="submit" :disabled="form.processing">
                 {{ trans('comun.guardar') }}
             </Button>

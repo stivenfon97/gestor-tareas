@@ -107,7 +107,10 @@ const esImagen = computed(() => props.coleccion === 'imagenes');
             <p class="text-micro text-texto-tenue">
                 {{ trans(`archivos.limite.${props.coleccion}`) }}
             </p>
-            <p v-if="subida.errors.archivo" class="text-fino text-estado-cancelada-texto">
+            <p
+                v-if="subida.errors.archivo"
+                class="text-fino text-estado-cancelada-texto"
+            >
                 {{ subida.errors.archivo }}
             </p>
             <div
@@ -156,7 +159,11 @@ const esImagen = computed(() => props.coleccion === 'imagenes');
                         class="size-5 text-texto-suave"
                         aria-hidden="true"
                     />
-                    <File v-else class="size-5 text-texto-suave" aria-hidden="true" />
+                    <File
+                        v-else
+                        class="size-5 text-texto-suave"
+                        aria-hidden="true"
+                    />
 
                     <span class="flex flex-col">
                         <span class="max-w-40 truncate text-fino text-texto">{{

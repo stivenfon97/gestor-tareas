@@ -17,11 +17,11 @@ import {
 import { trans } from '@/lib/i18n';
 import { index as indiceDeReuniones } from '@/routes/proyectos/reuniones';
 import { destroy, edit } from '@/routes/reuniones';
-import { destroy as borrarAdjunto, store as subirAdjunto } from '@/routes/reuniones/adjuntos';
 import {
-    desvincular,
-    vincular,
-} from '@/routes/reuniones/tareas';
+    destroy as borrarAdjunto,
+    store as subirAdjunto,
+} from '@/routes/reuniones/adjuntos';
+import { desvincular, vincular } from '@/routes/reuniones/tareas';
 import {
     crear as crearTareasRapido,
     previsualizar as previsualizarTareasRapido,
@@ -31,7 +31,12 @@ import type { Adjunto } from '@/types/archivos';
 import type { EstadoTarea, Opcion } from '@/types/tareas';
 
 const props = defineProps<{
-    proyecto: { id: number; nombre: string; slug: string; prefijo_tarea: string };
+    proyecto: {
+        id: number;
+        nombre: string;
+        slug: string;
+        prefijo_tarea: string;
+    };
     reunion: {
         id: number;
         fecha: string;
@@ -120,7 +125,10 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                 <Badge variant="outline">
                     {{ trans(`enums.tipo_reunion.${props.reunion.tipo}`) }}
                 </Badge>
-                <Badge v-if="props.reunion.visibilidad === 'cliente'" variant="outline">
+                <Badge
+                    v-if="props.reunion.visibilidad === 'cliente'"
+                    variant="outline"
+                >
                     {{ trans('enums.visibilidad.cliente') }}
                 </Badge>
             </template>
@@ -130,7 +138,12 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                         trans('comun.volver')
                     }}</Link>
                 </Button>
-                <Button v-if="props.puede.editar" as-child variant="outline" size="sm">
+                <Button
+                    v-if="props.puede.editar"
+                    as-child
+                    variant="outline"
+                    size="sm"
+                >
                     <Link :href="edit(props.reunion.id)">{{
                         trans('comun.editar')
                     }}</Link>
@@ -155,13 +168,16 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
 
         <!-- Contenido enriquecido: ya saneado en el servidor con lista
              blanca (SanearHtmlDeReunion) antes de guardarse. -->
-        <div class="contenido-enriquecido" v-html="props.reunion.contenido_html" />
+        <div
+            class="contenido-enriquecido"
+            v-html="props.reunion.contenido_html"
+        />
 
         <section v-if="props.reunion.acuerdos" class="flex flex-col gap-fino">
             <h2 class="text-cuerpo font-medium text-texto">
                 {{ trans('reuniones.campos.acuerdos') }}
             </h2>
-            <p class="whitespace-pre-line text-fino text-texto-suave">
+            <p class="text-fino whitespace-pre-line text-texto-suave">
                 {{ props.reunion.acuerdos }}
             </p>
         </section>
@@ -177,7 +193,10 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                     class="rounded-md border border-borde bg-panel px-corto py-fino text-fino"
                 >
                     <span class="text-texto">{{ asistente.nombre }}</span>
-                    <span v-if="asistente.organizacion" class="text-texto-tenue">
+                    <span
+                        v-if="asistente.organizacion"
+                        class="text-texto-tenue"
+                    >
                         · {{ asistente.organizacion }}
                     </span>
                 </li>
@@ -219,7 +238,10 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                 {{ trans('reuniones.tareas.titulo') }}
             </h2>
 
-            <ul v-if="props.tareasVinculadas.length" class="flex flex-col gap-fino">
+            <ul
+                v-if="props.tareasVinculadas.length"
+                class="flex flex-col gap-fino"
+            >
                 <li
                     v-for="tarea in props.tareasVinculadas"
                     :key="tarea.id"
@@ -270,21 +292,26 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                         >
                             <Checkbox
                                 :model-value="seleccionadas.includes(tarea.id)"
-                                @update:model-value="alternarSeleccion(tarea.id)"
+                                @update:model-value="
+                                    alternarSeleccion(tarea.id)
+                                "
                             />
-                            <span class="font-mono text-fino text-texto-suave">{{
-                                tarea.codigo
-                            }}</span>
-                            <span class="min-w-0 flex-1 truncate text-fino text-texto">{{
-                                tarea.nombre
-                            }}</span>
+                            <span
+                                class="font-mono text-fino text-texto-suave"
+                                >{{ tarea.codigo }}</span
+                            >
+                            <span
+                                class="min-w-0 flex-1 truncate text-fino text-texto"
+                                >{{ tarea.nombre }}</span
+                            >
                         </label>
                     </div>
                     <div>
                         <Button
                             size="sm"
                             :disabled="
-                                seleccionadas.length === 0 || vincularForm.processing
+                                seleccionadas.length === 0 ||
+                                vincularForm.processing
                             "
                             @click="confirmarVinculo"
                         >
@@ -296,7 +323,9 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                     {{ trans('reuniones.tareas.disponibles_vacio') }}
                 </p>
 
-                <details class="rounded-md border border-dashed border-borde-fuerte">
+                <details
+                    class="rounded-md border border-dashed border-borde-fuerte"
+                >
                     <summary
                         class="cursor-pointer px-corto py-fino text-fino font-medium text-texto"
                     >
@@ -308,8 +337,12 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                         </p>
                         <CapturaRapidaFormulario
                             :opciones="props.capturaRapida.opciones"
-                            :periodo-abierto="props.capturaRapida.periodoAbierto"
-                            :previsualizar-url="previsualizarTareasRapido(props.reunion.id).url"
+                            :periodo-abierto="
+                                props.capturaRapida.periodoAbierto
+                            "
+                            :previsualizar-url="
+                                previsualizarTareasRapido(props.reunion.id).url
+                            "
                             :store-url="crearTareasRapido(props.reunion.id).url"
                         />
                     </div>
