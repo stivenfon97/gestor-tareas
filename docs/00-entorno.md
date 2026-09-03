@@ -159,7 +159,7 @@ graph TD
 | `docker/nginx/default.conf` | Vhost, `client_max_body_size`, timeout de FastCGI |
 | `docker/node/Dockerfile` | Imagen de `node`: Node 22 mas un PHP-CLI para Wayfinder |
 | `.env` | Conexion a la base, locale, zona horaria, drivers de cola/cache/sesion |
-| `Makefile` | Atajos (`up`, `down`, `fresh`, `test`, `pint`, `shell`, `logs`, `hooks`) |
+| `Makefile` | Atajos (`up`, `down`, `fresh`, `test`, `pint`, `shell`, `logs`, `hooks`, `respaldo`, `restaurar`) |
 | `docker/git-hooks/pre-commit` | Hook de Git que verifica el formato con Pint; se instala con `make hooks` |
 
 ---
@@ -469,6 +469,86 @@ Git versiona **codigo**, no datos. Quedan fuera y necesitan su propio respaldo:
 | Base de datos | volumen `datos-mysql` | `docker compose down -v`, `make fresh` |
 | Archivos subidos | volumen `archivos-storage` | `docker compose down -v` |
 | `.env` | solo en el host | borrarlo; se reconstruye desde `.env.example` |
+
+---
+
+## Respaldo y restauracion (`make respaldo` / `make restaurar`)
+
+Los dos volumenes nombrados son el punto ciego real: `datos-mysql` tiene la base de
+datos entera y `archivos-storage` tiene los adjuntos y los respaldos `.sql` que los
+propios clientes suben. Ninguno de los dos esta en Git, y `docker compose down -v` los
+borra sin avisar dos veces.
+
+```bash
+make respaldo                                  # vuelca todo a $HOME/respaldos-gestor-tareas
+make respaldo RESPALDOS_DIR=/mnt/otro/sitio     # a otra ruta, por esta vez
+```
+
+Vuelca la base de datos completa (`mysqldump --single-transaction`, sin bloquear
+escrituras) y empaqueta el volumen `archivos-storage` entero, **con los servicios
+arriba**: no hace falta parar nada. El resultado es un solo archivo fechado -por ejemplo
+`respaldo_2026-09-03_150637.tar.gz`- con dos miembros dentro
+(`basedatos.sql.gz`, `archivos.tar.gz`). Un solo archivo y no dos sueltos a proposito: son
+la unidad que hay que conservar junta, o una restauracion parcial deja adjuntos sin las
+filas que los describen, o filas que apuntan a adjuntos que ya no existen.
+
+La ruta de destino es `$HOME/respaldos-gestor-tareas` por defecto -**fuera del
+repositorio** siempre: un volcado dentro del arbol de trabajo acaba en un commit tarde o
+temprano-, y se puede cambiar por invocacion (`RESPALDOS_DIR=...`) o exportando la
+variable antes.
+
+```bash
+make restaurar ARCHIVO=/home/tu-usuario/respaldos-gestor-tareas/respaldo_2026-09-03_150637.tar.gz
+```
+
+Reconstruye los dos volumenes desde ese archivo. **Destruye lo que hubiera antes** en la
+base de datos y en los archivos subidos -es una restauracion, no una fusion, igual que
+`make fresh`-. No hace falta correr migraciones despues: el volcado de `mysqldump` ya
+trae el esquema completo.
+
+### Que no cubre
+
+- **`.env`**: vive solo en el host y no viaja en el respaldo. Se reconstruye desde
+  `.env.example`, pero `APP_KEY`, `DB_PASSWORD` y `DB_ROOT_PASSWORD` son tuyos: guardalos
+  aparte, en un gestor de contrasenas, no en el mismo archivo que los datos del cliente.
+- **Sesiones, cache y cola de trabajos.** Van por el driver `database`
+  (`QUEUE_CONNECTION=database`, `CACHE_STORE=database`, `SESSION_DRIVER=database`), asi
+  que el volcado los incluye tal como estaban en el momento del respaldo. Restaurar un
+  respaldo viejo puede traer de vuelta una sesion caducada o un trabajo en cola que ya se
+  proceso; no es un problema de datos, solo hay que saber que puede pasar.
+- **Codigo y dependencias.** `vendor/`, `node_modules/` y `public/build` no se respaldan
+  ni hace falta: se reconstruyen con `make build` y `npm install`, y el codigo lo cubre
+  Git.
+- **El propio archivo de respaldo.** `make respaldo` no rota ni borra respaldos viejos.
+  Es responsabilidad del usuario llevar los `.tar.gz` viejos a otro sitio -otro disco, un
+  bucket, lo que sea- y no dejar que se acumulen sin mas en `RESPALDOS_DIR`.
+
+### Cadencia recomendada
+
+Este es un sistema de un solo freelance con dinero de clientes reales dentro: no hace
+falta la disciplina de una empresa, pero tampoco confiar en acordarse. Recomendado:
+
+- **Un respaldo despues de cerrar cualquier periodo** (`CierrePeriodoController`) o de
+  registrar un pago: es el momento en que hay mas que perder si algo sale mal justo
+  despues.
+- **Uno semanal** si hay trabajo activo, aunque no haya habido cierres esa semana.
+- **Uno antes de cualquier `docker compose down -v` deliberado** -limpiar el entorno,
+  recrear un volumen a mano- y antes de una actualizacion grande de MySQL o de Docker.
+
+### La prueba que de verdad importa: restaurar de verdad
+
+Un respaldo que nunca se ha restaurado no es un respaldo. La fase 12 lo verifico asi,
+completo, y quedo documentado en el resumen de cierre de esa fase:
+
+1. `make respaldo` con datos de verdad -incluido al menos un adjunto de tarea y un
+   respaldo `.sql` subido a un proyecto, para tener algo binario que comparar, no solo
+   filas-.
+2. `docker compose down -v`: se destruyen **los dos** volumenes.
+3. `docker compose up -d`, esperar a que los cinco servicios esten `healthy`.
+4. `make restaurar ARCHIVO=...`.
+5. Comparar conteos de filas y el `sha256sum` de los archivos antes y despues, y correr
+   `make humo` para confirmar que la aplicacion entera -no solo la base de datos- vuelve
+   a funcionar con los datos restaurados.
 
 ---
 
