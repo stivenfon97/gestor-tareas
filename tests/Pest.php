@@ -2,6 +2,7 @@
 
 use App\Enums\RolGlobal;
 use App\Enums\RolProyecto;
+use App\Enums\Visibilidad;
 use App\Models\Proyecto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,4 +77,42 @@ function asignarAProyecto(
     ]);
 
     return $usuario;
+}
+
+/**
+ * Documento TipTap mínimo pero válido: un párrafo con texto. Usado por las
+ * pruebas de la bitácora (fase 10) para probar `ReunionRequest` sin acoplarse
+ * a `ReunionFactory::documentoTipTap()`, que vive en `database/factories`.
+ *
+ * @return array<string, mixed>
+ */
+function documentoTipTapValido(): array
+{
+    return [
+        'type' => 'doc',
+        'content' => [[
+            'type' => 'paragraph',
+            'content' => [['type' => 'text', 'text' => 'Contenido de prueba.']],
+        ]],
+    ];
+}
+
+/**
+ * Payload válido para `proyectos.reuniones.store` / `reuniones.update`.
+ *
+ * @param  array<string, mixed>  $sobrescribir
+ * @return array<string, mixed>
+ */
+function datosDeReunionValidos(array $sobrescribir = []): array
+{
+    return array_merge([
+        'fecha' => now()->toDateTimeString(),
+        'tipo' => 'reunion',
+        'titulo' => 'Reunión de prueba',
+        'contenido_json' => documentoTipTapValido(),
+        'contenido_html' => '<p>Contenido de prueba.</p>',
+        'acuerdos' => null,
+        'visibilidad' => Visibilidad::Interna->value,
+        'asistentes' => [['usuario_id' => null, 'nombre' => 'Alguien', 'organizacion' => null]],
+    ], $sobrescribir);
 }

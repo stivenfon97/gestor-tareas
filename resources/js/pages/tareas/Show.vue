@@ -77,13 +77,15 @@ const props = defineProps<{
         tipo: TipoTarea;
     }>;
     reuniones: Array<{ id: number; fecha: string; titulo: string }>;
-    adjuntos: { imagenes: Adjunto[]; documentos: Adjunto[] };
+    /** Ausente del todo si `puede.verAdjuntos` es falso (ver TareaController). */
+    adjuntos?: { imagenes: Adjunto[]; documentos: Adjunto[] };
     puede: {
         editar: boolean;
         cambiarEstado: boolean;
         eliminar: boolean;
         comentar: boolean;
         verLoInterno: boolean;
+        verAdjuntos: boolean;
         gestionarAdjuntos: boolean;
     };
 }>();
@@ -365,32 +367,37 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
             </p>
         </section>
 
-        <!-- Adjuntos -->
-        <section class="flex flex-col gap-3">
-            <h3 class="text-base font-medium">
-                {{ $t('archivos.coleccion.imagenes') }}
-            </h3>
-            <PanelDeAdjuntos
-                coleccion="imagenes"
-                :adjuntos="props.adjuntos.imagenes"
-                :subir-url="subirAdjunto(props.tarea.id).url"
-                :borrar-url="adjuntosBorrarUrl"
-                :puede-subir="props.puede.gestionarAdjuntos"
-                :puede-borrar="props.puede.gestionarAdjuntos"
-            />
-        </section>
-        <section class="flex flex-col gap-3">
-            <h3 class="text-base font-medium">
-                {{ $t('archivos.coleccion.documentos') }}
-            </h3>
-            <PanelDeAdjuntos
-                coleccion="documentos"
-                :adjuntos="props.adjuntos.documentos"
-                :subir-url="subirAdjunto(props.tarea.id).url"
-                :borrar-url="adjuntosBorrarUrl"
-                :puede-subir="props.puede.gestionarAdjuntos"
-                :puede-borrar="props.puede.gestionarAdjuntos"
-            />
+        <!-- Adjuntos: ausentes del todo en las props si `verAdjuntos` es
+             falso (D6.1, los adjuntos de tarea no tienen marca propia y se
+             tratan siempre como internos). -->
+        <template v-if="props.puede.verAdjuntos && props.adjuntos">
+            <section class="flex flex-col gap-3">
+                <h3 class="text-base font-medium">
+                    {{ $t('archivos.coleccion.imagenes') }}
+                </h3>
+                <PanelDeAdjuntos
+                    coleccion="imagenes"
+                    :adjuntos="props.adjuntos.imagenes"
+                    :subir-url="subirAdjunto(props.tarea.id).url"
+                    :borrar-url="adjuntosBorrarUrl"
+                    :puede-subir="props.puede.gestionarAdjuntos"
+                    :puede-borrar="props.puede.gestionarAdjuntos"
+                />
+            </section>
+            <section class="flex flex-col gap-3">
+                <h3 class="text-base font-medium">
+                    {{ $t('archivos.coleccion.documentos') }}
+                </h3>
+                <PanelDeAdjuntos
+                    coleccion="documentos"
+                    :adjuntos="props.adjuntos.documentos"
+                    :subir-url="subirAdjunto(props.tarea.id).url"
+                    :borrar-url="adjuntosBorrarUrl"
+                    :puede-subir="props.puede.gestionarAdjuntos"
+                    :puede-borrar="props.puede.gestionarAdjuntos"
+                />
+            </section>
+        </template>
         </section>
 
         <!-- Notas -->

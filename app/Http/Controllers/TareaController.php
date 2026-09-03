@@ -145,6 +145,14 @@ class TareaController extends Controller
             'historial.usuario:id,name',
         ]);
 
+        // Los adjuntos de una tarea no tienen marca de visibilidad propia:
+        // `MediaPolicy` los trata siempre como internos (D6.1). Sin este
+        // filtro, un `cliente` vería en el JSON los nombres y la URL de
+        // archivos que `archivos.descargar` de todas formas le negaría con
+        // 403 al pinchar — la misma filtración por otra puerta que la
+        // lección de la fase 09.
+        $veLoInterno = ResolverRolProyecto::veLoInterno($usuario, $tarea->proyecto);
+
         return Inertia::render('tareas/Show', [
             'tarea' => $this->comoDetalle($tarea),
             // La interfaz nunca deduce la matriz: la recibe.
@@ -192,20 +200,23 @@ class TareaController extends Controller
                     'fecha' => $reunion->fecha->toDateTimeString(),
                     'titulo' => $reunion->titulo,
                 ]),
-            'adjuntos' => [
-                'imagenes' => $tarea->getMedia('imagenes')->map(Adjuntos::comoArray(...)),
-                'documentos' => $tarea->getMedia('documentos')->map(Adjuntos::comoArray(...)),
-            ],
             'puede' => [
                 'editar' => $usuario->can('update', $tarea),
                 'cambiarEstado' => $usuario->can('cambiarEstado', $tarea),
                 'eliminar' => $usuario->can('delete', $tarea),
                 'comentar' => $usuario->can('create', [NotaTarea::class, $tarea]),
                 'verLoInterno' => $usuario->can('viewAny', [NotaTarea::class, $tarea]),
-                'gestionarAdjuntos' => ResolverRolProyecto::escribe($usuario, $tarea->proyecto)
+                'verAdjuntos' => $veLoInterno,
+                'gestionarAdjuntos' => $veLoInterno
+                    && ResolverRolProyecto::escribe($usuario, $tarea->proyecto)
                     && $usuario->can(Permiso::ArchivosSubir->value),
             ],
-        ]);
+        ] + ($veLoInterno ? [
+            'adjuntos' => [
+                'imagenes' => $tarea->getMedia('imagenes')->map(Adjuntos::comoArray(...)),
+                'documentos' => $tarea->getMedia('documentos')->map(Adjuntos::comoArray(...)),
+            ],
+        ] : []));
     }
 
     public function edit(Tarea $tarea): Response
