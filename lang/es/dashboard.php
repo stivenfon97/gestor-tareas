@@ -2,30 +2,45 @@
 
 declare(strict_types=1);
 
-/*
- * Tablero. Hasta la fase 12 no tiene datos: cada bloque dice qué va a haber
- * ahí y ofrece el camino que hoy sí existe. **Nunca cifras de mentira.**
- */
 return [
     'titulo' => 'Tablero',
-    'descripcion' => 'El resumen de tu trabajo. Todavía no tiene datos: llegan en la fase 12.',
-    'pendiente' => 'Pendiente: fase 12.',
+    'descripcion' => 'El resumen de tu trabajo en todos tus proyectos.',
 
     'bloques' => [
-        'tareas' => [
+        'trabajo' => [
             'titulo' => 'Tu trabajo de hoy',
-            'cuerpo' => 'Aquí irán tus tareas en proceso y en espera, con lo que se pasó de fecha primero.',
+            'descripcion' => 'Tareas en proceso y en espera, lo que más tiempo lleva parado primero.',
+            'vacio_titulo' => 'Nada parado',
+            'vacio_cuerpo' => 'No tienes tareas en proceso ni en espera en ningún proyecto.',
+            'dias_en_estado' => ':dias día(s) en este estado',
+            'motivo' => 'Motivo: :motivo',
             'accion' => 'Ver todas las tareas',
         ],
+
         'periodos' => [
             'titulo' => 'Periodos abiertos',
-            'cuerpo' => 'Aquí irá el periodo abierto de cada proyecto y cuántos días lleva.',
-            'accion' => 'Ver proyectos',
+            'descripcion' => 'Uno por proyecto: días transcurridos y tareas sin terminar.',
+            'vacio_titulo' => 'Sin periodos abiertos',
+            'vacio_cuerpo' => 'Ninguno de tus proyectos tiene un periodo abierto ahora mismo.',
+            'dias_transcurridos' => ':dias día(s) transcurridos',
+            'tareas_sin_terminar' => ':total tarea(s) sin terminar',
+            'vencido' => 'Vencido',
+            'vencido_ayuda' => 'Ya pasó la fecha de fin prevista. El cierre sigue siendo manual.',
         ],
-        'bitacora' => [
+
+        'reuniones' => [
             'titulo' => 'Últimas reuniones',
-            'cuerpo' => 'Aquí irán las reuniones más recientes de la bitácora de cada proyecto.',
-            'accion' => 'Ver clientes',
+            'descripcion' => 'Lo más reciente de la bitácora de tus proyectos.',
+            'vacio_titulo' => 'Sin reuniones',
+            'vacio_cuerpo' => 'Todavía no hay ninguna reunión registrada en tus proyectos.',
+        ],
+
+        'ingresos' => [
+            'titulo' => 'Ingresos por periodo cerrado',
+            'descripcion' => 'Lo cobrado en COP, por cliente.',
+            'vacio_titulo' => 'Sin periodos cerrados',
+            'vacio_cuerpo' => 'Todavía no hay ningún periodo cerrado con pago registrado.',
+            'periodos_count' => ':total periodo(s) cerrado(s)',
         ],
     ],
 ];

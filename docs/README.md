@@ -37,7 +37,7 @@ Si vienes por primera vez, en este orden:
 | [Proyectos](modulos/proyectos.md) | ✅ | [Bitácora](modulos/bitacora.md) | ✅ |
 | [Módulos](modulos/modulos.md) | ✅ | [Archivos](modulos/archivos.md) | ✅ |
 | [Tareas](modulos/tareas.md) | ✅ | [Reportes](modulos/reportes.md) | fase 11 |
-| [Vistas guardadas](modulos/vistas.md) | fase 08 | [Dashboard](modulos/dashboard.md) | fase 12 |
+| [Vistas guardadas](modulos/vistas.md) | fase 08 | [Dashboard](modulos/dashboard.md) | ✅ |
 | [Tabla de datos](modulos/tabla-de-datos.md) | ✅ | | |
 
 ### Diagramas
