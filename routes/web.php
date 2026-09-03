@@ -190,7 +190,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('reuniones/{reunion}/tareas/rapida/previsualizar', [ReunionTareaController::class, 'previsualizar'])->name('reuniones.tareas.rapida.previsualizar');
     Route::post('reuniones/{reunion}/tareas/rapida', [ReunionTareaController::class, 'crear'])->name('reuniones.tareas.rapida.crear');
 
+    Route::get('proyectos/{proyecto}/reportes', [ReporteController::class, 'index'])->name('proyectos.reportes.index');
     Route::post('proyectos/{proyecto}/reportes', [ReporteController::class, 'store'])->name('proyectos.reportes.store');
+    // Descarga «histórica»: siempre reconstruye desde el snapshot, nunca de la
+    // base de datos en vivo. La descarga «actual» de `store()` es exactamente
+    // esta misma ruta, sobre el registro que se acaba de crear.
+    Route::get('reportes/{reporte}/descargar', [ReporteController::class, 'descargar'])->name('reportes.descargar');
 
     /*
      * Listado global de tareas. Va **antes** que `tareas/{tarea}`: con el

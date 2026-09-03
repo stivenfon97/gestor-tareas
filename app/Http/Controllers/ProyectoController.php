@@ -163,7 +163,10 @@ class ProyectoController extends Controller
                 'gestionarModulos' => $usuario->can('create', [Modulo::class, $proyecto]),
                 'verPagos' => $usuario->can('viewAny', [Pago::class, $proyecto]),
                 'verReuniones' => $usuario->can('viewAny', [Reunion::class, $proyecto]),
-                'generarReportes' => $usuario->can('create', [Reporte::class, $proyecto]),
+                // La pestaña se abre para quien **ve** reportes (`observador`
+                // incluido); generar es un permiso más estrecho que resuelve
+                // la propia pantalla de reportes (`ReporteController@index`).
+                'verReportes' => $usuario->can('viewAny', [Reporte::class, $proyecto]),
                 'gestionarRespaldos' => $puedeGestionarRespaldos,
             ],
         ] + ($puedeGestionarRespaldos ? [
