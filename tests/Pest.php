@@ -6,6 +6,10 @@ use App\Enums\Visibilidad;
 use App\Models\Proyecto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Tests\TestCase;
 
 /*
@@ -115,4 +119,29 @@ function datosDeReunionValidos(array $sobrescribir = []): array
         'visibilidad' => Visibilidad::Interna->value,
         'asistentes' => [['usuario_id' => null, 'nombre' => 'Alguien', 'organizacion' => null]],
     ], $sobrescribir);
+}
+
+/**
+ * Carga en memoria el `.xlsx` de una respuesta de descarga (`Excel::download()`).
+ *
+ * `BinaryFileResponse::getContent()` devuelve `false` -el contenido se sirve
+ * por `readfile()`, no como cadena en memoria-, así que la única forma de
+ * comprobar la estructura real del archivo es leer el fichero temporal desde
+ * disco. En una petición de prueba nadie llama a `send()`, así que
+ * `deleteFileAfterSend(true)` no se dispara y el temporal sigue ahí para
+ * leerlo.
+ */
+function leerExcelDescargado(TestResponse $respuesta): Spreadsheet
+{
+    $respuesta->assertOk();
+
+    /** @var BinaryFileResponse $base */
+    $base = $respuesta->baseResponse;
+    $ruta = $base->getFile()->getPathname();
+
+    $libro = IOFactory::load($ruta);
+
+    @unlink($ruta);
+
+    return $libro;
 }

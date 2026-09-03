@@ -43,9 +43,16 @@ it('niega al cliente el detalle de un pago aunque escriba el id', function () {
 });
 
 it('niega al cliente la generación del reporte completo', function () {
+    $periodo = Periodo::factory()->for($this->proyecto)->create();
+
     $this->actingAs($this->cliente)
-        ->post(route('proyectos.reportes.store', $this->proyecto))
+        ->post(route('proyectos.reportes.store', $this->proyecto), [
+            'periodo_id' => $periodo->id,
+            'tipo' => 'completo',
+        ])
         ->assertForbidden();
+
+    expect(Reporte::query()->count())->toBe(0);
 });
 
 it('la policy de reportes niega la creación al cliente y la permite al líder', function () {
@@ -207,18 +214,35 @@ it('un usuario del cliente en otro proyecto no arrastra su restricción', functi
 it('el observador ve los reportes emitidos pero no puede emitir uno nuevo', function () {
     $observador = usuarioCon(RolGlobal::Miembro);
     asignarAProyecto($observador, $this->proyecto, RolProyecto::Observador);
+    $periodo = Periodo::factory()->for($this->proyecto)->create();
 
     // Generar deja una fila en `reportes`: cuenta como escritura.
     expect($observador->can('viewAny', [Reporte::class, $this->proyecto]))->toBeTrue()
         ->and($observador->can('create', [Reporte::class, $this->proyecto]))->toBeFalse();
 
     $this->actingAs($observador)
-        ->post(route('proyectos.reportes.store', $this->proyecto))
+        ->get(route('proyectos.reportes.index', $this->proyecto))
+        ->assertOk();
+
+    $this->actingAs($observador)
+        ->post(route('proyectos.reportes.store', $this->proyecto), [
+            'periodo_id' => $periodo->id,
+            'tipo' => 'completo',
+        ])
         ->assertForbidden();
+
+    expect(Reporte::query()->count())->toBe(0);
 });
 
-it('el líder pasa la guarda de reportes y llega al 501 de la fase 11', function () {
+it('el líder pasa la guarda de reportes y genera uno, ya no el 501 de guarda de la fase 04', function () {
+    $periodo = Periodo::factory()->for($this->proyecto)->create();
+
     $this->actingAs($this->lider)
-        ->post(route('proyectos.reportes.store', $this->proyecto))
-        ->assertStatus(501);
+        ->post(route('proyectos.reportes.store', $this->proyecto), [
+            'periodo_id' => $periodo->id,
+            'tipo' => 'cliente',
+        ])
+        ->assertRedirect(route('proyectos.reportes.index', $this->proyecto));
+
+    expect(Reporte::query()->count())->toBe(1);
 });
