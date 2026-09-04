@@ -112,6 +112,19 @@ it('devuelve las fechas ya resueltas en el resultado del servicio', function () 
         ->toBe(['en_espera', 'terminada', 'cancelada']);
 });
 
+it('usa el día de Bogotá para fecha_inicio aunque en UTC ya sea el día siguiente', function () {
+    // 20:30 en Bogotá (UTC-5) del 10 de marzo son las 01:30 UTC del 11. Con
+    // app.timezone en UTC, fecha_inicio quedaba fechada el 11 — un día
+    // adelantado respecto al calendario real de quien trabaja en Bogotá.
+    Carbon::setTestNow(Carbon::parse('2026-03-11 01:30:00', 'UTC'));
+
+    $tarea = Tarea::factory()->for($this->proyecto)->create(['fecha_inicio' => null]);
+
+    ($this->cambiar)($tarea, EstadoTarea::EnProceso);
+
+    expect($tarea->fresh()->fecha_inicio?->toDateString())->toBe('2026-03-10');
+});
+
 it('no cambia nada cuando el destino es el mismo estado', function () {
     Carbon::setTestNow('2026-05-04 11:00:00');
 

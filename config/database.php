@@ -62,8 +62,15 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // La sesión de MySQL queda en la misma zona que `app.timezone`
+            // (offset fijo: Bogotá no tiene horario de verano). Sin esto, un
+            // `TIMESTAMP` (created_at/updated_at) guarda internamente los
+            // dígitos de hora de Bogotá como si ya fueran UTC — un desfase de
+            // 5 horas invisible mientras todo se lea a través de Eloquent,
+            // pero real para cualquiera que inspeccione la fila directamente.
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                Mysql::ATTR_INIT_COMMAND => "SET time_zone = '".env('DB_TIMEZONE', '-05:00')."'",
             ]) : [],
         ],
 
