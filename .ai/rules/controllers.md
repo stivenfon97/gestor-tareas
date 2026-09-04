@@ -32,3 +32,6 @@ Ocultar un dato en la interfaz no lo oculta: el JSON de Inertia viaja completo y
 Cuando un dato no debe verse para cierto rol, la clave **falta del todo** en el array que se pasa a `Inertia::render()` — nunca viaja vacía ni con un flag `null` que la esconda solo en la interfaz. Patrón: computa la condición antes, y añade la clave condicionalmente con `+ ($condicion ? ['clave' => ...] : [])`. Ejemplos ya aplicados: `respaldos` en `ProyectoController::show` (solo si `ResolverRolProyecto::gestiona()`), `adjuntos` en `TareaController::show` (solo si `veLoInterno()`, porque los adjuntos de tarea no tienen marca de visibilidad propia y se tratan siempre como internos).
 
 Toda prueba de visibilidad comprueba la respuesta (`$respuesta->viewData('page')['props']`), no la pantalla.
+
+## Inertia::defer() necesita un grupo propio por cada bloque independiente
+Sin segundo argumento, todo `Inertia::defer(fn () => …)` de una misma página cae en el grupo `'default'` y el cliente los pide todos en **una sola** petición: un bloque lento retrasa a los demás. Para que cada bloque cargue en paralelo, dale un nombre de grupo propio y distinto: `Inertia::defer(fn () => …, 'nombre_del_bloque')`. Precedente: `DashboardController` (fase 12), cuatro bloques con cuatro grupos.

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AsegurarUsuarioActivo;
 use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\HandleIdioma;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,11 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance', 'idioma', 'sidebar_state']);
 
         $middleware->web(append: [
             AsegurarUsuarioActivo::class,
             HandleAppearance::class,
+            // Antes de HandleInertiaRequests: comparte 'locale' leyendo
+            // app()->getLocale(), que este middleware pudo haber cambiado.
+            HandleIdioma::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

@@ -40,6 +40,12 @@ return [
         'sistema' => 'System',
     ],
 
+    'idioma' => [
+        'titulo' => 'Language',
+        'espanol' => 'Spanish',
+        'ingles' => 'English',
+    ],
+
     'tabla' => [
         'columnas' => 'Columns',
         'columnas_ayuda' => 'Choose which columns are shown.',

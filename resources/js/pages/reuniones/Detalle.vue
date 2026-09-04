@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { formatearFechaHora } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { index as indiceDeReuniones } from '@/routes/proyectos/reuniones';
 import { destroy, edit } from '@/routes/reuniones';
@@ -160,7 +161,7 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
         </CabeceraDePagina>
 
         <p class="text-fino text-texto-suave">
-            {{ props.reunion.fecha }}
+            {{ formatearFechaHora(props.reunion.fecha) }}
             <span v-if="props.reunion.creado_por">
                 · {{ props.reunion.creado_por }}
             </span>

@@ -13,6 +13,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { show as mostrarPeriodo } from '@/routes/periodos';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { store } from '@/routes/proyectos/periodos';
@@ -196,15 +197,15 @@ const abrirPeriodo = (): void => {
                                 {{ periodo.consecutivo }}
                             </Link>
                         </td>
-                        <td
-                            class="px-celda py-corto font-mono text-texto-suave"
-                        >
-                            {{ periodo.fecha_inicio }}
+                        <td class="px-celda py-corto text-texto-suave">
+                            {{ formatearFecha(periodo.fecha_inicio) }}
                         </td>
-                        <td
-                            class="px-celda py-corto font-mono text-texto-suave"
-                        >
-                            {{ periodo.fecha_fin ?? '—' }}
+                        <td class="px-celda py-corto text-texto-suave">
+                            {{
+                                periodo.fecha_fin
+                                    ? formatearFecha(periodo.fecha_fin)
+                                    : '—'
+                            }}
                         </td>
                         <td class="px-celda py-corto">
                             <div class="flex items-center gap-fino">
@@ -236,8 +237,12 @@ const abrirPeriodo = (): void => {
                             class="px-celda py-corto text-texto-suave"
                         >
                             <span v-if="periodo.pago">
-                                {{ $t('pagos.usd') }}
-                                {{ periodo.pago.monto_usd }}
+                                {{
+                                    formatearMonto(
+                                        periodo.pago.monto_usd,
+                                        'USD',
+                                    )
+                                }}
                             </span>
                             <span v-else>—</span>
                         </td>

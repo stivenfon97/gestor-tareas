@@ -10,6 +10,7 @@ use App\Http\Controllers\AsignarEquipoAProyectoController;
 use App\Http\Controllers\CapturaRapidaController;
 use App\Http\Controllers\CierrePeriodoController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstadoClienteController;
 use App\Http\Controllers\EstadoTareaController;
 use App\Http\Controllers\Gestion\EquipoController;
@@ -39,7 +40,7 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     /*
      * Gestión de usuarios: solo quien tiene `usuarios.gestionar`, que hoy es el

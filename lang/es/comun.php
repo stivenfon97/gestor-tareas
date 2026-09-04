@@ -42,6 +42,12 @@ return [
         'sistema' => 'Sistema',
     ],
 
+    'idioma' => [
+        'titulo' => 'Idioma',
+        'espanol' => 'Español',
+        'ingles' => 'Inglés',
+    ],
+
     /*
      * Textos del componente TablaDatos. Viven en `comun` y no en el archivo de
      * cada recurso porque el componente no conoce ningún dominio: los mismos

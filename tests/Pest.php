@@ -6,6 +6,7 @@ use App\Enums\Visibilidad;
 use App\Models\Proyecto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -144,4 +145,26 @@ function leerExcelDescargado(TestResponse $respuesta): Spreadsheet
     @unlink($ruta);
 
     return $libro;
+}
+
+/**
+ * Cuenta las consultas que dispara una petición.
+ *
+ * Compartida desde la fase 12: hasta entonces cada prueba de techo de
+ * consultas (`ArbolDeModulosTest`, `TableroTest`) declaraba su propia copia
+ * como función global de archivo, y con la segunda `DashboardTest` chocaron
+ * -PHP no aísla funciones sueltas por archivo dentro del mismo proceso-, así
+ * que a partir de dos consumidores vale más centralizarla aquí.
+ */
+function consultasDe(callable $peticion): int
+{
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    $peticion();
+
+    $total = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    return $total;
 }

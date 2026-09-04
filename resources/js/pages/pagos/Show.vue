@@ -2,7 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Button } from '@/components/ui/button';
-import { trans } from '@/lib/i18n';
+import { formatearFecha, formatearMonto, formatearNumero } from '@/lib/formato';
 import { edit } from '@/routes/pagos';
 import { show as periodoShow } from '@/routes/periodos';
 
@@ -29,16 +29,26 @@ const props = defineProps<{
 }>();
 
 const campos = [
-    { clave: 'fecha_pago', valor: () => props.pago.fecha_pago },
+    {
+        clave: 'fecha_pago',
+        valor: () => formatearFecha(props.pago.fecha_pago),
+    },
     {
         clave: 'monto_usd',
-        valor: () => `${trans('pagos.usd')} ${props.pago.monto_usd}`,
+        valor: () => formatearMonto(props.pago.monto_usd, 'USD'),
     },
     {
         clave: 'monto_cop',
-        valor: () => `${trans('pagos.cop')} ${props.pago.monto_cop}`,
+        valor: () => formatearMonto(props.pago.monto_cop, 'COP'),
     },
-    { clave: 'tasa_cambio', valor: () => props.pago.tasa_cambio },
+    {
+        clave: 'tasa_cambio',
+        valor: () =>
+            formatearNumero(Number(props.pago.tasa_cambio), {
+                minimumFractionDigits: 4,
+                maximumFractionDigits: 4,
+            }),
+    },
     {
         clave: 'origen_tasa',
         valor: () => props.pago.origen_tasa,

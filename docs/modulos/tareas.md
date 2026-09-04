@@ -111,7 +111,6 @@ El detalle del cambio de estado, paso a paso, está en
 | GET | `proyectos/{proyecto}/tareas/rapida` | `CapturaRapidaController@create` | `TareaPolicy@create` |
 | POST | `proyectos/{proyecto}/tareas/rapida/previsualizar` | `CapturaRapidaController@previsualizar` | `TareaPolicy@create` |
 | POST | `proyectos/{proyecto}/tareas/rapida` | `CapturaRapidaController@store` | `TareaPolicy@create` |
-| GET | `tareas/{tarea}/notas` | `NotaTareaController@index` | `NotaTareaPolicy@viewAny` |
 | POST | `tareas/{tarea}/notas` | `NotaTareaController@store` | `NotaTareaPolicy@create` |
 
 Piezas de apoyo:
@@ -376,9 +375,6 @@ modo que añadir una prioridad nueva no obliga a tocar el SQL.
 
 ## Puntos de extensión
 
-- **Kanban** (fase 08). Mueve tarjetas llamando al mismo `PUT tareas/{tarea}/estado`, que
-  ya devuelve las transiciones disponibles del estado nuevo. La columna `orden` está para
-  eso y todavía no se usa.
 - **Editor enriquecido en las notas.** La fase 10 lo trajo para reuniones
   (`contenido_json`/`contenido_html`, ver [`bitacora.md`](bitacora.md)) pero
   deliberadamente no para notas: `notas_tarea.contenido` sigue siendo una sola columna
@@ -386,8 +382,11 @@ modo que añadir una prioridad nueva no obliga a tocar el SQL.
   `tareas/Show.vue` ya cubre el flujo real de notas sin pasar por `recursos/Listado`.
   Si algún día hace falta, el modelo pide primero una migración —añadir las dos
   columnas—, no solo cambiar el `textarea` por `EditorEnriquecido.vue`.
-- **Arrastre de tareas al cerrar un periodo** (fase 09). `periodo_origen_id` y el scope
-  `arrastradas` ya existen; falta la acción que las mueve al cerrar.
+- **El arrastre de tareas al cerrar un periodo** (fase 09) ya está implementado —
+  `App\Services\CerrarPeriodo` mueve las tareas no terminales conservando
+  `periodo_origen_id`, ver [`periodos.md`](periodos.md) y D4.10 en
+  [`../03-dominio.md`](../03-dominio.md)—. El scope `Tarea::scopeArrastradas()` es lo
+  que consulta este módulo para saber cuáles vinieron de otro periodo.
 - **Nuevos estados.** Añadir un caso a `EstadoTarea` obliga a tocar tres sitios: el enum,
   la skill y el diagrama. `MatrizDeTransicionesTest` falla hasta que los tres coinciden,
   que es exactamente lo que se quiere. Los tokens de color del tema son el cuarto.

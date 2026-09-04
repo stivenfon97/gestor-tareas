@@ -15,6 +15,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { formatearMes } from '@/lib/formato';
 import { cn } from '@/lib/utils';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { show as mostrarTarea } from '@/routes/tareas';
@@ -186,8 +187,8 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
             >
                 <ChevronLeft class="size-4" aria-hidden="true" />
             </Button>
-            <span class="font-mono text-cuerpo text-texto">{{
-                props.mes
+            <span class="text-cuerpo text-texto">{{
+                formatearMes(props.mes)
             }}</span>
             <Button
                 variant="outline"

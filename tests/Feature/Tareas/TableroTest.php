@@ -11,7 +11,6 @@ use App\Models\Modulo;
 use App\Models\Proyecto;
 use App\Models\Tarea;
 use Database\Seeders\RolesYPermisosSeeder;
-use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     $this->seed(RolesYPermisosSeeder::class);
@@ -191,17 +190,3 @@ it('niega el tablero a quien no participa en el proyecto', function () {
         ->get(route('proyectos.tablero.index', $this->proyecto))
         ->assertForbidden();
 });
-
-/** Cuenta las consultas que dispara una petición. */
-function consultasDe(callable $peticion): int
-{
-    DB::flushQueryLog();
-    DB::enableQueryLog();
-
-    $peticion();
-
-    $total = count(DB::getQueryLog());
-    DB::disableQueryLog();
-
-    return $total;
-}

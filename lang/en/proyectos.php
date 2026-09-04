@@ -57,7 +57,7 @@ return [
         'modulos' => 'Modules',
         'miembros' => 'People',
         'periodos_cerrados' => ':total closed periods.',
-        'total_pagado' => 'USD :monto collected in total.',
+        'total_pagado' => ':monto collected in total.',
     ],
 
     'pendiente_de_fase' => 'This section arrives in phase :fase.',

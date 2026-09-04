@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Monitor, Moon, Settings, Sun } from '@lucide/vue';
+import { Globe, LogOut, Monitor, Moon, Settings, Sun } from '@lucide/vue';
 import {
     DropdownMenuCheckboxItem,
     DropdownMenuGroup,
@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { useAppearance } from '@/composables/useAppearance';
+import { useIdioma } from '@/composables/useIdioma';
+import type { Idioma } from '@/composables/useIdioma';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -31,12 +33,18 @@ type Props = {
  * entero haya cambiado. «Sistema» es una elección, no su ausencia.
  */
 const { appearance, updateAppearance } = useAppearance();
+const { idioma, cambiarIdioma } = useIdioma();
 
 const temas = [
     { valor: 'light', Icono: Sun, clave: 'comun.tema.claro' },
     { valor: 'dark', Icono: Moon, clave: 'comun.tema.oscuro' },
     { valor: 'system', Icono: Monitor, clave: 'comun.tema.sistema' },
 ] as const;
+
+const idiomas: ReadonlyArray<{ valor: Idioma; clave: string }> = [
+    { valor: 'es', clave: 'comun.idioma.espanol' },
+    { valor: 'en', clave: 'comun.idioma.ingles' },
+];
 
 const handleLogout = () => {
     router.flushAll();
@@ -76,6 +84,23 @@ defineProps<Props>();
         @update:model-value="() => updateAppearance(valor)"
     >
         <component :is="Icono" class="size-4" aria-hidden="true" />
+        {{ $t(clave) }}
+    </DropdownMenuCheckboxItem>
+
+    <DropdownMenuSeparator />
+
+    <DropdownMenuLabel class="text-fino font-normal text-texto-suave">
+        {{ $t('comun.idioma.titulo') }}
+    </DropdownMenuLabel>
+    <DropdownMenuCheckboxItem
+        v-for="{ valor, clave } in idiomas"
+        :key="valor"
+        :model-value="idioma === valor"
+        class="gap-fino text-cuerpo"
+        @select="(evento: Event) => evento.preventDefault()"
+        @update:model-value="() => cambiarIdioma(valor)"
+    >
+        <Globe class="size-4" aria-hidden="true" />
         {{ $t(clave) }}
     </DropdownMenuCheckboxItem>
 

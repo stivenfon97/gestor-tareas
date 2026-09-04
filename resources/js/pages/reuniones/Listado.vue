@@ -5,6 +5,7 @@ import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatearFechaHora } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { create, index } from '@/routes/proyectos/reuniones';
 import { show as mostrarReunion } from '@/routes/reuniones';
@@ -130,10 +131,8 @@ const limpiarFiltros = (): void => {
                     :href="mostrarReunion(reunion.id)"
                     class="flex flex-wrap items-center gap-corto px-celda py-fino hover:bg-fila-hover"
                 >
-                    <span
-                        class="w-40 shrink-0 font-mono text-fino text-texto-suave"
-                    >
-                        {{ reunion.fecha }}
+                    <span class="w-40 shrink-0 text-fino text-texto-suave">
+                        {{ formatearFechaHora(reunion.fecha) }}
                     </span>
                     <Badge variant="outline">
                         {{ trans(`enums.tipo_reunion.${reunion.tipo}`) }}

@@ -12,6 +12,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { show as mostrarPago } from '@/routes/pagos';
 import { update } from '@/routes/periodos';
 import { create as cierreCreate } from '@/routes/periodos/cierre';
@@ -143,8 +144,12 @@ const guardar = (): void => {
                     {{ $t('periodos.vencido') }}
                 </Badge>
                 <span class="text-cuerpo text-texto-suave">
-                    {{ props.periodo.fecha_inicio }} –
-                    {{ props.periodo.fecha_fin ?? $t('periodos.en_curso') }}
+                    {{ formatearFecha(props.periodo.fecha_inicio) }} –
+                    {{
+                        props.periodo.fecha_fin
+                            ? formatearFecha(props.periodo.fecha_fin)
+                            : $t('periodos.en_curso')
+                    }}
                 </span>
             </template>
         </CabeceraDePagina>
@@ -233,11 +238,11 @@ const guardar = (): void => {
             <template v-if="props.pago">
                 <div class="flex flex-wrap items-center gap-celda text-cuerpo">
                     <span class="text-texto">
-                        {{ $t('pagos.usd') }} {{ props.pago.monto_usd }} ·
-                        {{ $t('pagos.cop') }} {{ props.pago.monto_cop }}
+                        {{ formatearMonto(props.pago.monto_usd, 'USD') }} ·
+                        {{ formatearMonto(props.pago.monto_cop, 'COP') }}
                     </span>
-                    <span class="font-mono text-texto-suave">{{
-                        props.pago.fecha_pago
+                    <span class="text-texto-suave">{{
+                        formatearFecha(props.pago.fecha_pago)
                     }}</span>
                     <Badge variant="outline">
                         {{

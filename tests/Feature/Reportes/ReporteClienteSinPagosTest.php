@@ -25,7 +25,7 @@ beforeEach(function () {
     $this->proyecto = Proyecto::factory()->create(['prefijo_tarea' => 'MAQ']);
     $this->periodo = Periodo::factory()->create(['proyecto_id' => $this->proyecto->id, 'consecutivo' => 7]);
 
-    Pago::factory()->for($this->periodo)->create([
+    $this->pago = Pago::factory()->for($this->periodo)->create([
         'monto_usd' => '3527.90',
         'tasa_cambio' => '4123.4567',
         'monto_cop' => '14545872.30',
@@ -52,11 +52,30 @@ it('el reporte de cliente no contiene ningún rastro de datos de pago en ninguna
 
     $libro = leerExcelDescargado($this->actingAs($this->lider)->get(route('reportes.descargar', $reporte)));
 
-    // Si cualquiera de estas cadenas aparece en cualquier celda, hay una
-    // filtración: son valores que solo pueden venir del pago registrado.
+    /*
+     * Valores completos, nunca fragmentos cortos: un fragmento de tres o
+     * cuatro caracteres puede aparecer por azar dentro del texto de relleno
+     * que genera el seeder ("USD" cabe dentro de "quibusdam"), y ese día la
+     * prueba falla por un falso positivo hasta que alguien la relaje —que es
+     * como mueren las pruebas de seguridad.
+     *
+     * Se prueban las dos formas en que un dato de pago podría colarse: el
+     * valor crudo del cast `decimal` del modelo (sin separador de miles, como
+     * saldría si alguien lo escribiera directo en una celda) y el valor tal
+     * como lo formatea `HojaPagosExport::columnFormats()` (`#,##0.00` /
+     * `#,##0.0000`, con separador de miles), que es como se vería si la hoja
+     * de pagos se pintara aquí por error. Comprobar solo la forma cruda deja
+     * un punto ciego real: "3,527.90" no contiene la subcadena "3527.90".
+     */
     $rastrosDePago = [
-        '3527', '3527.90', '4123', '4123.4567', '14545872', '14545872.30',
-        'TRF-ULTRASECRETO-9001', 'Pago parcial',
+        $this->pago->monto_usd,
+        $this->pago->tasa_cambio,
+        $this->pago->monto_cop,
+        number_format((float) $this->pago->monto_usd, 2),
+        number_format((float) $this->pago->tasa_cambio, 4),
+        number_format((float) $this->pago->monto_cop, 2),
+        $this->pago->referencia,
+        $this->pago->notas,
     ];
 
     foreach ($libro->getAllSheets() as $hoja) {

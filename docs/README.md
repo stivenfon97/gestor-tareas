@@ -14,6 +14,9 @@ Si vienes por primera vez, en este orden:
 5. **[`04-control-de-versiones.md`](04-control-de-versiones.md)** — cómo se trabaja con Git aquí.
 6. **[`05-identidad-visual.md`](05-identidad-visual.md)** — si vas a tocar cualquier cosa que se vea.
 7. El módulo concreto que vayas a tocar, en [`modulos/`](modulos/).
+8. **[`06-historial-de-decisiones.md`](06-historial-de-decisiones.md)** — el porqué de las
+   decisiones que no son obvias leyendo solo el código, y las alternativas que se
+   descartaron.
 
 ## Índice
 
@@ -22,22 +25,23 @@ Si vienes por primera vez, en este orden:
 | Documento | Contenido | Estado |
 |---|---|---|
 | [`00-entorno.md`](00-entorno.md) | Docker, servicios, volúmenes, problemas frecuentes | ✅ |
-| [`01-arquitectura.md`](01-arquitectura.md) | Capas, decisiones y su porqué | vivo · consolida en fase 12 |
+| [`01-arquitectura.md`](01-arquitectura.md) | Capas, decisiones y su porqué | ✅ |
 | [`02-modelo-de-datos.md`](02-modelo-de-datos.md) | ERD y diccionario de datos | ✅ |
 | [`03-dominio.md`](03-dominio.md) | Reglas de negocio e invariantes, numeradas | ✅ |
 | [`04-control-de-versiones.md`](04-control-de-versiones.md) | Ramas, commits, qué se versiona y cómo revertir una fase | ✅ |
 | [`05-identidad-visual.md`](05-identidad-visual.md) | Plan de diseño, autocrítica e inventario de tokens | ✅ |
+| [`06-historial-de-decisiones.md`](06-historial-de-decisiones.md) | Decisiones importantes con su porqué y las alternativas descartadas | ✅ |
 
 ### Módulos
 
 | Módulo | Estado | Módulo | Estado |
 |---|---|---|---|
-| [Autenticación](modulos/autenticacion.md) | ✅ | [Periodos](modulos/periodos.md) | parcial · fase 09 |
-| [Clientes](modulos/clientes.md) | ✅ | [Pagos](modulos/pagos.md) | parcial · fase 09 |
+| [Autenticación](modulos/autenticacion.md) | ✅ | [Periodos](modulos/periodos.md) | ✅ |
+| [Clientes](modulos/clientes.md) | ✅ | [Pagos](modulos/pagos.md) | ✅ |
 | [Proyectos](modulos/proyectos.md) | ✅ | [Bitácora](modulos/bitacora.md) | ✅ |
 | [Módulos](modulos/modulos.md) | ✅ | [Archivos](modulos/archivos.md) | ✅ |
-| [Tareas](modulos/tareas.md) | ✅ | [Reportes](modulos/reportes.md) | fase 11 |
-| [Vistas guardadas](modulos/vistas.md) | fase 08 | [Dashboard](modulos/dashboard.md) | fase 12 |
+| [Tareas](modulos/tareas.md) | ✅ | [Reportes](modulos/reportes.md) | ✅ |
+| [Vistas guardadas](modulos/vistas.md) | ✅ | [Dashboard](modulos/dashboard.md) | ✅ |
 | [Tabla de datos](modulos/tabla-de-datos.md) | ✅ | | |
 
 ### Diagramas
@@ -49,8 +53,8 @@ Si vienes por primera vez, en este orden:
 | [`permisos-y-roles.md`](diagramas/permisos-y-roles.md) | Dos niveles de rol y matriz de permisos | ✅ |
 | [`modelo-entidad-relacion.md`](diagramas/modelo-entidad-relacion.md) | ERD | ✅ |
 | [`flujo-cambio-de-estado.md`](diagramas/flujo-cambio-de-estado.md) | Del clic al historial: quién valida y quién escribe | ✅ |
-| [`flujo-cierre-periodo.md`](diagramas/flujo-cierre-periodo.md) | Cierre y pago | fase 09 |
-| [`flujo-generacion-reporte.md`](diagramas/flujo-generacion-reporte.md) | Emisión de los dos Excel | fase 11 |
+| [`flujo-cierre-periodo.md`](diagramas/flujo-cierre-periodo.md) | Cierre y pago | ✅ |
+| [`flujo-generacion-reporte.md`](diagramas/flujo-generacion-reporte.md) | Emisión de los dos Excel | ✅ |
 
 ## Dónde vive cada cosa
 
@@ -67,14 +71,13 @@ de Boost guardan lo que los agentes necesitan **mientras programan**:
 Regla práctica: si es una instrucción para programar, va en `.ai/`. Si es una
 explicación para entender, va en `docs/`.
 
-### `01-arquitectura.md` se consolida en la fase 12
+### `01-arquitectura.md` no describe una fase: describe capas
 
-No es un documento de una fase: describe capas que van creciendo. **Cada fase añade su
-sección cuando introduce una pieza nueva, y la fase 12 lo revisa entero** —coherencia,
-duplicados y secciones que el código ya desmintió— como último paso del proyecto.
-
-Hasta entonces está vivo, no terminado: que una sección exista no garantiza que cubra lo
-último que se construyó.
+Cada fase añadió su sección cuando introdujo una pieza nueva, y la fase 12 lo revisó
+entero —coherencia, duplicados y secciones que el código ya había desmentido— como
+último paso del proyecto. Sigue sin ser un documento "terminado" en el sentido de
+cerrado: la próxima pieza que se construya sobre este proyecto le añade su sección igual
+que hizo cada fase anterior.
 
 ## Mantenimiento
 

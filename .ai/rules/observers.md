@@ -14,3 +14,6 @@ Reparto dentro de `TareaObserver`:
 - `updated`: escribe la fila en `historial_estados`. Va aquí, y no en `updating`, porque el UPDATE puede fallar después (interbloqueo, restricción) y dejaría registrado un cambio que nunca ocurrió.
 
 El código sale de `contadores_tarea` con `lockForUpdate()`, no de `max(codigo) + 1`: dos creaciones simultáneas leerían el mismo máximo, y un borrado forzado haría que un código se reutilizara. El `unique` de `codigo` es la última red, no la primera.
+
+## PagoObserver recalcula monto_cop siempre, ignora lo que le pasen
+`PagoObserver::saving()` reescribe `monto_cop` en cada guardado como `bcmul(monto_usd, tasa_cambio)` redondeado a dos decimales. Da igual qué valor traiga el modelo o la factory en ese campo: se pisa siempre. Para fijar un `monto_cop` concreto en un test o seeder, no lo pases directo — pasa `monto_usd` y `tasa_cambio` cuyo producto dé el resultado que quieres.

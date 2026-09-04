@@ -61,13 +61,13 @@ flowchart TD
     listado["Listado de proyectos<br/>(acotado al pivote)"] --> detalle["Concentrador del proyecto"]
     crear["Nuevo proyecto<br/>(solo administrador)"] --> detalle
 
-    detalle --> resumen["Pestaña Resumen: tareas por estado,<br/>periodo abierto, última reunión"]
+    detalle --> resumen["Pestaña Resumen: tareas por estado,<br/>periodo abierto, última reunión,<br/>periodos cerrados y lo pagado"]
     detalle --> modulos["Pestaña Módulos (fase 05)"]
     detalle --> equipo["Pestaña Equipo (fase 04)"]
     detalle --> tareas["Pestaña Tareas (fase 06)"]
-    detalle --> pendientes["Pestañas Periodos · Bitácora · Reportes"]
-
-    pendientes -.->|"secciones vacías,<br/>marcadas con su fase"| futuro["Fases 09 a 11"]
+    detalle --> periodos["Pestaña Periodos (fase 09)"]
+    detalle --> bitacora["Pestaña Bitácora (fase 10)"]
+    detalle --> reportes["Pestaña Reportes (fase 11)"]
 ```
 
 ### El concentrador va por pestañas (fase 07)
@@ -97,6 +97,8 @@ cosmética: quien manda sigue siendo la policy de cada ruta.
 | PUT | `proyectos/{proyecto}/miembros/{usuario}` | `ProyectoUsuarioController@update` | `gestionarMiembros` |
 | DELETE | `proyectos/{proyecto}/miembros/{usuario}` | `ProyectoUsuarioController@destroy` | `gestionarMiembros` |
 | POST | `proyectos/{proyecto}/equipos` | `AsignarEquipoAProyectoController@store` | `gestionarMiembros` |
+| POST | `proyectos/{proyecto}/respaldos` | `RespaldoController@store` | `gestionarRespaldos` (líder/administrador) |
+| DELETE | `proyectos/{proyecto}/respaldos/{media}` | `RespaldoController@destroy` | `gestionarRespaldos` |
 
 El listado va por **query-builder** (`filter[nombre]`, `filter[estado]`,
 `filter[cliente_id]`) y, para quien no es administrador, se acota a los proyectos donde
@@ -147,13 +149,17 @@ dicen lo contrario, y a cambio meten 2px de línea y 32px de relleno por cada un
 de corrido, separados por divisores. Es el primer punto de la autocrítica de
 [`../05-identidad-visual.md`](../05-identidad-visual.md) §7.1.
 
-### El concentrador no lleva datos de relleno
+### El concentrador no llevó nunca datos de relleno
 
-Las secciones que llegan en fases posteriores se pintan **vacías, con su número de fase
-escrito** (`SeccionPendiente.vue`), y no con cifras de ejemplo.
+Mientras las fases 09 a 11 no habían llegado, las pestañas de Periodos, Bitácora y
+Reportes se pintaban **vacías, con su número de fase escrito**
+(`resources/js/components/SeccionPendiente.vue`), nunca con cifras de ejemplo: un
+placeholder con datos inventados es indistinguible de un dato real en cuanto pasa una
+semana, y acaba en una demo —y desde una demo, en una conversación con un cliente—.
 
-Un placeholder con datos inventados es indistinguible de un dato real en cuanto pasa una
-semana. Acaba en una demo, y desde una demo acaba en una conversación con un cliente.
+Hoy las siete pestañas tienen contenido real y `SeccionPendiente.vue` no lo usa ninguna;
+sigue documentado aquí porque es la razón por la que, si algún día se añade una octava
+pestaña a medio construir, **no debería llevar datos falsos mientras se termina**.
 
 ### El resumen filtra la última reunión aunque la policy ya haya pasado
 
@@ -185,8 +191,9 @@ de verdad garantizaría que algún día las dos versiones difieran.
 
 - **Campos nuevos del proyecto**: migración, `#[Fillable]`, `ProyectoRequest` y las dos
   pantallas de formulario. El `only()` de `edit()` también hay que ampliarlo.
-- **Secciones nuevas en el concentrador**: cada fase reemplaza su `<SeccionPendiente>` por
-  contenido real. La clave `proyectos.secciones.*` ya existe para las nueve.
+- **Una octava pestaña**: añadir su valor a la lista de `seccionActiva()` en
+  `ProyectoController`, su clave en `proyectos.secciones.*` y, mientras no tenga
+  contenido real, pintarla con `SeccionPendiente.vue` en vez de datos de ejemplo.
 - **Estados nuevos de proyecto**: se añaden al enum `EstadoProyecto` con su `etiqueta()` y
   su `token()`, y las claves de traducción en `enums.estado_proyecto.*` de `es` y `en`.
 - **Roles de proyecto nuevos**: enum `RolProyecto` y sus tres métodos de comportamiento.

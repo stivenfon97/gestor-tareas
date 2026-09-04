@@ -6,6 +6,7 @@ import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatearFecha } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { create, index, show } from '@/routes/proyectos';
 import { index as tareasIndex } from '@/routes/tareas';
@@ -96,9 +97,9 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
     {
         id: 'creado',
         etiqueta: trans('proyectos.fecha_creacion'),
-        valor: (proyecto) => proyecto.creado,
+        valor: (proyecto) =>
+            proyecto.creado ? formatearFecha(proyecto.creado) : '—',
         ordenPor: 'created_at',
-        mono: true,
         // Nace oculta: solo interesa al ordenar por antigüedad.
         ocultaPorDefecto: true,
         anchoMinimo: '8rem',

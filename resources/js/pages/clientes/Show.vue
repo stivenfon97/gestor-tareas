@@ -4,6 +4,7 @@ import EstadoClienteController from '@/actions/App/Http/Controllers/EstadoClient
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatearFecha } from '@/lib/formato';
 import { edit, index } from '@/routes/clientes';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 
@@ -142,7 +143,11 @@ const props = defineProps<{
                         })
                     }}
                     <span class="block text-muted-foreground">
-                        {{ props.resumen.ultimo_periodo_cerrado.fecha_fin }}
+                        {{
+                            formatearFecha(
+                                props.resumen.ultimo_periodo_cerrado.fecha_fin,
+                            )
+                        }}
                     </span>
                 </p>
                 <p v-else class="text-sm text-muted-foreground">

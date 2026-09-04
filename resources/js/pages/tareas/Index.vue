@@ -13,6 +13,7 @@ import SelectorDeVista from '@/components/tareas/SelectorDeVista.vue';
 import VistasGuardadas from '@/components/tareas/VistasGuardadas.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatearFecha } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create, index } from '@/routes/proyectos/tareas';
@@ -223,9 +224,9 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
     {
         id: 'fecha_fin',
         etiqueta: trans('tareas.fecha_fin'),
-        valor: (tarea) => tarea.fecha_fin,
+        valor: (tarea) =>
+            tarea.fecha_fin ? formatearFecha(tarea.fecha_fin) : '—',
         ordenPor: 'fecha_fin',
-        mono: true,
         anchoMinimo: '7rem',
     },
     {
@@ -453,7 +454,7 @@ const enLote = async (
 
             <template #celda-fecha_fin="{ fila }">
                 <span class="text-texto-suave">{{
-                    fila.fecha_fin ?? '—'
+                    fila.fecha_fin ? formatearFecha(fila.fecha_fin) : '—'
                 }}</span>
             </template>
 
