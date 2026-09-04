@@ -54,7 +54,10 @@ return [
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
-            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            // utf8mb4_0900_ai_ci: el collation nativo de MySQL 8, no lo soporta
+            // MariaDB. La conexión "mariadb" de abajo se queda en unicode_ci a
+            // propósito: este proyecto corre sobre mysql:8.4, no sobre MariaDB.
+            'collation' => env('DB_COLLATION', 'utf8mb4_0900_ai_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
