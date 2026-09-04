@@ -31,6 +31,7 @@ Si vienes por primera vez, en este orden:
 | [`04-control-de-versiones.md`](04-control-de-versiones.md) | Ramas, commits, qué se versiona y cómo revertir una fase | ✅ |
 | [`05-identidad-visual.md`](05-identidad-visual.md) | Plan de diseño, autocrítica e inventario de tokens | ✅ |
 | [`06-historial-de-decisiones.md`](06-historial-de-decisiones.md) | Decisiones importantes con su porqué y las alternativas descartadas | ✅ |
+| [`07-despliegue.md`](07-despliegue.md) | El script `desplegar.sh`: qué valida, qué pregunta y cómo leer su informe | ✅ |
 
 ### Módulos
 
