@@ -32,8 +32,8 @@ graph TD
     F1["1. Validar el entorno<br/>Docker, Compose, puertos, ubicación"] --> F2["2. Preparar .env<br/>¿existe? ¿es la primera vez?"]
     F2 --> F3["3. Credenciales de BD<br/>pedir o generar"]
     F3 --> F4["4. Construir y levantar<br/>build + up + esperar 'healthy'"]
-    F4 --> F5["5. Preparar la aplicación<br/>APP_KEY, migrar, ¿seeders?, storage:link, hook"]
-    F5 --> F6["6. Validación final<br/>HTTP, migraciones, login de prueba"]
+    F4 --> F5["5. Preparar la aplicación<br/>APP_KEY, migrar, ¿seeders?, storage:link, hook, ¿admin?"]
+    F5 --> F6["6. Validación final<br/>HTTP, migraciones, login real"]
     F6 --> Informe["Informe final<br/>pantalla + storage/logs/"]
 ```
 
@@ -111,10 +111,51 @@ Después espera hasta 2 minutos a que los cinco servicios (`app`, `nginx`, `mysq
      solo `migrate`.
    - **Entorno ya inicializado**: solo `migrate`, para aplicar lo pendiente sin tocar
      los datos existentes. Nunca corre `migrate:fresh` ni nada destructivo.
+
+   En cualquiera de los dos casos, `migrate` ya deja sembrados los roles y permisos
+   (`administrador`, `miembro`, `invitado`): eso corre desde una migración, no desde
+   un seeder que haya que recordar aparte — ver la sección siguiente.
 3. `storage:link`. Si el enlace ya existía, Laravel lo informa y no se trata como
    error.
 4. Instala el hook de `pre-commit` (formato con Pint) en `.git/hooks/`, si el
    directorio `.git` existe.
+5. **Usuario administrador**, solo si es la primera vez:
+   - Si se cargaron datos de ejemplo, ya existe uno (`admin@gestor.test` /
+     `password`, de `DesarrolloSeeder`) — se usa ese.
+   - Si no, y hay terminal interactiva, pregunta si crear el primer administrador
+     ahora (`[S/n]`, por defecto que sí: sin uno nadie puede entrar). Pide nombre,
+     correo y contraseña (oculta, con confirmación; Enter genera una segura con
+     símbolos, para pasar la política de contraseñas incluso en `APP_ENV=production`)
+     y lo crea con `php artisan admin:crear`.
+   - Sin terminal interactiva, o si se responde que no: ninguno. El informe final lo
+     deja indicado, con el comando exacto para crearlo después.
+
+### Roles y permisos: automáticos siempre, no solo desde este script
+
+`RolesYPermisosSeeder` (roles globales y sus permisos) está separado a propósito del
+seeder de datos de ejemplo — es infraestructura, no un dato ficticio, y por eso
+**corre desde una migración** (`2026_09_04_140000_sembrar_roles_y_permisos.php`), no
+solo desde `db:seed`. Esto es intencional: cualquier forma de desplegar este
+proyecto —este script, `make migrate` a secas, un `php artisan migrate` suelto,
+CI— corre migraciones sí o sí, así que los roles quedan sembrados sin que nadie
+tenga que acordarse de una bandera `--seed` ni de un nombre de clase concreto. Es la
+respuesta a "¿y si alguien no usa `desplegar.sh`?": no depende de este script en
+absoluto.
+
+### Crear o promover un administrador a mano
+
+No hay pantalla de registro (deshabilitada a propósito), así que fuera de este
+script el primer usuario se crea con:
+
+```bash
+docker compose exec app php artisan admin:crear
+```
+
+Sin opciones, pregunta nombre, correo y contraseña de forma interactiva. También
+acepta los tres por opción (`--nombre=`, `--correo=`, `--clave=`), que es como lo
+invoca `desplegar.sh`. Es idempotente por correo: correrlo de nuevo con uno que ya
+existe actualiza su nombre, contraseña y rol —lo asigna como administrador aunque
+antes tuviera otro— en vez de fallar por el `unique` de `email`.
 
 ### Fase 6 — Validación final
 
@@ -126,12 +167,18 @@ de verdad:
 | Los cinco servicios siguen `healthy` | `docker compose ps` |
 | La aplicación responde | `curl` contra `/up` (la ruta de salud de Laravel), en el puerto real que Compose publicó |
 | No quedan migraciones pendientes | `artisan migrate:status` |
-| Se puede iniciar sesión | Intenta autenticar al usuario de prueba (`admin@gestor.test`) con `Auth::once()`, sin dejar sesión abierta |
+| Se puede iniciar sesión | `php artisan admin:verificar` con el correo y la contraseña del usuario disponible (el de ejemplo, o el creado en la Fase 5) |
 
 La comprobación de login es **best effort**, no un error automático si falla: si no
-se cargaron datos de ejemplo en este despliegue (una decisión válida, sobre todo si
-es un entorno donde no se quieren datos ficticios), no hay ningún usuario de prueba
-conocido y el script lo señala como advertencia, no como fallo.
+hay ningún usuario disponible en este despliegue (una decisión válida, sobre todo en
+un entorno donde no se quieren datos ficticios y se declinó crear uno), el script lo
+señala como advertencia, no como fallo.
+
+`admin:verificar` existe por lo mismo que `admin:crear`: recibe la contraseña por
+opción, nunca interpolada en una cadena de PHP. Antes de que existieran estos dos
+comandos, esta comprobación pasaba por `tinker --execute="..."` con el correo y la
+contraseña metidos directamente en el código a ejecutar — una contraseña tipeada a
+mano con una comilla simple rompía el comando en vez de solo fallar el login.
 
 ## El informe final
 
@@ -140,6 +187,26 @@ Se imprime en pantalla y se guarda, siempre, en
 paso queda como `[OK]`, `[ADVERTENCIA]` o `[ERROR]`, con el detalle exacto capturado
 —incluida la salida completa del comando que falló, no solo "algo salió mal"— para
 que quien lo revise después no tenga que reproducir el fallo para entenderlo.
+
+Termina con una tabla de acceso:
+
+```
+Acceso al sistema
+-----------------
+Rol            Correo                              Contraseña                  Origen
+administrador  ana@empresa.test                    buzufc8o6CILpS3oT7sq#+       creado en este despliegue
+
+Entra en http://localhost:8080 con esas credenciales.
+```
+
+O, si no hay ningún usuario disponible:
+
+```
+Acceso al sistema
+-----------------
+Ningún usuario disponible todavía. Créalo con:
+  docker compose exec app php artisan admin:crear
+```
 
 El script termina con código de salida `0` si no hubo errores (las advertencias no
 cuentan) y `1` si hubo al menos uno.
@@ -162,8 +229,9 @@ tocan, un `storage:link` ya existente no cuenta como error).
 | Reinstalación sobre una base de datos con datos reales (volumen `datos-mysql` existente, `.env` perdido) | Avisa explícitamente antes de pedir contraseñas: hay que poner la original, no generar una nueva |
 | Entorno ya funcionando, solo aplicar cambios (`git pull` con migraciones nuevas) | No pregunta nada, no toca datos existentes; solo migra lo pendiente y reinstala dependencias si cambiaron |
 | Entorno de ejemplo o de pruebas para un tercero | Responder "sí" a los datos de ejemplo en la Fase 5 |
-| Entorno sin datos de ejemplo (más cercano a producción) | Responder "no"; la validación de login queda como advertencia, no como error |
-| Ejecución sin terminal (`cron`, CI) | No pregunta nada: genera contraseñas solas y no carga datos de ejemplo |
+| Entorno sin datos de ejemplo, pero funcional | Responder "no" a los seeders y "sí" (o Enter) a crear el administrador: queda vacío pero con alguien que puede entrar |
+| Entorno sin datos de ejemplo y sin usuario todavía | Responder "no" a las dos preguntas; la validación de login queda como advertencia, no como error |
+| Ejecución sin terminal (`cron`, CI) | No pregunta nada: genera contraseñas solas, no carga datos de ejemplo ni crea administrador |
 
 ## Limitaciones conocidas
 

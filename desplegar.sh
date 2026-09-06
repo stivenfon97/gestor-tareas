@@ -59,6 +59,15 @@ fi
 
 PASOS=()
 
+# Se leen desde escribir_informe incluso si el script aborta en una fase
+# anterior a donde se asignan de verdad (Fase 5): con `set -u`, una
+# variable sin inicializar ahí rompería el propio informe de error.
+ADMIN_DISPONIBLE=false
+ADMIN_CORREO=""
+ADMIN_CLAVE=""
+ADMIN_ROL="administrador"
+ADMIN_ORIGEN=""
+
 registrar_ok() {
     PASOS+=("OK|$1|")
     echo "  ✅ $1"
@@ -148,6 +157,19 @@ escribir_informe() {
         else
             echo "Resultado: DESPLIEGUE COMPLETADO SIN INCIDENCIAS."
         fi
+
+        echo ""
+        echo "Acceso al sistema"
+        echo "-----------------"
+        if [ "$ADMIN_DISPONIBLE" = true ]; then
+            printf '%-14s %-35s %-28s %s\n' "Rol" "Correo" "Contraseña" "Origen"
+            printf '%-14s %-35s %-28s %s\n' "$ADMIN_ROL" "$ADMIN_CORREO" "$ADMIN_CLAVE" "$ADMIN_ORIGEN"
+            echo ""
+            echo "Entra en http://localhost:${PUERTO_WEB:-8080} con esas credenciales."
+        else
+            echo "Ningún usuario disponible todavía. Créalo con:"
+            echo "  docker compose exec app php artisan admin:crear"
+        fi
     } >"$ARCHIVO_INFORME" 2>/dev/null || true
 }
 
@@ -181,6 +203,17 @@ actualizar_env() {
 
 generar_clave_aleatoria() {
     tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24
+}
+
+# Para la contraseña del administrador, no solo la de MySQL: config/app.php
+# exige mayúsculas, minúsculas, números y símbolos en producción
+# (Password::defaults() en AppServiceProvider). 20 alfanuméricos al azar más
+# dos símbolos cumplen eso sin necesidad de barajarlos.
+generar_clave_fuerte() {
+    local base simbolos
+    base=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 20)
+    simbolos=$(tr -dc '!@#%+=' </dev/urandom | head -c 2)
+    printf '%s%s' "$base" "$simbolos"
 }
 
 # Espera hasta $2 segundos a que todos los servicios de la lista $1 (separados
@@ -527,6 +560,76 @@ else
     registrar_advertencia "No hay repositorio .git en este directorio" "Se omite la instalación del hook de pre-commit."
 fi
 
+# --------------------------------------------------------------------------
+# Usuario administrador disponible al final (para la tabla del informe)
+#
+# admin:crear y admin:verificar (más abajo, Fase 6) reciben los valores por
+# opción (argv), nunca interpolados en una cadena de PHP: una contraseña
+# tipeada a mano con una comilla rompería un `tinker --execute="..."` en
+# vez de solo fallar el login.
+# --------------------------------------------------------------------------
+ADMIN_DISPONIBLE=false
+ADMIN_CORREO=""
+ADMIN_CLAVE=""
+ADMIN_ROL="administrador"
+ADMIN_ORIGEN=""
+
+if [ "${SE_CARGARON_SEEDERS:-false}" = true ]; then
+    ADMIN_DISPONIBLE=true
+    ADMIN_CORREO="$CORREO_PRUEBA"
+    ADMIN_CLAVE="$CLAVE_PRUEBA"
+    ADMIN_ORIGEN="usuario de ejemplo (DesarrolloSeeder) — cámbiale la clave antes de usarlo fuera de pruebas"
+elif [ "$PRIMERA_VEZ" = true ]; then
+    if [ "$INTERACTIVO" = true ]; then
+        echo ""
+        read -rp "  ¿Crear el primer usuario administrador ahora? [S/n]: " respuesta_admin
+        case "$respuesta_admin" in
+            [nN]*)
+                registrar_advertencia "No se creó ningún usuario administrador" "Sin uno, nadie puede entrar: créalo cuando quieras con 'docker compose exec app php artisan admin:crear'."
+                ;;
+            *)
+                read -rp "  Nombre: " admin_nombre
+                read -rp "  Correo: " admin_correo
+
+                admin_clave=""
+                intento=1
+                while [ "$intento" -le 3 ]; do
+                    read -rsp "  Contraseña (Enter para generar una segura): " clave1
+                    echo
+                    if [ -z "$clave1" ]; then
+                        admin_clave=$(generar_clave_fuerte)
+                        echo "  Generada automáticamente: $admin_clave"
+                        break
+                    fi
+                    read -rsp "  Repite la contraseña para confirmar: " clave2
+                    echo
+                    if [ "$clave1" = "$clave2" ]; then
+                        admin_clave="$clave1"
+                        break
+                    fi
+                    echo "  Las dos contraseñas no coinciden. Intento $intento de 3."
+                    intento=$((intento + 1))
+                done
+
+                if [ -z "$admin_clave" ]; then
+                    registrar_error "Usuario administrador" "No se logró confirmar la contraseña en 3 intentos."
+                elif ejecutar "Usuario administrador creado ($admin_correo)" \
+                    $DC exec -T app php artisan admin:crear \
+                    --nombre="$admin_nombre" --correo="$admin_correo" --clave="$admin_clave"; then
+                    ADMIN_DISPONIBLE=true
+                    ADMIN_CORREO="$admin_correo"
+                    ADMIN_CLAVE="$admin_clave"
+                    ADMIN_ORIGEN="creado en este despliegue"
+                fi
+                ;;
+        esac
+    else
+        registrar_advertencia "Sin terminal interactiva: no se creó ningún usuario administrador" "Créalo con: docker compose exec app php artisan admin:crear --nombre=... --correo=... --clave=..."
+    fi
+else
+    registrar_advertencia "No se verificó ningún usuario administrador" "El entorno ya estaba inicializado; no se preguntó por uno nuevo. Para crear o promover a alguien: docker compose exec app php artisan admin:crear"
+fi
+
 # Las tablas ya existen: ahora sí puede quedar sano. Un reinicio explícito
 # es más rápido que esperar el backoff automático de Docker.
 $DC restart worker >/dev/null 2>&1 || true
@@ -579,16 +682,14 @@ else
     registrar_error "Migraciones pendientes" "Quedaron $pendientes migraciones sin aplicar. Ejecuta 'docker compose exec app php artisan migrate' y revisa el error."
 fi
 
-resultado_login=$($DC exec -T app php artisan tinker --execute="
-echo \Illuminate\Support\Facades\Auth::once(['email' => '${CORREO_PRUEBA}', 'password' => '${CLAVE_PRUEBA}']) ? 'LOGIN_OK' : 'LOGIN_FALLO';
-" 2>&1)
-
-if echo "$resultado_login" | grep -q "LOGIN_OK"; then
-    registrar_ok "Inicio de sesión verificado con el usuario de prueba ($CORREO_PRUEBA)"
-elif [ "${SE_CARGARON_SEEDERS:-false}" = true ]; then
-    registrar_error "Inicio de sesión" "Se cargaron los seeders pero no se pudo iniciar sesión con $CORREO_PRUEBA. Detalle: $resultado_login"
+if [ "$ADMIN_DISPONIBLE" = true ]; then
+    if $DC exec -T app php artisan admin:verificar --correo="$ADMIN_CORREO" --clave="$ADMIN_CLAVE" >/dev/null 2>&1; then
+        registrar_ok "Inicio de sesión verificado con $ADMIN_CORREO"
+    else
+        registrar_error "Inicio de sesión" "No se pudo iniciar sesión con $ADMIN_CORREO. Revisa 'docker compose exec app php artisan admin:crear' para recrearlo."
+    fi
 else
-    registrar_advertencia "No se verificó el inicio de sesión" "No se cargaron datos de ejemplo en este despliegue, así que no hay un usuario de prueba conocido para probar. Esto es normal en un entorno sin seeders."
+    registrar_advertencia "No se verificó el inicio de sesión" "No hay ningún usuario administrador conocido en este despliegue."
 fi
 
 # ══════════════════════════════════════════════════════════════
