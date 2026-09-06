@@ -13,11 +13,27 @@ hace falta PHP, Node ni MySQL instalados en el host.
 Requisitos: Docker Engine, el plugin `docker compose` y `make`.
 
 ```bash
-cp .env.example .env          # completa APP_KEY, DB_PASSWORD y DB_ROOT_PASSWORD
-make build                    # construye las imágenes app, worker y node
-make up                       # levanta los cinco servicios
+./desplegar.sh
+```
+
+Valida que el entorno tenga lo necesario, pide (o genera) las contraseñas de la base
+de datos, levanta los cinco servicios, migra, y pregunta si crear el primer usuario
+administrador. Termina con un informe —en pantalla y en `storage/logs/`— que dice
+exactamente con qué correo y contraseña entrar. Detalle completo, casos de uso y por
+qué la base de datos y `root` tienen contraseñas distintas en
+[`docs/07-despliegue.md`](docs/07-despliegue.md).
+
+Paso a paso manual, si prefieres no usar el script:
+
+```bash
+cp .env.example .env                              # completa APP_KEY, DB_PASSWORD y DB_ROOT_PASSWORD
+make build                                        # construye las imágenes app, worker y node
+make up                                           # levanta los cinco servicios
+docker compose exec app composer install          # el Dockerfile no lo hace por ti
 docker compose exec app php artisan key:generate
-make migrate                  # crea las tablas
+make migrate                                      # crea las tablas y siembra roles y permisos
+docker compose exec app php artisan storage:link  # sin esto, las imágenes de tareas dan 404
+docker compose exec app php artisan admin:crear    # primer usuario administrador; no hay registro público
 ```
 
 La aplicación queda en <http://localhost:8080>. `make help` lista todos los atajos

@@ -67,6 +67,27 @@ La regla 9 es la mitad que faltaba, y llegó en la fase 05: el rol global no sol
 que se **escribe**, también lo que se **lee**. Ver
 [«El rol global `invitado` nunca ve lo interno»](#el-rol-global-invitado-nunca-ve-lo-interno-corregido-en-la-fase-05).
 
+### El primer administrador: cómo se sale del huevo y la gallina
+
+La regla 7 dice que las cuentas las crea el administrador, pero en una base recién
+migrada no existe ninguno todavía. Dos piezas resuelven esto, añadidas fuera de fase
+(mantenimiento post-fase-12, ver
+[`docs/06-historial-de-decisiones.md`](../06-historial-de-decisiones.md)):
+
+1. **Los roles y permisos ya existen sin sembrar nada aparte.** La migración
+   `2026_09_04_140000_sembrar_roles_y_permisos` invoca `RolesYPermisosSeeder` desde su
+   `up()`, así que el rol `administrador` (y `miembro`, `invitado`) existe en cuanto
+   corre `php artisan migrate`, sin depender de `--seed` ni de que alguien se acuerde
+   del nombre de la clase.
+2. **`php artisan admin:crear`** (`app/Console/Commands/CrearAdministrador.php`) crea el
+   usuario y le asigna el rol, sin pasar por el registro —que sigue deshabilitado—.
+   Es idempotente por correo (`updateOrCreate`): correrlo de nuevo con uno que ya
+   existe lo actualiza, incluso para promoverlo a administrador si tenía otro rol.
+
+`desplegar.sh` lo ofrece de forma interactiva en la primera instalación; fuera de él,
+`docker compose exec app php artisan admin:crear` pide nombre, correo y contraseña por
+consola.
+
 ## Flujo principal
 
 ```mermaid

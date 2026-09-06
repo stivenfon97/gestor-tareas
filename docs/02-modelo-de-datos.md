@@ -22,6 +22,19 @@ que incluye además el comportamiento de cada `onDelete`.
   enum: un registro histórico no puede quedar inválido porque el dominio evolucione.
 - **Nombres en español**, salvo `users`, `password`, `created_at` y demás que Laravel
   impone. La columna de usuario en las tablas propias es `usuario_id`, no `user_id`.
+- **Collation `utf8mb4_0900_ai_ci`** en las 33 tablas (dominio y las que impone
+  Laravel/Spatie por igual) y en el esquema completo — el nativo de MySQL 8: más
+  preciso y más rápido que `utf8mb4_unicode_ci` (el que traía Laravel por defecto) y
+  que `utf8mb4_general_ci`. `mariadb` en `config/database.php` se queda en
+  `utf8mb4_unicode_ci` a propósito: no soporta las collations `_0900_`, y este
+  proyecto corre sobre `mysql:8.4`, no sobre MariaDB.
+- **Las 17 tablas de dominio llevan comentario de tabla, y sus columnas menos obvias
+  comentario de columna**, a nivel de motor (`agregar_comentarios_a_tablas_de_dominio`).
+  Antes de esa migración, `information_schema` no tenía ni un solo `TABLE_COMMENT` ni
+  `COLUMN_COMMENT`: el razonamiento de diseño solo vivía en el código de las
+  migraciones y en los `@property` de los modelos, invisible para quien abre la base
+  con un cliente de MySQL. Solo aplica en MySQL: SQLite (la conexión de test) no
+  soporta comentarios y su `->change()` reconstruiría la tabla completa.
 
 ---
 

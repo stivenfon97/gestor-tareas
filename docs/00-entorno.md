@@ -21,13 +21,28 @@ maquina; por eso este stack no lo usa.
 
 ## Levantar el proyecto desde cero
 
+La forma recomendada es `./desplegar.sh` desde la raiz del repositorio: valida el
+entorno, pide o genera las credenciales, levanta los cinco servicios, migra y
+pregunta si crear el primer administrador, con un informe al final. Detalle completo
+en [`07-despliegue.md`](07-despliegue.md).
+
+Paso a paso manual, si prefieres no usar el script:
+
 ```bash
-cp .env.example .env          # completar APP_KEY, DB_PASSWORD y DB_ROOT_PASSWORD
-make build                    # construye las imagenes app, worker y node
-make up                       # levanta los cinco servicios
+cp .env.example .env                              # completar APP_KEY, DB_PASSWORD y DB_ROOT_PASSWORD
+make build                                        # construye las imagenes app, worker y node
+make up                                           # levanta los cinco servicios
+docker compose exec app composer install          # el Dockerfile instala el binario de Composer, no las dependencias
 docker compose exec app php artisan key:generate
-make migrate                  # crea las tablas
+make migrate                                      # crea las tablas y siembra roles y permisos (migracion, no seeder aparte)
+docker compose exec app php artisan storage:link  # sin esto, las imagenes de tareas y reuniones dan 404
+docker compose exec app php artisan admin:crear    # primer usuario administrador: no hay registro publico
 ```
+
+Los dos pasos de `composer install` y `storage:link` faltan con facilidad en un clon
+recien hecho: sin `vendor/`, `worker` y `node` entran en bucle de reinicio (`queue:work`
+y el plugin de Wayfinder de Vite necesitan `artisan`, que no arranca sin
+`vendor/autoload.php`); sin el enlace, el disco publico de Medialibrary no sirve nada.
 
 La aplicacion queda en <http://localhost:8080>.
 

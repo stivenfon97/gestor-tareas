@@ -379,6 +379,107 @@ una librería de terceros.
 
 ---
 
+## Mantenimiento post-fase-12
+
+Las siguientes decisiones no llevan número de fase: se tomaron después del cierre del
+proyecto (fase 12), directamente sobre `main`, a petición explícita en cada caso —no
+siguieron el flujo de rama por fase que describe
+[`04-control-de-versiones.md`](04-control-de-versiones.md)—. Se documentan aquí porque
+el criterio del documento (decisiones no obvias, con su porqué y sus alternativas) no
+depende de que exista una rama.
+
+### Collation `utf8mb4_0900_ai_ci`, no `utf8mb4_unicode_ci` ni `utf8mb4_general_ci`
+
+**Decisión:** las 33 tablas y el esquema completo pasan de `utf8mb4_unicode_ci` (el
+default de Laravel, en las tablas) y `utf8mb4_0900_ai_ci` (el default de MySQL 8.4, que
+había quedado por accidente en el esquema, sin que nadie lo pidiera) a
+`utf8mb4_0900_ai_ci` en todas partes, de forma consistente.
+
+**Por qué:** dos collations distintas convivían en el mismo esquema sin que ninguna
+fuera una elección — un accidente de cómo Docker crea la base de datos la primera vez.
+`utf8mb4_0900_ai_ci` es el collation nativo de MySQL 8: más preciso y más rápido que
+`utf8mb4_unicode_ci`, y evita el riesgo de "Illegal mix of collations" si algún día una
+consulta cruza por texto dos tablas con collations distintas.
+
+**Alternativa descartada:** `utf8mb4_general_ci`, el estándar habitual de quien pidió el
+cambio en otros proyectos. Se descartó porque es la opción más antigua y menos precisa
+de las tres disponibles — no hay motivo técnico para preferirla sobre la nativa de
+MySQL 8 en un proyecto que ya corre sobre `mysql:8.4`.
+
+### `APP_TIMEZONE` conectado, pero `created_at`/`updated_at` se quedan en UTC
+
+**Decisión:** `config/app.php` pasa de `'timezone' => 'UTC'` (hardcodeado, ignorando la
+variable de entorno) a `'timezone' => env('APP_TIMEZONE', 'UTC')`, y la conexión MySQL
+manda `SET time_zone = '-05:00'` a su sesión. Ninguna fecha existente se reinterpreta:
+el cambio es hacia adelante.
+
+**Por qué:** `APP_TIMEZONE=America/Bogota` llevaba en `.env` desde siempre sin hacer
+nada. El síntoma concreto: `CambiarEstadoTarea::ajustarFechas()` fija `fecha_inicio`/
+`fecha_fin` con `now()`, y con `app.timezone` en UTC, cualquier tarea movida a
+`en_proceso` entre las 7pm y la medianoche hora Bogotá quedaba fechada al día
+siguiente, porque en UTC ya había cruzado la medianoche. Se verificó primero que nada
+en el código dependiera de que `app.timezone` fuera UTC (ninguna consulta SQL cruda con
+`NOW()`, todas las fechas viajan al frontend ya formateadas con
+`toDateString()`/`toDateTimeString()`, nunca por la serialización automática de
+Eloquent que sí fuerza UTC) antes de cambiarlo.
+
+**Por qué no se tocó también la serialización de `created_at`/`updated_at`:** Laravel
+las fuerza a UTC siempre, sin importar `app.timezone` — es un comportamiento
+documentado, no un descuido. Revertirlo habría exigido pelear contra el framework para
+un beneficio marginal: esas dos columnas son metadatos técnicos, no una fecha que el
+usuario lea directamente.
+
+**Alternativa descartada:** dejar `app.timezone` en UTC y corregir `now()` por
+`now('America/Bogota')` solo en los sitios puntuales donde importa el día calendario
+de Bogotá. Se descartó tras confirmar que no había ningún otro código que dependiera de
+que `app.timezone` fuera UTC específicamente: el cambio global es más simple y cierra
+la puerta a que aparezca el mismo bug en el próximo sitio que use `now()` sin pensar en
+la zona horaria.
+
+### Roles y permisos sembrados desde una migración, no solo desde un seeder
+
+**Decisión:** `RolesYPermisosSeeder` —ya separado a propósito del seeder de datos de
+ejemplo desde antes— ahora además se invoca desde la migración
+`2026_09_04_140000_sembrar_roles_y_permisos`, en su `up()`.
+
+**Por qué:** un despliegue con datos vacíos (sin `DesarrolloSeeder`) se quedaba también
+sin roles, porque `migrate --seed` corre las dos cosas juntas o ninguna. Sin el rol
+`administrador` no hay a quién asignárselo al primer usuario, y no hay pantalla de
+registro para crear uno por otra vía. Como `php artisan migrate` es lo único que
+cualquier forma de desplegar este proyecto corre siempre —`desplegar.sh`, `make
+migrate` a secas, CI—, ponerlo en una migración lo hace automático sin depender de que
+nadie recuerde una bandera `--seed` ni el nombre de una clase.
+
+**Alternativa descartada:** que `desplegar.sh` llamara a `RolesYPermisosSeeder`
+explícitamente, sin importar la respuesta a "¿cargar datos de ejemplo?". Se descartó
+porque solo resolvía el problema para quien usa ese script — cualquier otro método de
+desplegar el proyecto seguía sin roles.
+
+### El bind mount del código lleva `:z`, por SELinux en Fedora/RHEL
+
+**Decisión:** `.:/var/www/html` pasa a `.:/var/www/html:z` en los cinco servicios que lo
+montan (`app`, `worker`, `node`, `nginx`, `humo`).
+
+**Por qué:** en un host con SELinux en modo `enforcing` —el valor por defecto en Fedora
+Workstation/Server y en RHEL, no en este entorno de referencia ni en WSL2/Ubuntu/
+Debian—, un bind mount sin etiquetar queda bloqueado: cualquier contenedor que intente
+leer o escribir ahí recibe "Permission denied" sin que el error apunte a la causa. Salió
+a la luz al confirmar si el proyecto ya se podía clonar y desplegar en una máquina
+Fedora.
+
+**Por qué `:z` minúscula y no `:Z`:** `:Z` relabela el mount como exclusivo de un solo
+contenedor. Como los cinco servicios comparten este mismo bind mount, `:Z` habría hecho
+que el primer contenedor en arrancar se quedara con el acceso y bloqueara a los otros
+cuatro. `:z` es precisamente la opción para un mount compartido entre varios
+contenedores.
+
+**Alternativa descartada:** decirle al usuario que baje SELinux a modo `permissive` o lo
+desactive. Se descartó por ser una degradación de seguridad de todo el sistema para
+resolver un problema de un solo bind mount, cuando la solución correcta (`:z`) no tiene
+ningún costo en un host sin SELinux.
+
+---
+
 ## Ver también
 
 - [`03-dominio.md`](03-dominio.md) — las reglas de negocio numeradas que varias de estas
