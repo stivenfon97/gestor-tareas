@@ -42,3 +42,10 @@ Nunca se versionan: `.env` (jamás; `.env.example` sí, con los valores sensible
 Regla de fondo: se versiona lo escrito por un humano y lo no regenerable. Antes de un commit grande verifica los dos lados: `git status --short | grep -E '\.env$|node_modules|/vendor/|auth\.json'` debe salir vacío, y `git status --short --ignored | grep '^!!' | grep -E '\.ai/|docs/|docker/'` también. Un `.env` dentro del historial no se borra con un commit: obliga a reescribirlo entero.
 
 **Nunca se commitea con la suite en rojo.** Un historial con commits rotos inutiliza `git bisect`, que es para lo que sirve el historial. Un commit por unidad coherente. Mensaje en Conventional Commits con el cuerpo en español explicando el **porqué**. Una rama por fase (`fase/NN-descripcion`), fusionada a `main` con `--no-ff` y etiquetada `fase-NN`: el nodo de merge es lo que permite revertir una fase entera con `git revert -m 1 <sha>`. El hook `pre-commit` (Pint) se instala con `make hooks`. Detalle completo en `docs/04-control-de-versiones.md`.
+
+## Bind mount de código lleva :z (minúscula) por SELinux en Fedora/RHEL
+`.:/var/www/html:z` en los 5 servicios que lo montan (app, worker, node, nginx, humo). Sin `:z`, un host con SELinux en modo `enforcing` (Fedora, RHEL — no este entorno de referencia, que no tiene SELinux) deniega el acceso al bind mount con "Permission denied" en cuanto un contenedor intenta leer o escribir ahí.
+
+`:z` minúscula, nunca `:Z` mayúscula: `:Z` relabela el mount como exclusivo de un solo contenedor y rompería a los otros cuatro que comparten el mismo `.:/var/www/html`. `:z` es compartido entre varios contenedores, que es exactamente este caso.
+
+En un host sin SELinux (WSL2, Ubuntu/Debian, este entorno) la etiqueta es un no-op: verificado con la suite completa en verde antes y después de añadirla.

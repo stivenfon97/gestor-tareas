@@ -437,6 +437,19 @@ moverse juntos:
 Desalinear uno deja el contenedor `unhealthy` o a Laravel con
 `Connection refused`, sin que el error apunte a la causa.
 
+### 5. `Permission denied` en Fedora/RHEL, en cualquier operacion dentro del codigo
+
+En un host con SELinux en modo `enforcing` (el valor por defecto en Fedora
+Workstation/Server y en RHEL; no en WSL2, Ubuntu o Debian), el bind mount del
+codigo (`.:/var/www/html:z`) esta bloqueado hasta que Docker lo relabela.
+`docker-compose.yml` ya trae la etiqueta `:z`; si el error aparece igual,
+comprueba el modo con `getenforce`. Con `Enforcing`, la causa mas probable es
+una version de Docker o de `docker-compose.yml` anterior a esta etiqueta.
+
+`:z` minuscula, no `:Z`: este mismo bind mount lo comparten cinco servicios
+(`app`, `worker`, `node`, `nginx`, `humo`) a la vez, y `:Z` mayuscula relabela
+el mount como exclusivo de un solo contenedor, rompiendo a los otros cuatro.
+
 ---
 
 ## Recuperacion: volver al estado de una fase

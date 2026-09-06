@@ -255,6 +255,17 @@ if [ ! -f docker-compose.yml ] || [ ! -f artisan ] || [ ! -f composer.json ]; th
 fi
 registrar_ok "Ejecutando desde la raíz del repositorio"
 
+# Informativo, no bloqueante: docker-compose.yml ya lleva ":z" en el bind
+# mount del código, así que no hace falta actuar — pero vale la pena que
+# quede explícito en el informe para quien lo lea en Fedora/RHEL, donde
+# esto sí importa (a diferencia de WSL2/Ubuntu/Debian).
+if command -v getenforce >/dev/null 2>&1; then
+    estado_selinux=$(getenforce 2>/dev/null)
+    if [ "$estado_selinux" = "Enforcing" ]; then
+        registrar_ok "SELinux en modo Enforcing detectado; docker-compose.yml ya monta el código con ':z'"
+    fi
+fi
+
 if ! command -v docker >/dev/null 2>&1; then
     registrar_error "Docker instalado" "No se encontró el comando 'docker'. Instala Docker Engine (Community Edition o Desktop, cualquiera de los dos sirve) antes de continuar."
     escribir_informe

@@ -13,7 +13,15 @@ services:
     volumes:
       # El bind mount del codigo va primero; el volumen nombrado de storage/app
       # va despues para que no lo sobrescriba y los archivos subidos persistan.
-      - .:/var/www/html
+      #
+      # ":z" (minuscula, no "Z"): en un host con SELinux en modo enforcing
+      # (Fedora, RHEL, por defecto), este mismo bind mount lo comparten cinco
+      # servicios a la vez (app, worker, node, nginx, humo). Sin la etiqueta,
+      # SELinux deniega el acceso con "Permission denied" en cuanto un
+      # contenedor intenta leer o escribir aqui. "Z" mayuscula seria
+      # exclusiva de un solo contenedor y rompería a los otros cuatro. En un
+      # host sin SELinux (este, WSL2, Ubuntu/Debian) la etiqueta no hace nada.
+      - .:/var/www/html:z
       - archivos-storage:/var/www/html/storage/app
       - dependencias-node:/var/www/html/node_modules
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-gestor-tareas.ini:ro
@@ -33,7 +41,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:z
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       app:
@@ -80,7 +88,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:z
       - dependencias-node:/var/www/html/node_modules
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     healthcheck:
@@ -105,7 +113,7 @@ services:
     working_dir: /var/www/html
     command: php artisan queue:work --tries=3 --timeout=120 --sleep=3
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:z
       - archivos-storage:/var/www/html/storage/app
       - dependencias-node:/var/www/html/node_modules
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-gestor-tareas.ini:ro
@@ -146,7 +154,7 @@ services:
       HUMO_CORREO: ${HUMO_CORREO:-admin@gestor.test}
       HUMO_CLAVE: ${HUMO_CLAVE:-password}
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:z
     depends_on:
       nginx:
         condition: service_healthy
