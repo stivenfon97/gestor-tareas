@@ -33,6 +33,17 @@ Si vienes por primera vez, en este orden:
 | [`06-historial-de-decisiones.md`](06-historial-de-decisiones.md) | Decisiones importantes con su porqué y las alternativas descartadas | ✅ |
 | [`07-despliegue.md`](07-despliegue.md) | El script `desplegar.sh`: qué valida, qué pregunta y cómo leer su informe | ✅ |
 
+### Fuera de fase
+
+Informes de ajustes hechos después del cierre del proyecto (fase 12), directo sobre
+`main`, sin una rama `fase/NN` propia. No describen cómo es el sistema —eso lo hacen
+los documentos de arriba, ya actualizados con estos cambios—, sino qué se hizo, por
+qué y cómo se verificó, de una sola lectura.
+
+| Documento | Contenido |
+|---|---|
+| [`mantenimiento-post-fase-12.md`](mantenimiento-post-fase-12.md) | Comentarios de BD, collation, zona horaria, `desplegar.sh`, roles por migración, fix de SELinux, y la auditoría de documentación que los puso al día |
+
 ### Módulos
 
 | Módulo | Estado | Módulo | Estado |
