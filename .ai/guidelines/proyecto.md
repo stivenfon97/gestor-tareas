@@ -13,6 +13,11 @@ facturables. Corre en local sobre Docker.
   traducción.
 - **Ningún color literal en componentes.** Ni hex (`#10b981`) ni utilidades crudas
   (`bg-yellow-100`). Solo tokens semánticos del tema.
+- **El diseño se construye con shadcn-vue, preset Emerald** (Style Nova, Base color
+  Neutral, Theme Emerald, iconos Lucide, Radius Default). Solo componentes de
+  `components/ui/` y tokens del tema; nada de CSS inventado. Los formularios siguen la
+  skill `formularios-shadcn`: `Label` + `InputGroup` con icono lucide + `InputError`, y
+  los estados de foco, error y éxito por atributo, nunca por clase.
 - **El dinero es `decimal`, nunca `float`.** Montos `decimal(12,2)`, tasas de cambio
   `decimal(12,4)`.
 - **Enums de PHP para conjuntos cerrados de valores**, no tablas de catálogo.

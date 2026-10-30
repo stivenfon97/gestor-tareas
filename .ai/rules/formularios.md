@@ -1,0 +1,36 @@
+---
+paths:
+  - 'resources/js/**/*.vue'
+---
+
+# Formularios
+
+## Todo campo se compone con shadcn-vue: Label, InputGroup con icono lucide e InputError
+El sistema de diseño es **shadcn-vue con el preset Emerald** (Style Nova, Base color Neutral, Theme Emerald, Lucide, Radius Default). Un campo de texto **no** es un `<input>` con clases: es este bloque, y nada más.
+
+```vue
+<div class="grid gap-2">
+    <Label for="email">{{ $t('auth.acceso.correo') }}</Label>
+    <InputGroup>
+        <InputGroupInput id="email" type="email" :placeholder="$t('auth.acceso.correo_marcador')" :aria-invalid="!!errors.email" />
+        <InputGroupAddon><Mail aria-hidden="true" /></InputGroupAddon>
+    </InputGroup>
+    <InputError :message="errors.email" />
+</div>
+```
+
+- `Label` siempre, asociado por `for`/`id`: el placeholder no es una etiqueta.
+- Icono de `@lucide/vue` al inicio según el tipo de dato (correo `Mail`, contraseña `Lock`, búsqueda `Search`, fecha `Calendar`, dinero `DollarSign`/`Banknote`…). Tabla completa en `.ai/skills/formularios-shadcn/SKILL.md`.
+- Botón interno (ver contraseña, limpiar) con `InputGroupButton type="button"` dentro de `InputGroupAddon align="inline-end"`, con `aria-label` traducido.
+- Texto largo con `InputGroupTextarea`; listas cerradas con `Select`/`SelectTrigger`.
+
+## Los estados se ponen con atributos, nunca con clases
+Foco, error y éxito los pinta el componente desde tokens del tema. La página solo pone el atributo:
+
+| Estado | Atributo en el control | Token |
+|---|---|---|
+| Foco | — (`:focus-visible`) | `--campo-foco`: azul en claro, gris en oscuro |
+| Error | `:aria-invalid="!!errors.x"` | `--destructive` |
+| Éxito comprobado | `:data-valido="true"` | `--exito` |
+
+Prohibido escribir en una página `focus:border-*`, `ring-*`, `border-red-*` o cualquier `<style>` para un campo. Razón: el foco de campo es azul/gris y el de los botones es esmeralda; un parche local rompe uno de los dos modos y no se ve hasta cambiar de tema. Si falta un estado, se añade como token en `resources/css/app.css` (registrado en `@theme inline`) y se aplica en el componente de `components/ui/`.

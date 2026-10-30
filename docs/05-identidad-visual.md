@@ -207,13 +207,17 @@ guiar el ojo por la fila, no dibujarse a sí mismo.
 
 ### Radios
 
+`--radius` vale **0.625rem (10px)**, el default del preset Emerald de shadcn-vue. Antes
+era 6px y dejaba los campos en 4px, demasiado secos al lado de los componentes de
+shadcn-vue; se subió para que los campos se vean como en shadcn-vue.
+
 | Token | Valor | Uso |
 |---|---|---|
-| `--radius-sm` | 4px | Campos, badges, botones |
-| `--radius-md` | 6px | Paneles, menús, diálogos |
+| `--radius-sm` | 6px | Badges, elementos pequeños |
+| `--radius-md` | 8px | Campos, botones, triggers de select |
+| `--radius-lg` | 10px | Paneles, menús, diálogos |
 
-No hay radio grande. Un radio de 12px o más es lenguaje de tarjeta de producto y aquí no
-hay tarjetas de producto.
+Sigue sin haber radio de tarjeta de producto: nada de 12px o más escrito a mano.
 
 ---
 
@@ -378,6 +382,8 @@ en `@theme inline` que es lo que hace que Tailwind genere las utilidades.
 | `--color-fila-hover`, `--color-fila-activa` | `bg-fila-hover`, `bg-fila-activa` |
 | `--color-borde`, `--color-borde-fuerte` | `border-borde`, `border-borde-fuerte` |
 | `--color-texto`, `--color-texto-suave`, `--color-texto-tenue` | `text-texto`, `text-texto-suave`… |
+| `--color-campo-foco` | `border-campo-foco`, `ring-campo-foco/50` (foco de campo) |
+| `--color-exito` | `border-exito`, `ring-exito/20`, `text-exito` (campo válido) |
 
 ### Estados y prioridad
 
@@ -704,6 +710,28 @@ apariencia de algo en lo que se pueda pulsar. Pasa a `outline`.
 
 El rótulo dice **qué va a pasar**, no en qué estado está: en un cliente activo pone
 «Desactivar» y en uno inactivo, «Activar».
+
+---
+
+## 13b. Formularios
+
+La base es **shadcn-vue con el preset Emerald** (Style Nova, Base color Neutral, Theme
+Emerald, iconos Lucide, Radius Default). Un campo es siempre `Label` + `InputGroup`
+(con un icono de lucide al inicio que dice qué dato va ahí) + `InputError` debajo. El
+icono acompaña al placeholder; la etiqueta no se sustituye por él.
+
+Los estados los pinta el componente desde tokens, y la página solo pone un atributo:
+
+| Estado | Claro | Oscuro | Cómo |
+|---|---|---|---|
+| Foco | azul | gris neutro | `--campo-foco`, automático en `:focus-visible` |
+| Error | rojo | rojo | `--destructive`, con `aria-invalid="true"` |
+| Éxito | verde | verde claro | `--exito`, con `data-valido="true"` |
+
+El foco de campo **no** es esmeralda: el esmeralda es de la acción primaria (`--ring`
+sigue siendo `--marca` para botones y enlaces), y un campo enfocado no es una acción. El
+verde de éxito tampoco es esmeralda por el mismo motivo. Detalle, tabla de iconos por
+tipo de campo y ejemplo completo en `.ai/skills/formularios-shadcn/SKILL.md`.
 
 ---
 

@@ -5,6 +5,14 @@ paths:
 
 # Components
 
+## El sistema de diseño es shadcn-vue con el preset Emerald
+Toda pieza de interfaz se compone con componentes de **shadcn-vue** (`resources/js/components/ui/`, registro `new-york-v4`) sobre el preset **Style Nova / Base color Neutral / Theme Emerald / Icon library Lucide / Radius Default**. Los iconos son siempre de `@lucide/vue`.
+
+- Antes de escribir un componente propio, mira si shadcn-vue ya lo tiene y añádelo desde el registro oficial. Lo que se cambia en un componente de `ui/` son **tokens** (`campo-foco`, `exito`), nunca su estructura.
+- Nada de CSS inventado: ni `<style>`, ni clases de color, foco o anillo fuera de las que traen los componentes y los tokens del tema.
+- Formularios: `Label` + `InputGroup` con icono lucide + `InputError`, estados por atributo (`aria-invalid`, `data-valido`). Detalle en `.ai/rules/formularios.md` y en la skill `formularios-shadcn`.
+- Los componentes de `ui/` están fuera de Prettier y ESLint (`.prettierignore`, `eslint.config.js`) para que sigan siendo comparables con el registro: conserva su estilo (comillas dobles, sin punto y coma).
+
 ## Prohibido cualquier color literal en componentes
 Sin hex (`#10b981`), sin utilidades crudas de paleta (`bg-yellow-100`, `text-blue-600`, `border-red-500`). **Solo tokens semánticos** definidos en el tema.
 

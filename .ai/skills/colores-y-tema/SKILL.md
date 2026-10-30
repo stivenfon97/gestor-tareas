@@ -24,8 +24,16 @@ componente no tiene que saber cuál está activo.
 
 ## Base visual
 
+- **Sistema de diseño: shadcn-vue con el preset Emerald** (Style Nova, Base color
+  Neutral, Theme Emerald, iconos Lucide, Radius Default `--radius: 0.625rem`). Los
+  tokens de shadcn (`--primary`, `--ring`, `--input`, `--destructive`…) son un puente
+  hacia los del proyecto (`--marca`, `--borde-fuerte`…): mismos valores, otro nombre.
+  Formularios y sus estados: skill `formularios-shadcn`.
 - **Marca: esmeralda.** Reservado a **acciones primarias** (botón de guardar, enlace
-  principal, foco activo).
+  principal, foco de botones y enlaces vía `--ring`).
+- **Campos de formulario: tokens propios.** Foco `--campo-foco` (azul en claro, gris
+  neutro en oscuro), error `--destructive`, éxito `--exito` (verde, **no** esmeralda).
+  Un campo enfocado no es una acción primaria y no se pinta de marca.
 - **Base neutra: stone.** Superficies, bordes y texto.
 - **Modo claro y oscuro son ambos de primera clase.** Ninguno es "el bueno".
 
@@ -43,6 +51,7 @@ componente no tiene que saber cuál está activo.
 | Texto | `--color-texto{-variante}` | `--color-texto`, `--color-texto-suave` |
 | Estado | `--color-estado-{estado}-{rol}` | `--color-estado-pendiente-fondo`, `--color-estado-pendiente-texto` |
 | Prioridad | `--color-prioridad-{prioridad}` | `--color-prioridad-critica` |
+| Campo de formulario | `--color-campo-{estado}`, `--color-exito` | `--color-campo-foco`, `--color-exito` |
 
 Cada estado define tres roles: `-fondo`, `-texto` y `-borde`.
 
@@ -160,3 +169,6 @@ familia. No cambies de familia: el color comunica el estado.
 - [ ] Se ve correcto en claro **y** en oscuro.
 - [ ] Los badges de estado llegan a 4.5:1 en ambos modos.
 - [ ] El esmeralda solo aparece en acciones primarias.
+- [ ] Los campos usan los componentes de shadcn-vue y sus estados por atributo
+      (`aria-invalid`, `data-valido`), sin clases de color propias
+      (skill `formularios-shadcn`).
