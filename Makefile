@@ -10,7 +10,7 @@ EXEC := $(DC) exec app
 RESPALDOS_DIR ?= $(HOME)/respaldos-gestor-tareas
 
 .DEFAULT_GOAL := help
-.PHONY: help up down build fresh test pint formato lint shell logs migrate hooks humo respaldo restaurar
+.PHONY: help up down build fresh test pint formato lint shell logs migrate hooks humo respaldo restaurar boost
 
 help: ## Muestra esta ayuda
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -65,6 +65,11 @@ shell: ## Abre una shell dentro del contenedor app
 
 logs: ## Sigue los logs de todos los servicios
 	$(DC) logs -f
+
+# `boost:update` y no `boost:install`: este último reescribe las tres
+# configuraciones MCP con `php` del host, que no alcanza la base de Docker.
+boost: ## Regenera CLAUDE.md, AGENTS.md y las skills de los agentes desde .ai/ y boost.json
+	$(DC) exec -T app php artisan boost:update
 
 hooks: ## Instala los git hooks versionados en .git/hooks
 	@cp docker/git-hooks/pre-commit .git/hooks/pre-commit

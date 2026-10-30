@@ -44,11 +44,19 @@ fase 06*, y está etiquetado `fase-06`. A partir de ahí cada fase deja su rastr
 | `/vendor`, `/node_modules` | Se reconstruyen desde `composer.lock` y `package-lock.json`. |
 | `/storage/app/public`, `/storage/framework`, `/storage/logs`, `/storage/pail` | Datos de ejecución y caché. Solo viajan los `.gitignore` que sostienen los directorios. |
 | `/public/build`, `/public/hot`, `/public/storage` | Artefactos de compilación y un enlace simbólico. |
-| `.mcp.json`, `CLAUDE.md`, `AGENTS.md`, `boost.json` | Los regenera Laravel Boost con `php artisan boost:install`. Versionarlos produce conflictos en cada regeneración. |
+| `CLAUDE.md`, `AGENTS.md`, `/.agents/skills` | Los regenera Laravel Boost con `make boost` desde `.ai/` y `boost.json`. Versionarlos produce conflictos en cada regeneración. |
 | `/resources/js/actions`, `/resources/js/routes`, `/resources/js/wayfinder` | Los genera Wayfinder desde las rutas de PHP. El código de PHP es la fuente. |
 | `/lang/php_*.json` | Traducciones compiladas por `laravel-vue-i18n` desde los `.php` de `lang/`. |
 | `/.claude/settings.local.json`, `/.claude/skills` | Configuración local del agente. Las skills de dominio son enlaces simbólicos a `.ai/skills/`, que sí se versiona; las de framework las reinstala Boost. |
 | `.phpunit.result.cache`, `/.phpunit.cache`, `/auth.json` | Caché de pruebas y credenciales de Composer. |
+
+`boost.json`, `.mcp.json`, `.codex/config.toml` y `.agents/mcp_config.json` **sí** se
+versionan: `boost.json` dice qué agentes (Claude Code, Codex, Antigravity) y qué
+skills instala Boost, y sin él `boost:update` no tiene qué regenerar. Las tres
+configuraciones MCP lanzan `boost:mcp` con `docker compose exec -T app`, algo que
+`boost:install` no sabe escribir: genera `php artisan boost:mcp` en el host, que no
+alcanza la base de datos `mysql` de Docker. Por eso `make boost` usa `boost:update`,
+que no toca el MCP; **no ejecutes `boost:install --mcp`**, que las sobrescribe.
 
 > **La regla de fondo:** se versiona lo que un humano escribió y lo que no se puede
 > regenerar. Todo lo derivable de otra cosa que sí está en el repositorio, fuera.

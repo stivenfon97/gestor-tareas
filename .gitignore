@@ -32,11 +32,13 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Regenerados por Laravel Boost
-/.mcp.json
+# Regenerados por Laravel Boost (`make boost`) desde .ai/ y boost.json.
+# boost.json y las tres configuraciones MCP (.mcp.json, .codex/config.toml,
+# .agents/mcp_config.json) sí se versionan: Boost no sabe generar el MCP
+# dentro de Docker, y sin boost.json no hay regeneración no interactiva.
 /CLAUDE.md
 /AGENTS.md
-/boost.json
+/.agents/skills
 
 # Traducciones compiladas por laravel-vue-i18n
 /lang/php_*.json
@@ -44,6 +46,6 @@ yarn-error.log
 # Configuracion local de Claude Code y skills instaladas por Boost.
 # La fuente de verdad de las skills de dominio es .ai/skills/, que si se versiona;
 # .claude/skills/ solo contiene enlaces simbolicos a ella mas las skills de
-# framework que Boost reinstala con `php artisan boost:install`.
+# framework que Boost reinstala con `make boost`.
 /.claude/settings.local.json
 /.claude/skills

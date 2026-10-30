@@ -72,6 +72,18 @@ de Boost guardan lo que los agentes necesitan **mientras programan**:
 Regla práctica: si es una instrucción para programar, va en `.ai/`. Si es una
 explicación para entender, va en `docs/`.
 
+`.ai/` es la **única fuente**. Boost la reparte a los tres agentes configurados en
+`boost.json` con `make boost` (hay que correrlo tras editar `.ai/`):
+
+| Agente | Guidelines | Skills | MCP |
+|---|---|---|---|
+| Claude Code | `CLAUDE.md` | `.claude/skills/` | `.mcp.json` |
+| Codex | `AGENTS.md` | `.agents/skills/` | `.codex/config.toml` |
+| Antigravity | `AGENTS.md` | `.agents/skills/` | `.agents/mcp_config.json` |
+
+Las skills de `.ai/skills/` llegan como enlaces simbólicos, así que editarlas no
+pide regenerar; crear una nueva, sí.
+
 ### `01-arquitectura.md` no describe una fase: describe capas
 
 Cada fase añadió su sección cuando introdujo una pieza nueva, y la fase 12 lo revisó
