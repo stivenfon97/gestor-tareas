@@ -35,9 +35,21 @@ use App\Http\Controllers\ReunionTareaController;
 use App\Http\Controllers\TableroController;
 use App\Http\Controllers\TareaController;
 use App\Http\Controllers\VistaGuardadaController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+/*
+ * La raíz no tiene pantalla propia: no hay registro público ni nada que
+ * enseñar a quien no tiene cuenta, así que una portada solo era un clic más
+ * antes del formulario de acceso.
+ *
+ * Se decide aquí y no con `Route::redirect('/', '/dashboard')`: con eso un
+ * invitado daría dos saltos (`/` → `/dashboard` → `/login`) y `auth` guardaría
+ * `/dashboard` como destino previsto, que es justo a donde Fortify lo manda de
+ * todas formas. Conserva el nombre `home`: lo usan el logo de las pantallas de
+ * acceso y las redirecciones de Fortify al cerrar sesión.
+ */
+Route::get('/', fn () => to_route(Auth::check() ? 'dashboard' : 'login'))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
