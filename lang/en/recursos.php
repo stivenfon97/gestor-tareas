@@ -31,5 +31,7 @@ return [
         'monto_cop' => 'Amount (COP)',
         'tasa_cambio' => 'Exchange rate',
         'titulo' => 'Title',
+        'origen_tasa' => 'Rate source',
+        'referencia' => 'Reference',
     ],
 ];
