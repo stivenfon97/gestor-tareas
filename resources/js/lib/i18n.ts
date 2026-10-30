@@ -1,4 +1,5 @@
 import {
+    isLoaded,
     trans as transDelPaquete,
     transChoice as transChoiceDelPaquete,
 } from 'laravel-vue-i18n';
@@ -58,6 +59,15 @@ const revisar = (clave: string, traduccion: string): string => {
     // pasó tal cual —el nombre de un proyecto, el título de una migaja—, que
     // devolver sin tocar es lo correcto.
     if (!estricto || traduccion !== clave || !esClaveDeTraduccion(clave)) {
+        return traduccion;
+    }
+
+    // Sin diccionario cargado **todas** las claves «faltan», y no es verdad.
+    // `app.ts` lo carga antes del primer render, así que hoy no debería
+    // pasar; si vuelve a pasar, avisar aquí gastaría el único aviso de cada
+    // clave (`yaAvisadas`) en un falso positivo. Un diccionario que llega
+    // vacío sí cuenta como cargado: ese caso lo sigue avisando esto y `onLoad`.
+    if (!isLoaded()) {
         return traduccion;
     }
 
