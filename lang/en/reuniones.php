@@ -70,6 +70,14 @@ return [
         'tabla' => 'Insert table',
     ],
 
+    'marcadores' => [
+        'titulo' => 'What the meeting was about',
+        'acuerdos' => 'What was agreed and who owns it',
+        'asistente_nombre' => 'Full name',
+        'organizacion' => 'Company or department',
+        'enlace_url' => 'https://',
+    ],
+
     'validacion' => [
         'documento_invalido' => 'The meeting content is not valid.',
     ],

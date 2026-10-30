@@ -1,10 +1,23 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { Calendar } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { formatearFechaHora } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { create, index } from '@/routes/proyectos/reuniones';
@@ -35,6 +48,19 @@ const props = defineProps<{
 const tipo = ref(props.filtros.tipo ?? '');
 const desde = ref(props.filtros.desde ?? '');
 const hasta = ref(props.filtros.hasta ?? '');
+
+/*
+ * `SelectItem` no admite el valor vacío (reka-ui lo reserva para «sin
+ * selección»): «Todos» usa este centinela y el filtro sigue siendo `''`.
+ */
+const TODOS = '__todos__';
+
+const tipoElegido = computed({
+    get: (): string => tipo.value || TODOS,
+    set: (valor: string) => {
+        tipo.value = valor === TODOS ? '' : valor;
+    },
+});
 
 /*
  * El estado del listado va en la URL, no en memoria: así "las reuniones de
@@ -80,37 +106,58 @@ const limpiarFiltros = (): void => {
 
         <div class="flex flex-wrap items-end gap-corto">
             <div class="grid gap-1">
-                <label for="filtro-tipo" class="text-fino text-texto-suave">{{
+                <Label for="filtro-tipo" class="text-fino text-texto-suave">{{
                     trans('reuniones.filtros.tipo')
-                }}</label>
-                <select
-                    id="filtro-tipo"
-                    v-model="tipo"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">{{ trans('comun.tabla.todos') }}</option>
-                    <option
-                        v-for="opcion in props.opciones.tipos"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
-                    >
-                        {{ trans(opcion.etiqueta) }}
-                    </option>
-                </select>
+                }}</Label>
+                <Select v-model="tipoElegido">
+                    <SelectTrigger id="filtro-tipo">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem :value="TODOS">
+                            {{ trans('comun.tabla.todos') }}
+                        </SelectItem>
+                        <SelectItem
+                            v-for="opcion in props.opciones.tipos"
+                            :key="opcion.valor"
+                            :value="opcion.valor"
+                        >
+                            {{ trans(opcion.etiqueta) }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
             <div class="grid gap-1">
-                <label for="filtro-desde" class="text-fino text-texto-suave">{{
+                <Label for="filtro-desde" class="text-fino text-texto-suave">{{
                     trans('reuniones.filtros.desde')
-                }}</label>
-                <Input id="filtro-desde" v-model="desde" type="date" />
+                }}</Label>
+                <InputGroup>
+                    <InputGroupInput
+                        id="filtro-desde"
+                        v-model="desde"
+                        type="date"
+                    />
+                    <InputGroupAddon>
+                        <Calendar aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
             </div>
 
             <div class="grid gap-1">
-                <label for="filtro-hasta" class="text-fino text-texto-suave">{{
+                <Label for="filtro-hasta" class="text-fino text-texto-suave">{{
                     trans('reuniones.filtros.hasta')
-                }}</label>
-                <Input id="filtro-hasta" v-model="hasta" type="date" />
+                }}</Label>
+                <InputGroup>
+                    <InputGroupInput
+                        id="filtro-hasta"
+                        v-model="hasta"
+                        type="date"
+                    />
+                    <InputGroupAddon>
+                        <Calendar aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
             </div>
 
             <Button variant="ghost" size="sm" @click="limpiarFiltros">

@@ -14,6 +14,7 @@ return [
     'vencido' => 'Overdue',
     'en_curso' => 'ongoing',
     'notas' => 'Notes',
+    'notas_marcador' => 'Goal or agreements for the period',
     'sin_notas' => 'No notes.',
     'fecha_fin' => 'End date',
     'fecha_fin_prevista' => 'Expected end date',

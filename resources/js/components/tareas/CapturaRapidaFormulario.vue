@@ -1,10 +1,23 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
+import { AlignLeft, FileText, ListPlus, Type } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import type { FilaCapturaRapida, Opcion } from '@/types/tareas';
 
 /**
@@ -119,13 +132,19 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
             <Label for="captura-rapida-texto">{{
                 $t('tareas.rapida.texto')
             }}</Label>
-            <textarea
-                id="captura-rapida-texto"
-                v-model="texto"
-                rows="8"
-                :placeholder="$t('tareas.rapida.ejemplo')"
-                class="rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-foreground"
-            />
+            <InputGroup>
+                <InputGroupTextarea
+                    id="captura-rapida-texto"
+                    v-model="texto"
+                    rows="8"
+                    class="font-mono"
+                    :placeholder="$t('tareas.rapida.ejemplo')"
+                    :aria-invalid="!!previsualizacion.errors.texto"
+                />
+                <InputGroupAddon align="block-start">
+                    <ListPlus aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <p class="text-xs text-muted-foreground">
                 {{ $t('tareas.rapida.formato') }}
             </p>
@@ -198,10 +217,21 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                             <Label :for="`captura-nombre-${fila.linea}`">{{
                                 $t('comun.nombre')
                             }}</Label>
-                            <Input
-                                :id="`captura-nombre-${fila.linea}`"
-                                v-model="fila.nombre"
-                            />
+                            <InputGroup>
+                                <InputGroupInput
+                                    :id="`captura-nombre-${fila.linea}`"
+                                    v-model="fila.nombre"
+                                    :placeholder="
+                                        $t('tareas.marcadores.nombre')
+                                    "
+                                    :aria-invalid="
+                                        !!errorDeFila(indice, 'nombre')
+                                    "
+                                />
+                                <InputGroupAddon>
+                                    <Type aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
                             <InputError
                                 :message="errorDeFila(indice, 'nombre')"
                             />
@@ -211,49 +241,86 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                             <Label :for="`captura-estado-${fila.linea}`">{{
                                 $t('comun.estado')
                             }}</Label>
-                            <select
-                                :id="`captura-estado-${fila.linea}`"
-                                v-model="fila.estado"
-                                class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                            >
-                                <option
-                                    v-for="opcion in props.opciones.estados"
-                                    :key="opcion.valor"
-                                    :value="opcion.valor"
+                            <Select v-model="fila.estado">
+                                <SelectTrigger
+                                    :id="`captura-estado-${fila.linea}`"
+                                    class="w-full"
+                                    :aria-invalid="
+                                        !!errorDeFila(indice, 'estado')
+                                    "
                                 >
-                                    {{ $t(opcion.etiqueta) }}
-                                </option>
-                            </select>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="opcion in props.opciones.estados"
+                                        :key="opcion.valor"
+                                        :value="opcion.valor"
+                                    >
+                                        {{ $t(opcion.etiqueta) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError
+                                :message="errorDeFila(indice, 'estado')"
+                            />
                         </div>
 
                         <div class="grid gap-1">
                             <Label :for="`captura-tipo-${fila.linea}`">{{
                                 $t('tareas.tipo')
                             }}</Label>
-                            <select
-                                :id="`captura-tipo-${fila.linea}`"
-                                v-model="fila.tipo"
-                                class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                            >
-                                <option
-                                    v-for="opcion in props.opciones.tipos"
-                                    :key="opcion.valor"
-                                    :value="opcion.valor"
+                            <Select v-model="fila.tipo">
+                                <SelectTrigger
+                                    :id="`captura-tipo-${fila.linea}`"
+                                    class="w-full"
+                                    :aria-invalid="
+                                        !!errorDeFila(indice, 'tipo')
+                                    "
                                 >
-                                    {{ $t(opcion.etiqueta) }}
-                                </option>
-                            </select>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="opcion in props.opciones.tipos"
+                                        :key="opcion.valor"
+                                        :value="opcion.valor"
+                                    >
+                                        {{ $t(opcion.etiqueta) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError
+                                :message="errorDeFila(indice, 'tipo')"
+                            />
                         </div>
 
                         <div class="grid gap-1 sm:col-span-2">
                             <Label :for="`captura-descripcion-${fila.linea}`">{{
                                 $t('tareas.descripcion')
                             }}</Label>
-                            <textarea
-                                :id="`captura-descripcion-${fila.linea}`"
-                                v-model="fila.descripcion"
-                                rows="2"
-                                class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                            <InputGroup>
+                                <InputGroupTextarea
+                                    :id="`captura-descripcion-${fila.linea}`"
+                                    :model-value="fila.descripcion ?? ''"
+                                    rows="2"
+                                    :placeholder="
+                                        $t('tareas.marcadores.descripcion')
+                                    "
+                                    :aria-invalid="
+                                        !!errorDeFila(indice, 'descripcion')
+                                    "
+                                    @update:model-value="
+                                        (valor: string | number) =>
+                                            (fila.descripcion = String(valor))
+                                    "
+                                />
+                                <InputGroupAddon align="block-start">
+                                    <FileText aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
+                            <InputError
+                                :message="errorDeFila(indice, 'descripcion')"
                             />
                         </div>
 
@@ -268,14 +335,25 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                             <Label :for="`captura-espera-${fila.linea}`">{{
                                 $t('tareas.estado.motivo_espera')
                             }}</Label>
-                            <Input
-                                :id="`captura-espera-${fila.linea}`"
-                                :model-value="fila.motivo_espera ?? ''"
-                                @update:model-value="
-                                    (valor) =>
-                                        (fila.motivo_espera = String(valor))
-                                "
-                            />
+                            <InputGroup>
+                                <InputGroupInput
+                                    :id="`captura-espera-${fila.linea}`"
+                                    :model-value="fila.motivo_espera ?? ''"
+                                    :placeholder="
+                                        $t('tareas.marcadores.motivo_espera')
+                                    "
+                                    :aria-invalid="
+                                        !!errorDeFila(indice, 'motivo_espera')
+                                    "
+                                    @update:model-value="
+                                        (valor: string | number) =>
+                                            (fila.motivo_espera = String(valor))
+                                    "
+                                />
+                                <InputGroupAddon>
+                                    <AlignLeft aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
                             <InputError
                                 :message="errorDeFila(indice, 'motivo_espera')"
                             />
@@ -288,15 +366,31 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                             <Label :for="`captura-cancelacion-${fila.linea}`">
                                 {{ $t('tareas.estado.motivo_cancelacion') }}
                             </Label>
-                            <Input
-                                :id="`captura-cancelacion-${fila.linea}`"
-                                :model-value="fila.motivo_cancelacion ?? ''"
-                                @update:model-value="
-                                    (valor) =>
-                                        (fila.motivo_cancelacion =
-                                            String(valor))
-                                "
-                            />
+                            <InputGroup>
+                                <InputGroupInput
+                                    :id="`captura-cancelacion-${fila.linea}`"
+                                    :model-value="fila.motivo_cancelacion ?? ''"
+                                    :placeholder="
+                                        $t(
+                                            'tareas.marcadores.motivo_cancelacion',
+                                        )
+                                    "
+                                    :aria-invalid="
+                                        !!errorDeFila(
+                                            indice,
+                                            'motivo_cancelacion',
+                                        )
+                                    "
+                                    @update:model-value="
+                                        (valor: string | number) =>
+                                            (fila.motivo_cancelacion =
+                                                String(valor))
+                                    "
+                                />
+                                <InputGroupAddon>
+                                    <AlignLeft aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
                             <InputError
                                 :message="
                                     errorDeFila(indice, 'motivo_cancelacion')

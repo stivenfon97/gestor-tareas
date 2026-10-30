@@ -23,9 +23,14 @@ import TableHeader from '@tiptap/extension-table-header';
 import TableRow from '@tiptap/extension-table-row';
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
@@ -49,10 +54,36 @@ import type { DocumentoTipTap } from '@/types/reuniones';
 const json = defineModel<DocumentoTipTap>('json', { required: true });
 const html = defineModel<string>('html', { required: true });
 
+const props = defineProps<{
+    /**
+     * Id de la etiqueta visible que nombra el editor. Un `<label for>` no
+     * alcanza a un `contenteditable`, así que se asocia por `aria-labelledby`.
+     */
+    etiquetadoPor?: string;
+    /** Error de validación del contenido: se anuncia con `aria-invalid`. */
+    invalido?: boolean;
+}>();
+
+/**
+ * Atributos del área editable: se presenta como un campo de texto largo.
+ *
+ * `class: 'tiptap'` va explícito porque `setOptions` (al cambiar `invalido`)
+ * hace que ProseMirror reescriba el `className` del área y se perdería la
+ * clase que TipTap antepone al montar, de la que cuelga `[&_.tiptap]`.
+ */
+const atributosDelArea = (): Record<string, string> => ({
+    class: 'tiptap',
+    role: 'textbox',
+    'aria-multiline': 'true',
+    'aria-invalid': props.invalido ? 'true' : 'false',
+    ...(props.etiquetadoPor ? { 'aria-labelledby': props.etiquetadoPor } : {}),
+});
+
 const urlDelEnlace = ref('');
 
 const editor = useEditor({
     content: json.value,
+    editorProps: { attributes: atributosDelArea() },
     extensions: [
         // `link: false`: StarterKit trae su propia extensión de enlace: sin
         // desactivarla, choca con la que se configura abajo (con
@@ -74,6 +105,15 @@ const editor = useEditor({
         html.value = instancia.getHTML();
     },
 });
+
+watch(
+    () => [props.invalido, props.etiquetadoPor],
+    () => {
+        editor.value?.setOptions({
+            editorProps: { attributes: atributosDelArea() },
+        });
+    },
+);
 
 const activo = (nombre: string, atributos?: Record<string, unknown>): boolean =>
     editor.value?.isActive(nombre, atributos) ?? false;
@@ -267,14 +307,30 @@ const insertarTabla = (): void => {
                         <LinkIcon class="size-4" aria-hidden="true" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent class="flex w-64 gap-fino p-fino">
-                    <Input
-                        v-model="urlDelEnlace"
-                        type="url"
-                        :placeholder="trans('reuniones.editor.enlace_url')"
-                        @keydown.enter.prevent="confirmarEnlace"
-                    />
-                    <Button type="button" size="sm" @click="confirmarEnlace">
+                <PopoverContent class="flex w-72 flex-col gap-fino p-fino">
+                    <Label for="editor-enlace-url">{{
+                        trans('reuniones.editor.enlace_url')
+                    }}</Label>
+                    <InputGroup>
+                        <InputGroupInput
+                            id="editor-enlace-url"
+                            v-model="urlDelEnlace"
+                            type="url"
+                            :placeholder="
+                                trans('reuniones.marcadores.enlace_url')
+                            "
+                            @keydown.enter.prevent="confirmarEnlace"
+                        />
+                        <InputGroupAddon>
+                            <LinkIcon aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <Button
+                        type="button"
+                        size="sm"
+                        class="self-end"
+                        @click="confirmarEnlace"
+                    >
                         {{ trans('comun.guardar') }}
                     </Button>
                 </PopoverContent>

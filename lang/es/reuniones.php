@@ -70,6 +70,18 @@ return [
         'tabla' => 'Insertar tabla',
     ],
 
+    /*
+     * Marcadores (placeholder) de los campos. Acompañan al icono del campo y
+     * nunca sustituyen a su etiqueta.
+     */
+    'marcadores' => [
+        'titulo' => 'De qué trató la reunión',
+        'acuerdos' => 'Qué se decidió y quién se encarga',
+        'asistente_nombre' => 'Nombre y apellido',
+        'organizacion' => 'Empresa o área',
+        'enlace_url' => 'https://',
+    ],
+
     'validacion' => [
         'documento_invalido' => 'El contenido de la reunión no es válido.',
     ],

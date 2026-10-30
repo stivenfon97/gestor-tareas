@@ -1,12 +1,24 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { FileText, Users } from '@lucide/vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
 import MiembroEquipoController from '@/actions/App/Http/Controllers/Gestion/MiembroEquipoController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { index } from '@/routes/equipos';
 
 type Persona = { id: number; name: string; email: string };
@@ -35,22 +47,38 @@ const props = defineProps<{
         >
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <Input
-                    id="nombre"
-                    name="nombre"
-                    :default-value="props.equipo.nombre"
-                    required
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="nombre"
+                        name="nombre"
+                        :default-value="props.equipo.nombre"
+                        required
+                        :placeholder="$t('gestion.equipos.nombre_marcador')"
+                        :aria-invalid="!!errors.nombre"
+                    />
+                    <InputGroupAddon>
+                        <Users aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.nombre" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="descripcion">{{ $t('comun.descripcion') }}</Label>
-                <Input
-                    id="descripcion"
-                    name="descripcion"
-                    :default-value="props.equipo.descripcion ?? ''"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="descripcion"
+                        name="descripcion"
+                        :default-value="props.equipo.descripcion ?? ''"
+                        :placeholder="
+                            $t('gestion.equipos.descripcion_marcador')
+                        "
+                        :aria-invalid="!!errors.descripcion"
+                    />
+                    <InputGroupAddon>
+                        <FileText aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.descripcion" />
             </div>
 
@@ -109,24 +137,47 @@ const props = defineProps<{
             <Form
                 v-bind="MiembroEquipoController.store.form(props.equipo.id)"
                 class="flex items-end gap-3"
-                v-slot="{ processing }"
+                v-slot="{ errors, processing }"
             >
                 <div class="grid flex-1 gap-2">
                     <Label for="usuario_id">{{ $t('comun.agregar') }}</Label>
-                    <select
-                        id="usuario_id"
+                    <!--
+                        Arranca en la primera persona, como el <select> nativo.
+                        La clave lo remonta cuando cambia la lista: si no, tras
+                        agregar a alguien seguiría apuntando a quien ya no está.
+                    -->
+                    <Select
+                        :key="props.candidatos.map((p) => p.id).join()"
                         name="usuario_id"
                         required
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                        :default-value="
+                            props.candidatos[0]
+                                ? String(props.candidatos[0].id)
+                                : undefined
+                        "
                     >
-                        <option
-                            v-for="persona in props.candidatos"
-                            :key="persona.id"
-                            :value="persona.id"
+                        <SelectTrigger
+                            id="usuario_id"
+                            class="w-full"
+                            :aria-invalid="!!errors.usuario_id"
                         >
-                            {{ persona.name }} · {{ persona.email }}
-                        </option>
-                    </select>
+                            <SelectValue
+                                :placeholder="
+                                    $t('gestion.equipos.persona_marcador')
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="persona in props.candidatos"
+                                :key="persona.id"
+                                :value="String(persona.id)"
+                            >
+                                {{ persona.name }} · {{ persona.email }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.usuario_id" />
                 </div>
                 <Button type="submit" variant="outline" :disabled="processing">
                     {{ $t('comun.agregar') }}

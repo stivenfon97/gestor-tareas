@@ -1,14 +1,26 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { Lock, Mail, User } from '@lucide/vue';
 import UsuarioController from '@/actions/App/Http/Controllers/Gestion/UsuarioController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { index } from '@/routes/usuarios';
 
-defineProps<{
+const props = defineProps<{
     roles: Array<{ valor: string; etiqueta: string }>;
 }>();
 </script>
@@ -26,19 +38,38 @@ defineProps<{
         >
             <div class="grid gap-2">
                 <Label for="name">{{ $t('comun.nombre') }}</Label>
-                <Input id="name" name="name" required autocomplete="name" />
+                <InputGroup>
+                    <InputGroupInput
+                        id="name"
+                        name="name"
+                        required
+                        autocomplete="name"
+                        :placeholder="$t('gestion.usuarios.nombre_marcador')"
+                        :aria-invalid="!!errors.name"
+                    />
+                    <InputGroupAddon>
+                        <User aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="email">{{ $t('comun.correo') }}</Label>
-                <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    autocomplete="email"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        autocomplete="email"
+                        :placeholder="$t('gestion.usuarios.correo_marcador')"
+                        :aria-invalid="!!errors.email"
+                    />
+                    <InputGroupAddon>
+                        <Mail aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.email" />
             </div>
 
@@ -46,20 +77,33 @@ defineProps<{
                 <Label for="rol_global">{{
                     $t('gestion.usuarios.rol_global')
                 }}</Label>
-                <select
-                    id="rol_global"
+                <!-- Como el <select> nativo, arranca en la primera opción. -->
+                <Select
                     name="rol_global"
                     required
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                    :default-value="props.roles[0]?.valor"
                 >
-                    <option
-                        v-for="rol in roles"
-                        :key="rol.valor"
-                        :value="rol.valor"
+                    <SelectTrigger
+                        id="rol_global"
+                        class="w-full"
+                        :aria-invalid="!!errors.rol_global"
                     >
-                        {{ $t(rol.etiqueta) }}
-                    </option>
-                </select>
+                        <SelectValue
+                            :placeholder="
+                                $t('gestion.usuarios.rol_global_marcador')
+                            "
+                        />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="rol in props.roles"
+                            :key="rol.valor"
+                            :value="rol.valor"
+                        >
+                            {{ $t(rol.etiqueta) }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
                 <InputError :message="errors.rol_global" />
             </div>
 
@@ -67,13 +111,22 @@ defineProps<{
                 <Label for="password">{{
                     $t('gestion.usuarios.contrasena')
                 }}</Label>
-                <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    autocomplete="new-password"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        autocomplete="new-password"
+                        :placeholder="
+                            $t('gestion.usuarios.contrasena_marcador')
+                        "
+                        :aria-invalid="!!errors.password"
+                    />
+                    <InputGroupAddon>
+                        <Lock aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.password" />
             </div>
 
@@ -81,13 +134,22 @@ defineProps<{
                 <Label for="password_confirmation">{{
                     $t('gestion.usuarios.confirmar_contrasena')
                 }}</Label>
-                <Input
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    type="password"
-                    required
-                    autocomplete="new-password"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        type="password"
+                        required
+                        autocomplete="new-password"
+                        :placeholder="
+                            $t('gestion.usuarios.confirmar_contrasena_marcador')
+                        "
+                        :aria-invalid="!!errors.password_confirmation"
+                    />
+                    <InputGroupAddon>
+                        <Lock aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.password_confirmation" />
             </div>
 

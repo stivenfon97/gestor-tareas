@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
+import { AlignLeft } from '@lucide/vue';
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
@@ -12,6 +13,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { update } from '@/routes/tareas/estado';
 import type { EstadoTarea, Transicion } from '@/types/tareas';
@@ -129,12 +135,18 @@ const enviar = (): void => {
                     <Label for="motivo_espera">{{
                         $t('tareas.estado.motivo_espera')
                     }}</Label>
-                    <textarea
-                        id="motivo_espera"
-                        v-model="form.motivo_espera"
-                        rows="3"
-                        class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                    />
+                    <InputGroup>
+                        <InputGroupTextarea
+                            id="motivo_espera"
+                            v-model="form.motivo_espera"
+                            rows="3"
+                            :placeholder="$t('tareas.marcadores.motivo_espera')"
+                            :aria-invalid="!!form.errors.motivo_espera"
+                        />
+                        <InputGroupAddon align="block-start">
+                            <AlignLeft aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="form.errors.motivo_espera" />
                 </div>
 
@@ -142,12 +154,20 @@ const enviar = (): void => {
                     <Label for="motivo_cancelacion">{{
                         $t('tareas.estado.motivo_cancelacion')
                     }}</Label>
-                    <textarea
-                        id="motivo_cancelacion"
-                        v-model="form.motivo_cancelacion"
-                        rows="3"
-                        class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                    />
+                    <InputGroup>
+                        <InputGroupTextarea
+                            id="motivo_cancelacion"
+                            v-model="form.motivo_cancelacion"
+                            rows="3"
+                            :placeholder="
+                                $t('tareas.marcadores.motivo_cancelacion')
+                            "
+                            :aria-invalid="!!form.errors.motivo_cancelacion"
+                        />
+                        <InputGroupAddon align="block-start">
+                            <AlignLeft aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="form.errors.motivo_cancelacion" />
                 </div>
 

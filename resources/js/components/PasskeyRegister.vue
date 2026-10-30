@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { usePasskeyRegister } from '@laravel/passkeys/vue';
+import { KeyRound } from '@lucide/vue';
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 
 const emit = defineEmits<{
@@ -77,20 +82,24 @@ const handleCancel = () => {
             <Label for="passkey-name">{{
                 $t('ajustes.passkeys.nombre')
             }}</Label>
-            <Input
-                id="passkey-name"
-                type="text"
-                v-model="name"
-                :placeholder="$t('ajustes.passkeys.nombre_marcador')"
-                class="mt-1 block w-full border-foreground/20"
-                autofocus
-            />
+            <InputGroup>
+                <InputGroupInput
+                    id="passkey-name"
+                    type="text"
+                    v-model="name"
+                    :placeholder="$t('ajustes.passkeys.nombre_marcador')"
+                    :aria-invalid="!!error"
+                    autofocus
+                />
+                <InputGroupAddon>
+                    <KeyRound aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <p class="text-xs text-muted-foreground">
                 {{ $t('ajustes.passkeys.nombre_ayuda') }}
             </p>
+            <InputError :message="error ?? undefined" />
         </div>
-
-        <InputError v-if="error" :message="error" />
 
         <div class="flex gap-2">
             <Button type="submit" :disabled="isLoading || !name.trim()">

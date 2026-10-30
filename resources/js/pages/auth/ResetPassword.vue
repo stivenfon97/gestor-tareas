@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Mail } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
@@ -23,6 +28,22 @@ const props = defineProps<{
 }>();
 
 const inputEmail = ref(props.email);
+
+// Solo para el estado de éxito de «Repite la contraseña»: se lee del evento
+// `input` y no con `v-model`, porque el `reset` del `<Form>` de Inertia
+// escribe en el DOM sin avisar a Vue y un `v-model` volvería a rellenarlo.
+const nueva = ref('');
+const repetida = ref('');
+const coinciden = computed(
+    () => repetida.value !== '' && repetida.value === nueva.value,
+);
+
+const valorDe = (evento: Event) => (evento.target as HTMLInputElement).value;
+
+const limpiar = () => {
+    nueva.value = '';
+    repetida.value = '';
+};
 </script>
 
 <template>
@@ -32,21 +53,27 @@ const inputEmail = ref(props.email);
         v-bind="update.form()"
         :transform="(data) => ({ ...data, token, email })"
         :reset-on-success="['password', 'password_confirmation']"
+        @success="limpiar"
         v-slot="{ errors, processing }"
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
                 <Label for="email">{{ $t('auth.acceso.correo') }}</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    autocomplete="email"
-                    v-model="inputEmail"
-                    class="mt-1 block w-full"
-                    readonly
-                />
-                <InputError :message="errors.email" class="mt-2" />
+                <InputGroup>
+                    <InputGroupInput
+                        id="email"
+                        type="email"
+                        name="email"
+                        autocomplete="email"
+                        v-model="inputEmail"
+                        readonly
+                        :aria-invalid="!!errors.email"
+                    />
+                    <InputGroupAddon>
+                        <Mail aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
+                <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
@@ -57,10 +84,11 @@ const inputEmail = ref(props.email);
                     id="password"
                     name="password"
                     autocomplete="new-password"
-                    class="mt-1 block w-full"
                     autofocus
                     :placeholder="$t('auth.restablecer.contrasena')"
                     :passwordrules="passwordRules"
+                    :aria-invalid="!!errors.password"
+                    @input="nueva = valorDe($event)"
                 />
                 <InputError :message="errors.password" />
             </div>
@@ -73,9 +101,11 @@ const inputEmail = ref(props.email);
                     id="password_confirmation"
                     name="password_confirmation"
                     autocomplete="new-password"
-                    class="mt-1 block w-full"
                     :placeholder="$t('auth.restablecer.confirmar')"
                     :passwordrules="passwordRules"
+                    :aria-invalid="!!errors.password_confirmation"
+                    :data-valido="coinciden && !errors.password_confirmation"
+                    @input="repetida = valorDe($event)"
                 />
                 <InputError :message="errors.password_confirmation" />
             </div>

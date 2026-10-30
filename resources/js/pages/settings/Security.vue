@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -15,6 +16,29 @@ type Props = {
 } & ManagePasskeysProps;
 
 const props = defineProps<Props>();
+
+// Solo para el estado de éxito de «Repite la contraseña nueva»: se lee del
+// evento `input` y no con `v-model`, porque el `reset` del `<Form>` de Inertia
+// escribe en el DOM sin avisar a Vue y un `v-model` volvería a rellenarlo.
+const nueva = ref('');
+const repetida = ref('');
+const coinciden = computed(
+    () => repetida.value !== '' && repetida.value === nueva.value,
+);
+
+const valorDe = (evento: Event) => (evento.target as HTMLInputElement).value;
+
+// El `Input` de shadcn guarda su propia copia del valor (`useVModel` pasivo).
+// Tras el `reset` de Inertia, el primer repintado —el que trae `aria-invalid` o
+// quita `data-valido`— devolvía al campo la contraseña recién vaciada. Cambiar
+// la clave monta los campos de nuevo, vacíos, después de cada `reset`.
+const generacion = ref(0);
+
+const limpiar = () => {
+    nueva.value = '';
+    repetida.value = '';
+    generacion.value++;
+};
 
 defineOptions({
     layout: {
@@ -53,17 +77,20 @@ defineOptions({
             ]"
             class="space-y-6"
             v-slot="{ errors, processing }"
+            @success="limpiar"
+            @error="limpiar"
         >
             <div class="grid gap-2">
                 <Label for="current_password">{{
                     $t('ajustes.seguridad.actual')
                 }}</Label>
                 <PasswordInput
+                    :key="generacion"
                     id="current_password"
                     name="current_password"
-                    class="mt-1 block w-full"
                     autocomplete="current-password"
                     :placeholder="$t('ajustes.seguridad.actual')"
+                    :aria-invalid="!!errors.current_password"
                 />
                 <InputError :message="errors.current_password" />
             </div>
@@ -73,12 +100,14 @@ defineOptions({
                     $t('ajustes.seguridad.nueva')
                 }}</Label>
                 <PasswordInput
+                    :key="generacion"
                     id="password"
                     name="password"
-                    class="mt-1 block w-full"
                     autocomplete="new-password"
                     :placeholder="$t('ajustes.seguridad.nueva')"
                     :passwordrules="props.passwordRules"
+                    :aria-invalid="!!errors.password"
+                    @input="nueva = valorDe($event)"
                 />
                 <InputError :message="errors.password" />
             </div>
@@ -88,12 +117,15 @@ defineOptions({
                     $t('ajustes.seguridad.confirmar')
                 }}</Label>
                 <PasswordInput
+                    :key="generacion"
                     id="password_confirmation"
                     name="password_confirmation"
-                    class="mt-1 block w-full"
                     autocomplete="new-password"
                     :placeholder="$t('ajustes.seguridad.confirmar')"
                     :passwordrules="props.passwordRules"
+                    :aria-invalid="!!errors.password_confirmation"
+                    :data-valido="coinciden && !errors.password_confirmation"
+                    @input="repetida = valorDe($event)"
                 />
                 <InputError :message="errors.password_confirmation" />
             </div>

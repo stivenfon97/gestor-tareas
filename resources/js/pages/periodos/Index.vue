@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Calendar, FileText } from '@lucide/vue';
 import { ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import {
     Popover,
@@ -46,7 +52,7 @@ const props = defineProps<{
 const abierto = ref(false);
 const fechaInicio = ref(new Date().toISOString().slice(0, 10));
 const notas = ref('');
-const errores = ref<{ fecha_inicio?: string }>({});
+const errores = ref<{ fecha_inicio?: string; notas?: string }>({});
 
 const abrirPeriodo = (): void => {
     router.post(
@@ -114,11 +120,17 @@ const abrirPeriodo = (): void => {
                             >
                                 {{ $t('recursos.columnas.fecha_inicio') }}
                             </Label>
-                            <Input
-                                id="periodo-fecha-inicio"
-                                v-model="fechaInicio"
-                                type="date"
-                            />
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="periodo-fecha-inicio"
+                                    v-model="fechaInicio"
+                                    type="date"
+                                    :aria-invalid="!!errores.fecha_inicio"
+                                />
+                                <InputGroupAddon>
+                                    <Calendar aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
                             <InputError :message="errores.fecha_inicio" />
                         </div>
 
@@ -129,12 +141,19 @@ const abrirPeriodo = (): void => {
                             >
                                 {{ $t('periodos.notas') }}
                             </Label>
-                            <textarea
-                                id="periodo-notas"
-                                v-model="notas"
-                                rows="2"
-                                class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                            />
+                            <InputGroup>
+                                <InputGroupTextarea
+                                    id="periodo-notas"
+                                    v-model="notas"
+                                    rows="2"
+                                    :placeholder="$t('periodos.notas_marcador')"
+                                    :aria-invalid="!!errores.notas"
+                                />
+                                <InputGroupAddon align="block-start">
+                                    <FileText aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
+                            <InputError :message="errores.notas" />
                         </div>
 
                         <div class="flex justify-end">

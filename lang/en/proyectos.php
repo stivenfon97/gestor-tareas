@@ -26,6 +26,12 @@ return [
     'prefijo_inmutable_aviso' => 'Cannot be changed once the first task exists.',
     'prefijo_bloqueado' => 'This project already issued task codes, so the prefix is now fixed.',
     'descripcion' => 'Description',
+    'cliente_marcador' => 'Choose a client',
+    'nombre_marcador' => 'Project name',
+    'slug_marcador' => 'my-project',
+    'prefijo_marcador' => 'ABC',
+    'descripcion_marcador' => 'What the project is about',
+    'estado_marcador' => 'Choose a status',
     'buscar' => 'Search by name',
     'todos_los_estados' => 'All statuses',
     'descripcion_listado' => 'Each project has its own modules, tasks and periods.',
@@ -71,6 +77,9 @@ return [
         'asignar_equipo' => 'Assign a whole team',
         'equipo_asignado' => 'Team assigned: :agregados added, :omitidos skipped.',
         'omitidos_explicacion' => 'People who already took part keep their role: a bulk assignment never demotes anyone.',
+        'persona_marcador' => 'Choose a person',
+        'rol_marcador' => 'Choose a role',
+        'equipo_marcador' => 'Choose a team',
     ],
 
     'secciones' => [

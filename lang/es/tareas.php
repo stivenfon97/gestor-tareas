@@ -33,6 +33,7 @@ return [
     'sin_periodo_abierto' => 'Este proyecto no tiene ningún periodo abierto. La tarea se creará sin periodo y habrá que asignárselo cuando se abra uno.',
 
     'origen' => 'Corrige a',
+    'sin_origen' => 'Sin tarea de origen',
     'origen_ayuda' => 'Solo para tareas de tipo corrección o soporte. Vincula esta tarea con la entrega que la originó.',
     'correcciones' => 'Correcciones que generó',
     'correcciones_conteo' => ':total correcciones',
@@ -123,6 +124,18 @@ return [
             'modulo_nuevo' => 'Ese módulo no existe en el proyecto. Se creará al guardar.',
             'requiere_motivo' => 'Este estado exige un motivo.',
         ],
+    ],
+
+    /*
+     * Marcadores (placeholder) de los campos. Acompañan al icono del campo y
+     * nunca sustituyen a su etiqueta.
+     */
+    'marcadores' => [
+        'nombre' => 'Qué hay que hacer, en una frase',
+        'descripcion' => 'Contexto, pasos o criterios de aceptación',
+        'motivo_espera' => 'Qué información o recurso falta',
+        'motivo_cancelacion' => 'Por qué se descarta',
+        'nota' => 'Escribe la nota',
     ],
 
     'validacion' => [

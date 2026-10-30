@@ -3,13 +3,19 @@ import {
     ChevronDown,
     ChevronRight,
     GripVertical,
+    Layers,
     Plus,
     Trash2,
 } from '@lucide/vue';
 import { computed, nextTick, ref } from 'vue';
 import draggable from 'vuedraggable';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import { Label } from '@/components/ui/label';
 import type { NodoModulo } from '@/types/modulos';
 
 /**
@@ -46,7 +52,11 @@ const tieneHijos = computed(() => hijos.value.length > 0);
 
 const editando = ref(false);
 const nombreEditado = ref(props.nodo.nombre);
-const campoNombre = ref<InstanceType<typeof Input> | null>(null);
+const campoNombre = ref<InstanceType<typeof InputGroupInput> | null>(null);
+
+// Ids por nodo: el árbol pinta varios campos a la vez y cada Label necesita el suyo.
+const idNombre = computed(() => `modulo-${props.nodo.id}-nombre`);
+const idHijo = computed(() => `modulo-${props.nodo.id}-hijo`);
 
 const anadiendo = ref(false);
 const nombreHijo = ref('');
@@ -124,15 +134,25 @@ const etiquetaTareas = computed(() => {
                 :aria-label="$t('modulos.arrastrar')"
             />
 
-            <Input
-                v-if="editando"
-                ref="campoNombre"
-                v-model="nombreEditado"
-                class="h-7 max-w-xs"
-                @blur="confirmarEdicion"
-                @keydown.enter.prevent="confirmarEdicion"
-                @keydown.esc.prevent="editando = false"
-            />
+            <template v-if="editando">
+                <Label :for="idNombre" class="shrink-0">{{
+                    $t('modulos.renombrar')
+                }}</Label>
+                <InputGroup class="max-w-xs">
+                    <InputGroupInput
+                        :id="idNombre"
+                        ref="campoNombre"
+                        v-model="nombreEditado"
+                        :placeholder="$t('modulos.nombre_nuevo')"
+                        @blur="confirmarEdicion"
+                        @keydown.enter.prevent="confirmarEdicion"
+                        @keydown.esc.prevent="editando = false"
+                    />
+                    <InputGroupAddon>
+                        <Layers aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
+            </template>
             <button
                 v-else
                 type="button"
@@ -182,13 +202,21 @@ const etiquetaTareas = computed(() => {
         </div>
 
         <div v-if="anadiendo" class="flex items-center gap-2 py-1 pl-8">
-            <Input
-                v-model="nombreHijo"
-                class="h-7 max-w-xs"
-                :placeholder="$t('modulos.nombre_nuevo')"
-                @keydown.enter.prevent="confirmarHijo"
-                @keydown.esc.prevent="anadiendo = false"
-            />
+            <Label :for="idHijo" class="shrink-0">{{
+                $t('modulos.crear_hijo')
+            }}</Label>
+            <InputGroup class="max-w-xs">
+                <InputGroupInput
+                    :id="idHijo"
+                    v-model="nombreHijo"
+                    :placeholder="$t('modulos.nombre_nuevo')"
+                    @keydown.enter.prevent="confirmarHijo"
+                    @keydown.esc.prevent="anadiendo = false"
+                />
+                <InputGroupAddon>
+                    <Layers aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <Button size="sm" variant="outline" @click="confirmarHijo">
                 {{ $t('comun.agregar') }}
             </Button>

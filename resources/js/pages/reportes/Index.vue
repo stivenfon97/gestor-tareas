@@ -4,8 +4,10 @@ import { Send, ShieldAlert } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
+import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -156,14 +158,18 @@ const esDuplicado = (reporte: FilaHistorial): boolean =>
             </h2>
 
             <div class="grid gap-fino sm:max-w-xs">
-                <label
+                <Label
                     for="reporte-periodo"
                     class="text-micro text-texto-suave"
                 >
                     {{ $t('reportes.generar.periodo') }}
-                </label>
+                </Label>
                 <Select v-model="periodoElegidoId">
-                    <SelectTrigger id="reporte-periodo">
+                    <SelectTrigger
+                        id="reporte-periodo"
+                        class="w-full"
+                        :aria-invalid="!!formulario.errors.periodo_id"
+                    >
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,6 +186,7 @@ const esDuplicado = (reporte: FilaHistorial): boolean =>
                         </SelectItem>
                     </SelectContent>
                 </Select>
+                <InputError :message="formulario.errors.periodo_id" />
             </div>
 
             <p v-if="periodoElegido" class="text-fino text-texto-suave">

@@ -24,6 +24,12 @@ return [
     'notas' => 'Internal notes',
     'notas_ayuda' => 'Visible to the team only. The client never reaches this field.',
 
+    'nombre_marcador' => 'Legal or trade name',
+    'contacto_nombre_marcador' => 'First and last name',
+    'contacto_email_marcador' => 'contact@company.com',
+    'contacto_telefono_marcador' => '+57 300 123 4567',
+    'notas_marcador' => 'Agreements, terms and details useful to the team',
+
     'buscar' => 'Search by name',
     'solo_activos' => 'Active only',
     'todos' => 'All',

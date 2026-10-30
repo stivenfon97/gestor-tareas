@@ -33,6 +33,10 @@ return [
     'menu_lateral_ayuda' => 'Main navigation of the application.',
     'alternar_menu' => 'Open or close the menu',
 
+    // Botón interno de `PasswordInput`: se lee como nombre del botón.
+    'mostrar_contrasena' => 'Show password',
+    'ocultar_contrasena' => 'Hide password',
+
     'tema' => [
         'titulo' => 'Theme',
         'claro' => 'Light',

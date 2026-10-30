@@ -26,6 +26,12 @@ return [
     'prefijo_inmutable_aviso' => 'No se puede cambiar después de crear la primera tarea.',
     'prefijo_bloqueado' => 'Este proyecto ya emitió códigos de tarea, así que el prefijo queda fijo.',
     'descripcion' => 'Descripción',
+    'cliente_marcador' => 'Elige un cliente',
+    'nombre_marcador' => 'Nombre del proyecto',
+    'slug_marcador' => 'mi-proyecto',
+    'prefijo_marcador' => 'ABC',
+    'descripcion_marcador' => 'De qué trata el proyecto',
+    'estado_marcador' => 'Elige un estado',
     'buscar' => 'Buscar por nombre',
     'todos_los_estados' => 'Todos los estados',
     'descripcion_listado' => 'Cada proyecto tiene sus propios módulos, tareas y periodos.',
@@ -71,6 +77,9 @@ return [
         'asignar_equipo' => 'Asignar un equipo completo',
         'equipo_asignado' => 'Equipo asignado: :agregados agregados, :omitidos omitidos.',
         'omitidos_explicacion' => 'Quienes ya participaban conservan su rol: una asignación masiva no degrada a nadie.',
+        'persona_marcador' => 'Elige una persona',
+        'rol_marcador' => 'Elige un rol',
+        'equipo_marcador' => 'Elige un equipo',
     ],
 
     'secciones' => [

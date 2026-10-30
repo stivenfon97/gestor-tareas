@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { Bookmark, Check, Star } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -13,7 +14,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import {
     Popover,
@@ -46,6 +51,7 @@ const props = defineProps<{
 const abierto = ref(false);
 const nombre = ref('');
 const comoPredeterminada = ref(false);
+const errores = ref<Record<string, string>>({});
 
 /**
  * Qué vista está aplicada ahora mismo, si es que alguna lo está.
@@ -116,10 +122,14 @@ const guardar = (): void => {
         },
         {
             preserveScroll: true,
+            onError: (recibidos) => {
+                errores.value = recibidos;
+            },
             onSuccess: () => {
                 abierto.value = false;
                 nombre.value = '';
                 comoPredeterminada.value = false;
+                errores.value = {};
             },
         },
     );
@@ -280,27 +290,47 @@ const marcarPredeterminada = (vista: VistaGuardada): void => {
                     {{ $t('vistas.guardar_ayuda') }}
                 </p>
 
-                <Label for="vista-nombre" class="text-micro text-texto-suave">
-                    {{ $t('comun.nombre') }}
-                </Label>
-                <Input
-                    id="vista-nombre"
-                    v-model="nombre"
-                    autocomplete="off"
-                    @keydown.enter.prevent="guardar"
-                />
+                <div class="grid gap-minimo">
+                    <Label
+                        for="vista-nombre"
+                        class="text-micro text-texto-suave"
+                    >
+                        {{ $t('comun.nombre') }}
+                    </Label>
+                    <InputGroup>
+                        <InputGroupInput
+                            id="vista-nombre"
+                            v-model="nombre"
+                            autocomplete="off"
+                            :placeholder="$t('vistas.marcadores.nombre')"
+                            :aria-invalid="!!errores.nombre"
+                            @keydown.enter.prevent="guardar"
+                        />
+                        <InputGroupAddon>
+                            <Bookmark aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="errores.nombre" />
+                </div>
 
-                <Label
-                    class="flex items-start gap-corto text-fino text-texto-suave"
-                >
-                    <Checkbox v-model="comoPredeterminada" class="mt-minimo" />
-                    <span>
+                <div class="flex items-start gap-corto">
+                    <Checkbox
+                        id="vista-predeterminada"
+                        v-model="comoPredeterminada"
+                        class="mt-minimo"
+                        :aria-invalid="!!errores.es_predeterminada"
+                    />
+                    <Label
+                        for="vista-predeterminada"
+                        class="block text-fino text-texto-suave"
+                    >
                         {{ $t('vistas.predeterminada') }}
                         <span class="block text-texto-tenue">
                             {{ $t('vistas.predeterminada_ayuda') }}
                         </span>
-                    </span>
-                </Label>
+                    </Label>
+                </div>
+                <InputError :message="errores.es_predeterminada" />
 
                 <div class="flex justify-end gap-corto">
                     <Button

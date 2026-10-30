@@ -24,6 +24,12 @@ return [
     'notas' => 'Notas internas',
     'notas_ayuda' => 'Solo las ve el equipo. El cliente nunca alcanza este campo.',
 
+    'nombre_marcador' => 'Razón social o nombre comercial',
+    'contacto_nombre_marcador' => 'Nombre y apellidos',
+    'contacto_email_marcador' => 'contacto@empresa.com',
+    'contacto_telefono_marcador' => '+57 300 123 4567',
+    'notas_marcador' => 'Acuerdos, condiciones y detalles útiles para el equipo',
+
     'buscar' => 'Buscar por nombre',
     'solo_activos' => 'Solo activos',
     'todos' => 'Todos',

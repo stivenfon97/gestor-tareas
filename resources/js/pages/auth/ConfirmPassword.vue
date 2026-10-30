@@ -40,16 +40,17 @@ defineOptions({
     >
         <div class="space-y-6">
             <div class="grid gap-2">
-                <Label htmlFor="password">{{
+                <Label for="password">{{
                     $t('auth.confirmar.contrasena')
                 }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"
-                    class="mt-1 block w-full"
                     required
                     autocomplete="current-password"
                     autofocus
+                    :placeholder="$t('auth.confirmar.contrasena')"
+                    :aria-invalid="!!errors.password"
                 />
 
                 <InputError :message="errors.password" />

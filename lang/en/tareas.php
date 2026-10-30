@@ -33,6 +33,7 @@ return [
     'sin_periodo_abierto' => 'This project has no open period. The task will be created without one, and will need a period assigned once one is open.',
 
     'origen' => 'Fixes',
+    'sin_origen' => 'No source task',
     'origen_ayuda' => 'Only for fix or support tasks. Links this task to the delivery that caused it.',
     'correcciones' => 'Fixes it caused',
     'correcciones_conteo' => ':total fixes',
@@ -118,6 +119,14 @@ return [
             'modulo_nuevo' => 'That module does not exist in the project. It will be created on save.',
             'requiere_motivo' => 'This status requires a reason.',
         ],
+    ],
+
+    'marcadores' => [
+        'nombre' => 'What needs doing, in one sentence',
+        'descripcion' => 'Context, steps or acceptance criteria',
+        'motivo_espera' => 'What information or resource is missing',
+        'motivo_cancelacion' => 'Why it is being dropped',
+        'nota' => 'Write the note',
     ],
 
     'validacion' => [

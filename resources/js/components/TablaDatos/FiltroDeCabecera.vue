@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ListFilter } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
@@ -37,6 +38,9 @@ const emit = defineEmits<{ cambiar: [valor: string, retrasar: boolean] }>();
 
 const activo = computed(() => props.valor !== '');
 
+/** El título de la capa es la etiqueta del control, no un párrafo suelto. */
+const campoId = useId();
+
 /** Lo que dice el disparador: qué columna filtra y si ya está filtrando. */
 const rotulo = computed(() => ({
     columna: props.etiqueta,
@@ -66,15 +70,15 @@ const rotulo = computed(() => ({
         </PopoverTrigger>
 
         <PopoverContent align="start" class="flex w-64 flex-col gap-corto">
-            <p class="text-micro font-medium text-texto-suave">
+            <Label :for="campoId" class="text-micro text-texto-suave">
                 {{ props.etiqueta }}
-            </p>
+            </Label>
 
             <FiltroDeColumna
                 :filtro="props.filtro"
                 :etiqueta="props.etiqueta"
                 :valor="props.valor"
-                comodo
+                :campo-id="campoId"
                 @cambiar="
                     (valor: string, retrasar: boolean) =>
                         emit('cambiar', valor, retrasar)

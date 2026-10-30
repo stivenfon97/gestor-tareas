@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { Eye, EyeOff } from '@lucide/vue';
+import { Eye, EyeOff, Lock } from '@lucide/vue';
 import { ref, useTemplateRef } from 'vue';
 import type { HTMLAttributes } from 'vue';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 
+// Los atributos (`id`, `name`, `autocomplete`, `placeholder`, `required`,
+// `aria-invalid`, `data-valido`, `v-model`…) van al control; `class`, al grupo,
+// que es quien ocupa el sitio en el formulario.
 defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
     class?: HTMLAttributes['class'];
 }>();
 
-const showPassword = ref(false);
+const verContrasena = ref(false);
 const inputRef = useTemplateRef('inputRef');
 
 defineExpose({
@@ -21,26 +28,32 @@ defineExpose({
 </script>
 
 <template>
-    <div class="relative">
-        <Input
+    <InputGroup :class="props.class">
+        <InputGroupInput
             ref="inputRef"
-            :type="showPassword ? 'text' : 'password'"
-            :class="cn('pr-10', props.class)"
             v-bind="$attrs"
+            :type="verContrasena ? 'text' : 'password'"
         />
-        <button
-            type="button"
-            @click="showPassword = !showPassword"
-            :class="
-                cn(
-                    'absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none',
-                )
-            "
-            :aria-label="showPassword ? 'Hide password' : 'Show password'"
-            :tabindex="-1"
-        >
-            <EyeOff v-if="showPassword" class="size-4" />
-            <Eye v-else class="size-4" />
-        </button>
-    </div>
+        <InputGroupAddon>
+            <Lock aria-hidden="true" />
+        </InputGroupAddon>
+        <InputGroupAddon align="inline-end">
+            <InputGroupButton
+                type="button"
+                size="icon-xs"
+                :aria-label="
+                    $t(
+                        verContrasena
+                            ? 'comun.ocultar_contrasena'
+                            : 'comun.mostrar_contrasena',
+                    )
+                "
+                :aria-pressed="verContrasena"
+                @click="verContrasena = !verContrasena"
+            >
+                <EyeOff v-if="verContrasena" aria-hidden="true" />
+                <Eye v-else aria-hidden="true" />
+            </InputGroupButton>
+        </InputGroupAddon>
+    </InputGroup>
 </template>

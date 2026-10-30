@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Layers } from '@lucide/vue';
 import { ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
 import ModuloNodo from '@/components/modulos/ModuloNodo.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +15,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { destroy, update } from '@/routes/modulos';
 import { show } from '@/routes/proyectos';
@@ -135,6 +141,7 @@ const reordenar = (): void => {
 };
 
 const nombreRaiz = ref('');
+const errorRaiz = ref<string | undefined>();
 
 const crearRaiz = (): void => {
     const nombre = nombreRaiz.value.trim();
@@ -146,7 +153,15 @@ const crearRaiz = (): void => {
     router.post(
         store(props.proyecto.id).url,
         { nombre, parent_id: null },
-        { preserveScroll: true },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                errorRaiz.value = undefined;
+            },
+            onError: (errores) => {
+                errorRaiz.value = errores.nombre;
+            },
+        },
     );
     nombreRaiz.value = '';
 };
@@ -193,25 +208,26 @@ const confirmarEliminar = (): void => {
                 </Button>
             </div>
 
-            <div
-                v-if="props.puede.gestionar"
-                class="flex flex-wrap items-end gap-3"
-            >
-                <div class="grid gap-2">
-                    <Label for="modulo_raiz">{{
-                        $t('modulos.crear_raiz')
-                    }}</Label>
-                    <Input
-                        id="modulo_raiz"
-                        v-model="nombreRaiz"
-                        class="w-64"
-                        :placeholder="$t('modulos.nombre_nuevo')"
-                        @keydown.enter.prevent="crearRaiz"
-                    />
+            <div v-if="props.puede.gestionar" class="grid gap-2">
+                <Label for="modulo_raiz">{{ $t('modulos.crear_raiz') }}</Label>
+                <div class="flex flex-wrap items-center gap-3">
+                    <InputGroup class="w-64">
+                        <InputGroupInput
+                            id="modulo_raiz"
+                            v-model="nombreRaiz"
+                            :placeholder="$t('modulos.nombre_nuevo')"
+                            :aria-invalid="!!errorRaiz"
+                            @keydown.enter.prevent="crearRaiz"
+                        />
+                        <InputGroupAddon>
+                            <Layers aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <Button size="sm" @click="crearRaiz">{{
+                        $t('comun.agregar')
+                    }}</Button>
                 </div>
-                <Button size="sm" @click="crearRaiz">{{
-                    $t('comun.agregar')
-                }}</Button>
+                <InputError :message="errorRaiz" />
             </div>
 
             <div class="rounded-lg border border-border p-2">

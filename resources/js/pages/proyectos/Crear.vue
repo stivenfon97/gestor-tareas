@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { FileText, FolderKanban, Link as Enlace, Tag } from '@lucide/vue';
 import { computed, watch } from 'vue';
 import ProyectoController from '@/actions/App/Http/Controllers/ProyectoController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { aSlug } from '@/lib/slug';
 import { index } from '@/routes/proyectos';
 
@@ -16,7 +29,8 @@ const props = defineProps<{
 }>();
 
 const form = useForm({
-    cliente_id: props.clientes[0]?.id ?? '',
+    // Texto y no número: el `Select` de shadcn-vue trabaja con valores string.
+    cliente_id: props.clientes[0] ? String(props.clientes[0].id) : '',
     nombre: '',
     slug: '',
     prefijo_tarea: '',
@@ -59,36 +73,60 @@ const enviar = (): void => {
         <form class="space-y-6" @submit.prevent="enviar">
             <div class="grid gap-2">
                 <Label for="cliente_id">{{ $t('proyectos.cliente') }}</Label>
-                <select
-                    id="cliente_id"
-                    v-model="form.cliente_id"
-                    required
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option
-                        v-for="cliente in props.clientes"
-                        :key="cliente.id"
-                        :value="cliente.id"
+                <Select v-model="form.cliente_id" required>
+                    <SelectTrigger
+                        id="cliente_id"
+                        class="w-full"
+                        :aria-invalid="!!form.errors.cliente_id"
                     >
-                        {{ cliente.nombre }}
-                    </option>
-                </select>
+                        <SelectValue
+                            :placeholder="$t('proyectos.cliente_marcador')"
+                        />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="cliente in props.clientes"
+                            :key="cliente.id"
+                            :value="String(cliente.id)"
+                        >
+                            {{ cliente.nombre }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
                 <InputError :message="form.errors.cliente_id" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <Input id="nombre" v-model="form.nombre" required />
+                <InputGroup>
+                    <InputGroupInput
+                        id="nombre"
+                        v-model="form.nombre"
+                        required
+                        :placeholder="$t('proyectos.nombre_marcador')"
+                        :aria-invalid="!!form.errors.nombre"
+                    />
+                    <InputGroupAddon>
+                        <FolderKanban aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="form.errors.nombre" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="slug">{{ $t('proyectos.slug') }}</Label>
-                <Input
-                    id="slug"
-                    v-model="form.slug"
-                    @input="marcarSlugManual"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="slug"
+                        v-model="form.slug"
+                        :placeholder="$t('proyectos.slug_marcador')"
+                        :aria-invalid="!!form.errors.slug"
+                        @input="marcarSlugManual"
+                    />
+                    <InputGroupAddon>
+                        <Enlace aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <p class="text-xs text-muted-foreground">
                     {{ $t('proyectos.slug_ayuda') }}
                 </p>
@@ -97,12 +135,19 @@ const enviar = (): void => {
 
             <div class="grid gap-2">
                 <Label for="prefijo_tarea">{{ $t('proyectos.prefijo') }}</Label>
-                <Input
-                    id="prefijo_tarea"
-                    v-model="form.prefijo_tarea"
-                    required
-                    maxlength="10"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="prefijo_tarea"
+                        v-model="form.prefijo_tarea"
+                        required
+                        maxlength="10"
+                        :placeholder="$t('proyectos.prefijo_marcador')"
+                        :aria-invalid="!!form.errors.prefijo_tarea"
+                    />
+                    <InputGroupAddon>
+                        <Tag aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <p class="text-xs text-muted-foreground">
                     {{
                         $t('proyectos.prefijo_ayuda', {
@@ -121,31 +166,43 @@ const enviar = (): void => {
                 <Label for="descripcion">{{
                     $t('proyectos.descripcion')
                 }}</Label>
-                <textarea
-                    id="descripcion"
-                    v-model="form.descripcion"
-                    rows="4"
-                    class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                />
+                <InputGroup>
+                    <InputGroupTextarea
+                        id="descripcion"
+                        v-model="form.descripcion"
+                        rows="4"
+                        :placeholder="$t('proyectos.descripcion_marcador')"
+                        :aria-invalid="!!form.errors.descripcion"
+                    />
+                    <InputGroupAddon align="block-start">
+                        <FileText aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="form.errors.descripcion" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="estado">{{ $t('comun.estado') }}</Label>
-                <select
-                    id="estado"
-                    v-model="form.estado"
-                    required
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option
-                        v-for="opcion in props.estados"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
+                <Select v-model="form.estado" required>
+                    <SelectTrigger
+                        id="estado"
+                        class="w-full"
+                        :aria-invalid="!!form.errors.estado"
                     >
-                        {{ $t(opcion.etiqueta) }}
-                    </option>
-                </select>
+                        <SelectValue
+                            :placeholder="$t('proyectos.estado_marcador')"
+                        />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="opcion in props.estados"
+                            :key="opcion.valor"
+                            :value="opcion.valor"
+                        >
+                            {{ $t(opcion.etiqueta) }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
                 <InputError :message="form.errors.estado" />
             </div>
 

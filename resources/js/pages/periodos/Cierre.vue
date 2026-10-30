@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeftRight, Calendar, DollarSign, Hash } from '@lucide/vue';
 import { computed, ref, toRef } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
@@ -14,8 +15,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useTrm } from '@/composables/useTrm';
 import { show as mostrarPeriodo } from '@/routes/periodos';
 import { store } from '@/routes/periodos/cierre';
@@ -165,13 +177,16 @@ const confirmar = (): void => {
                 v-if="props.pendientes.length > 0"
                 class="flex flex-col overflow-hidden rounded-md border border-borde-fuerte bg-panel"
             >
-                <label
+                <Label
                     v-for="tarea in props.pendientes"
                     :key="tarea.id"
-                    class="flex items-center gap-corto border-b border-borde px-celda py-fino text-cuerpo last:border-b-0 hover:bg-fila-hover"
+                    :for="`cierre-trasladar-${tarea.id}`"
+                    class="flex items-center gap-corto border-b border-borde px-celda py-fino text-cuerpo leading-normal font-normal last:border-b-0 hover:bg-fila-hover"
                 >
                     <Checkbox
+                        :id="`cierre-trasladar-${tarea.id}`"
                         :model-value="form.tareas_trasladar.includes(tarea.id)"
+                        :aria-invalid="!!form.errors.tareas_trasladar"
                         @update:model-value="alternarTraslado(tarea.id)"
                     />
                     <span class="font-mono text-fino text-texto-suave">{{
@@ -189,11 +204,12 @@ const confirmar = (): void => {
                     <Badge variant="outline">
                         {{ $t(`enums.estado_tarea.${tarea.estado}`) }}
                     </Badge>
-                </label>
+                </Label>
             </div>
             <p v-else class="text-fino text-texto-tenue">
                 {{ $t('periodos.cierre.sin_pendientes') }}
             </p>
+            <InputError :message="form.errors.tareas_trasladar" />
         </section>
 
         <!-- 3. Apertura del siguiente -->
@@ -205,23 +221,38 @@ const confirmar = (): void => {
                 <Label for="fecha-inicio-siguiente">{{
                     $t('recursos.columnas.fecha_inicio')
                 }}</Label>
-                <Input
-                    id="fecha-inicio-siguiente"
-                    v-model="form.fecha_inicio_siguiente"
-                    type="date"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="fecha-inicio-siguiente"
+                        v-model="form.fecha_inicio_siguiente"
+                        type="date"
+                        :aria-invalid="!!form.errors.fecha_inicio_siguiente"
+                    />
+                    <InputGroupAddon>
+                        <Calendar aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="form.errors.fecha_inicio_siguiente" />
             </div>
         </section>
 
         <!-- 4. Pago, opcional -->
         <section class="flex flex-col gap-corto">
-            <label class="flex items-center gap-corto text-cuerpo text-texto">
-                <Checkbox v-if="props.puedeRegistrarPago" v-model="conPago" />
-                <span class="font-medium">{{
-                    $t('periodos.cierre.pago')
-                }}</span>
-            </label>
+            <div class="flex items-center gap-corto">
+                <Checkbox
+                    v-if="props.puedeRegistrarPago"
+                    id="cierre-con-pago"
+                    v-model="conPago"
+                />
+                <Label
+                    :for="
+                        props.puedeRegistrarPago ? 'cierre-con-pago' : undefined
+                    "
+                    class="text-cuerpo text-texto"
+                >
+                    {{ $t('periodos.cierre.pago') }}
+                </Label>
+            </div>
             <p class="text-fino text-texto-suave">
                 {{ $t('periodos.cierre.pago_ayuda') }}
             </p>
@@ -234,65 +265,100 @@ const confirmar = (): void => {
                     <Label for="cierre-fecha-pago">{{
                         $t('pagos.fecha_pago')
                     }}</Label>
-                    <Input
-                        id="cierre-fecha-pago"
-                        v-model="form.pago.fecha_pago"
-                        type="date"
-                    />
+                    <InputGroup>
+                        <InputGroupInput
+                            id="cierre-fecha-pago"
+                            v-model="form.pago.fecha_pago"
+                            type="date"
+                            :aria-invalid="!!form.errors['pago.fecha_pago']"
+                        />
+                        <InputGroupAddon>
+                            <Calendar aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="form.errors['pago.fecha_pago']" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="cierre-monto-usd">{{
                         $t('pagos.monto_usd')
                     }}</Label>
-                    <Input
-                        id="cierre-monto-usd"
-                        v-model="form.pago.monto_usd"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                    />
+                    <InputGroup>
+                        <InputGroupInput
+                            id="cierre-monto-usd"
+                            v-model="form.pago.monto_usd"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            inputmode="decimal"
+                            :placeholder="$t('pagos.monto_usd_marcador')"
+                            :aria-invalid="!!form.errors['pago.monto_usd']"
+                        />
+                        <InputGroupAddon>
+                            <DollarSign aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="form.errors['pago.monto_usd']" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="cierre-tasa-cambio">{{
                         $t('pagos.tasa_cambio')
                     }}</Label>
-                    <Input
-                        id="cierre-tasa-cambio"
-                        v-model="form.pago.tasa_cambio"
-                        type="number"
-                        step="0.0001"
-                        min="0"
-                    />
+                    <InputGroup>
+                        <InputGroupInput
+                            id="cierre-tasa-cambio"
+                            v-model="form.pago.tasa_cambio"
+                            type="number"
+                            step="0.0001"
+                            min="0"
+                            inputmode="decimal"
+                            :placeholder="$t('pagos.tasa_cambio_marcador')"
+                            :aria-invalid="!!form.errors['pago.tasa_cambio']"
+                        />
+                        <InputGroupAddon>
+                            <ArrowLeftRight aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="form.errors['pago.tasa_cambio']" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="cierre-origen-tasa">{{
                         $t('pagos.origen_tasa')
                     }}</Label>
-                    <select
-                        id="cierre-origen-tasa"
-                        v-model="form.pago.origen_tasa"
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                    >
-                        <option
-                            v-for="opcion in props.origenesTasa"
-                            :key="opcion.valor"
-                            :value="opcion.valor"
+                    <Select v-model="form.pago.origen_tasa">
+                        <SelectTrigger
+                            id="cierre-origen-tasa"
+                            class="w-full"
+                            :aria-invalid="!!form.errors['pago.origen_tasa']"
                         >
-                            {{ opcion.etiqueta }}
-                        </option>
-                    </select>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="opcion in props.origenesTasa"
+                                :key="opcion.valor"
+                                :value="opcion.valor"
+                            >
+                                {{ opcion.etiqueta }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="form.errors['pago.origen_tasa']" />
                 </div>
                 <div class="grid gap-2 sm:col-span-2">
                     <Label for="cierre-referencia">{{
                         $t('pagos.referencia')
                     }}</Label>
-                    <Input
-                        id="cierre-referencia"
-                        v-model="form.pago.referencia"
-                    />
+                    <InputGroup>
+                        <InputGroupInput
+                            id="cierre-referencia"
+                            v-model="form.pago.referencia"
+                            :placeholder="$t('pagos.referencia_marcador')"
+                            :aria-invalid="!!form.errors['pago.referencia']"
+                        />
+                        <InputGroupAddon>
+                            <Hash aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="form.errors['pago.referencia']" />
                 </div>
             </div>

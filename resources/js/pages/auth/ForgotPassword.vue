@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { Mail } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
@@ -26,7 +31,8 @@ defineProps<{
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        role="status"
+        class="mb-4 text-center text-sm font-medium text-exito"
     >
         {{ status }}
     </div>
@@ -35,14 +41,20 @@ defineProps<{
         <Form v-bind="email.form()" v-slot="{ errors, processing }">
             <div class="grid gap-2">
                 <Label for="email">{{ $t('auth.acceso.correo') }}</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    autocomplete="off"
-                    autofocus
-                    :placeholder="$t('auth.acceso.correo_marcador')"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="email"
+                        type="email"
+                        name="email"
+                        autocomplete="off"
+                        autofocus
+                        :placeholder="$t('auth.acceso.correo_marcador')"
+                        :aria-invalid="!!errors.email"
+                    />
+                    <InputGroupAddon>
+                        <Mail aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.email" />
             </div>
 

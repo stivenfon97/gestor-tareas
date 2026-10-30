@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { ChevronDown } from '@lucide/vue';
 import { ref } from 'vue';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import type { ColumnaDeTabla } from './tipos';
 
@@ -44,13 +45,12 @@ const desplegada = ref(false);
         "
     >
         <div class="flex items-start gap-corto">
-            <input
+            <Checkbox
                 v-if="props.seleccionable"
-                type="checkbox"
-                class="mt-fino size-3.5 shrink-0 accent-marca"
+                class="mt-minimo"
                 :aria-label="props.etiquetaSeleccion"
-                :checked="props.seleccionada"
-                @change="emit('alternarSeleccion')"
+                :model-value="props.seleccionada"
+                @update:model-value="emit('alternarSeleccion')"
             />
 
             <div class="flex min-w-0 flex-1 flex-col gap-minimo">

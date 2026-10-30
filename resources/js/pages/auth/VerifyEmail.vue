@@ -23,7 +23,8 @@ defineProps<{
 
     <div
         v-if="status === 'verification-link-sent'"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        role="status"
+        class="mb-4 text-center text-sm font-medium text-exito"
     >
         {{ $t('auth.verificar.reenviado') }}
     </div>

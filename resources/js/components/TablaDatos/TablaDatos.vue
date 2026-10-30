@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
-import { ChevronLeft, ChevronRight } from '@lucide/vue';
+import { Check, ChevronLeft, ChevronRight, Minus } from '@lucide/vue';
 import { getCoreRowModel, useVueTable } from '@tanstack/vue-table';
 import type {
     ColumnDef,
@@ -13,10 +13,20 @@ import {
     onBeforeUnmount,
     onMounted,
     ref,
+    useId,
     watch,
 } from 'vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useDensidad } from '@/composables/useDensidad';
 import { useEstadoDeTabla } from '@/composables/useEstadoDeTabla';
 import { cn } from '@/lib/utils';
@@ -599,6 +609,23 @@ const sinFilas = computed(() => props.filas.length === 0 && !props.cargando);
  */
 const hayVariasPaginas = computed(() => props.paginacion.last_page > 1);
 
+/** Tamaños de página que admite el servidor. */
+const TAMANOS_DE_PAGINA = [15, 30, 50, 100] as const;
+
+const idPorPagina = useId();
+
+/**
+ * La casilla de la cabecera: marcada, a medias o vacía. Función y no
+ * `computed`, como el resto de lecturas de `tabla` en la plantilla.
+ */
+const estadoDeLaPagina = (): boolean | 'indeterminate' => {
+    if (tabla.getIsAllPageRowsSelected()) {
+        return true;
+    }
+
+    return tabla.getIsSomePageRowsSelected() ? 'indeterminate' : false;
+};
+
 const alternarColumna = (id: string, visible: boolean): void => {
     const visibles = props.columnas
         .filter((columna) =>
@@ -829,18 +856,24 @@ const alternarColumna = (id: string, visible: boolean): void => {
                                 data-columna="__seleccion"
                                 class="sticky left-0 z-10 w-9 bg-inherit px-celda"
                             >
-                                <input
-                                    type="checkbox"
-                                    class="size-3.5 accent-marca"
+                                <Checkbox
+                                    class="align-middle"
                                     :aria-label="
                                         $t('comun.tabla.seleccionar_pagina')
                                     "
-                                    :checked="tabla.getIsAllPageRowsSelected()"
-                                    :indeterminate="
-                                        tabla.getIsSomePageRowsSelected()
+                                    :model-value="estadoDeLaPagina()"
+                                    @update:model-value="
+                                        tabla.toggleAllPageRowsSelected()
                                     "
-                                    @change="tabla.toggleAllPageRowsSelected()"
-                                />
+                                >
+                                    <template #default="{ state }">
+                                        <Minus
+                                            v-if="state === 'indeterminate'"
+                                            class="size-3.5"
+                                        />
+                                        <Check v-else class="size-3.5" />
+                                    </template>
+                                </Checkbox>
                             </th>
 
                             <th
@@ -959,14 +992,13 @@ const alternarColumna = (id: string, visible: boolean): void => {
                                 v-if="props.seleccionable"
                                 class="sticky left-0 z-10 w-9 bg-inherit px-celda"
                             >
-                                <input
-                                    type="checkbox"
-                                    class="size-3.5 accent-marca"
+                                <Checkbox
+                                    class="align-middle"
                                     :aria-label="
                                         $t('comun.tabla.seleccionar_fila')
                                     "
-                                    :checked="fila.getIsSelected()"
-                                    @change="fila.toggleSelected()"
+                                    :model-value="fila.getIsSelected()"
+                                    @update:model-value="fila.toggleSelected()"
                                 />
                             </td>
 
@@ -1053,26 +1085,34 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 <div class="flex items-center gap-corto">
                     <!-- En móvil sobran: con el pulgar se pasa página, no se
                      elige un tamaño ni se lee «página 2 de 9». -->
-                    <label v-if="!esMovil" class="flex items-center gap-fino">
-                        <span>{{ $t('comun.tabla.por_pagina') }}</span>
-                        <select
-                            class="h-6 rounded-sm border border-borde bg-panel px-fino text-fino text-texto"
-                            :value="props.paginacion.per_page"
-                            @change="
-                                estado.cambiarPorPagina(
-                                    Number(
-                                        ($event.target as HTMLSelectElement)
-                                            .value,
-                                    ),
-                                )
+                    <div v-if="!esMovil" class="flex items-center gap-fino">
+                        <Label
+                            :for="idPorPagina"
+                            class="text-fino font-normal text-texto-suave"
+                        >
+                            {{ $t('comun.tabla.por_pagina') }}
+                        </Label>
+                        <Select
+                            :model-value="String(props.paginacion.per_page)"
+                            @update:model-value="
+                                (valor) =>
+                                    estado.cambiarPorPagina(Number(valor))
                             "
                         >
-                            <option :value="15">15</option>
-                            <option :value="30">30</option>
-                            <option :value="50">50</option>
-                            <option :value="100">100</option>
-                        </select>
-                    </label>
+                            <SelectTrigger :id="idPorPagina" size="sm">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="opcion in TAMANOS_DE_PAGINA"
+                                    :key="opcion"
+                                    :value="String(opcion)"
+                                >
+                                    {{ opcion }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
 
                     <span v-if="!esMovil">
                         {{

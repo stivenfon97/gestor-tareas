@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
+import { Mail, User } from '@lucide/vue';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
@@ -46,31 +51,41 @@ const user = computed(() => page.props.auth.user);
         >
             <div class="grid gap-2">
                 <Label for="name">{{ $t('ajustes.perfil.nombre') }}</Label>
-                <Input
-                    id="name"
-                    class="mt-1 block w-full"
-                    name="name"
-                    :default-value="user.name"
-                    required
-                    autocomplete="name"
-                    :placeholder="$t('ajustes.perfil.nombre_marcador')"
-                />
-                <InputError class="mt-2" :message="errors.name" />
+                <InputGroup>
+                    <InputGroupInput
+                        id="name"
+                        name="name"
+                        :default-value="user.name"
+                        required
+                        autocomplete="name"
+                        :placeholder="$t('ajustes.perfil.nombre_marcador')"
+                        :aria-invalid="!!errors.name"
+                    />
+                    <InputGroupAddon>
+                        <User aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
+                <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="email">{{ $t('ajustes.perfil.correo') }}</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    name="email"
-                    :default-value="user.email"
-                    required
-                    autocomplete="username"
-                    :placeholder="$t('ajustes.perfil.correo_marcador')"
-                />
-                <InputError class="mt-2" :message="errors.email" />
+                <InputGroup>
+                    <InputGroupInput
+                        id="email"
+                        type="email"
+                        name="email"
+                        :default-value="user.email"
+                        required
+                        autocomplete="username"
+                        :placeholder="$t('ajustes.perfil.correo_marcador')"
+                        :aria-invalid="!!errors.email"
+                    />
+                    <InputGroupAddon>
+                        <Mail aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
+                <InputError :message="errors.email" />
             </div>
 
             <div v-if="page.props.mustVerifyEmail && !user.email_verified_at">
@@ -87,7 +102,8 @@ const user = computed(() => page.props.auth.user);
 
                 <div
                     v-if="page.props.status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
+                    role="status"
+                    class="mt-2 text-sm font-medium text-exito"
                 >
                     {{ $t('ajustes.perfil.reenviado') }}
                 </div>

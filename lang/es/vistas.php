@@ -32,6 +32,9 @@ return [
         'lista' => 'Lista',
         'calendario' => 'Calendario',
     ],
+    'marcadores' => [
+        'nombre' => 'Por ejemplo: bloqueadas de este periodo',
+    ],
     'campos' => [
         'nombre' => 'nombre',
         'tipo' => 'tipo de vista',

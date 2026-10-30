@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { Download, File, FileText, Image, Trash2, Upload } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,6 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { trans } from '@/lib/i18n';
 import type { Adjunto, Coleccion } from '@/types/archivos';
 
@@ -33,6 +35,9 @@ const props = defineProps<{
 }>();
 
 const archivo = ref<HTMLInputElement>();
+
+// Una página puede montar varios paneles (imágenes y documentos): id propio.
+const idArchivo = useId();
 
 const subida = useForm<{ coleccion: Coleccion; archivo: File | null }>({
     coleccion: props.coleccion,
@@ -91,28 +96,31 @@ const esImagen = computed(() => props.coleccion === 'imagenes');
 <template>
     <div class="flex flex-col gap-corto">
         <div v-if="props.puedeSubir" class="flex flex-col gap-fino">
-            <label
-                class="flex w-fit cursor-pointer items-center gap-fino rounded-md border border-dashed border-borde-fuerte px-celda py-fino text-fino text-texto-suave hover:bg-fila-hover"
+            <!--
+                El control visible es el Label: el <input type="file"> va oculto
+                (`sr-only`) porque su botón nativo no se puede traducir. Va antes
+                como `peer` para que el Label herede su estado deshabilitado.
+            -->
+            <input
+                :id="idArchivo"
+                ref="archivo"
+                type="file"
+                class="peer sr-only"
+                :disabled="subida.processing"
+                :aria-invalid="!!subida.errors.archivo"
+                @change="alSeleccionar"
+            />
+            <Label
+                :for="idArchivo"
+                class="w-fit cursor-pointer rounded-md border border-dashed border-borde-fuerte px-celda py-fino text-texto-suave hover:bg-fila-hover"
             >
                 <Upload class="size-4" aria-hidden="true" />
                 {{ trans('archivos.subir') }}
-                <input
-                    ref="archivo"
-                    type="file"
-                    class="sr-only"
-                    :disabled="subida.processing"
-                    @change="alSeleccionar"
-                />
-            </label>
+            </Label>
             <p class="text-micro text-texto-tenue">
                 {{ trans(`archivos.limite.${props.coleccion}`) }}
             </p>
-            <p
-                v-if="subida.errors.archivo"
-                class="text-fino text-estado-cancelada-texto"
-            >
-                {{ subida.errors.archivo }}
-            </p>
+            <InputError :message="subida.errors.archivo" />
             <div
                 v-if="subida.progress"
                 class="h-1.5 w-full max-w-64 overflow-hidden rounded-full bg-panel-cabecera"

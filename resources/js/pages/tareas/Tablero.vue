@@ -10,6 +10,14 @@ import SelectorDeVista from '@/components/tareas/SelectorDeVista.vue';
 import TarjetaDeTarea from '@/components/tareas/TarjetaDeTarea.vue';
 import VistasGuardadas from '@/components/tareas/VistasGuardadas.vue';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useTablero } from '@/composables/useTablero';
 import { cn } from '@/lib/utils';
 import { show as mostrarProyecto } from '@/routes/proyectos';
@@ -332,28 +340,33 @@ const esActiva = (columna: number, fila: number): boolean =>
         </CabeceraDePagina>
 
         <div class="flex flex-wrap items-center gap-corto">
-            <label
-                class="flex items-center gap-fino text-fino text-texto-suave"
-            >
-                <span>{{ $t('tablero.agrupacion.titulo') }}</span>
-                <select
-                    class="h-8 rounded-sm border border-borde bg-panel px-corto text-cuerpo text-texto"
-                    :value="props.agrupacion"
-                    @change="
-                        cambiarAgrupacion(
-                            ($event.target as HTMLSelectElement).value,
-                        )
+            <div class="flex items-center gap-fino">
+                <Label
+                    for="tablero-agrupar-por"
+                    class="text-fino text-texto-suave"
+                >
+                    {{ $t('tablero.agrupacion.titulo') }}
+                </Label>
+                <Select
+                    :model-value="props.agrupacion"
+                    @update:model-value="
+                        (valor) => cambiarAgrupacion(String(valor))
                     "
                 >
-                    <option
-                        v-for="opcion in props.agrupaciones"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
-                    >
-                        {{ opcion.etiqueta }}
-                    </option>
-                </select>
-            </label>
+                    <SelectTrigger id="tablero-agrupar-por" size="sm">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="opcion in props.agrupaciones"
+                            :key="opcion.valor"
+                            :value="opcion.valor"
+                        >
+                            {{ opcion.etiqueta }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
 
             <PanelDeFiltrosDeTareas
                 :filtros="props.filtros"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AlignLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +10,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import type { Transicion } from '@/types/tareas';
 
@@ -56,6 +62,12 @@ const titulo = computed(() =>
     esEspera.value ? 'tablero.motivo.espera' : 'tablero.motivo.cancelacion',
 );
 
+const marcador = computed(() =>
+    esEspera.value
+        ? 'tareas.marcadores.motivo_espera'
+        : 'tareas.marcadores.motivo_cancelacion',
+);
+
 const ayuda = computed(() =>
     esEspera.value
         ? 'tablero.motivo.ayuda_espera'
@@ -78,13 +90,18 @@ const ayuda = computed(() =>
                 <Label for="motivo-de-la-transicion">
                     {{ $t(titulo) }} — {{ props.codigo }}
                 </Label>
-                <textarea
-                    id="motivo-de-la-transicion"
-                    v-model="motivo"
-                    rows="3"
-                    class="w-full rounded-md border border-borde bg-panel px-celda py-corto text-cuerpo text-texto placeholder:text-texto-tenue"
-                    autofocus
-                ></textarea>
+                <InputGroup>
+                    <InputGroupTextarea
+                        id="motivo-de-la-transicion"
+                        v-model="motivo"
+                        rows="3"
+                        :placeholder="$t(marcador)"
+                        autofocus
+                    />
+                    <InputGroupAddon align="block-start">
+                        <AlignLeft aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
             </div>
 
             <DialogFooter class="gap-corto">

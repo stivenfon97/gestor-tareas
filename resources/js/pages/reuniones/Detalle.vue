@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import InputError from '@/components/InputError.vue';
 import CapturaRapidaFormulario from '@/components/tareas/CapturaRapidaFormulario.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { formatearFechaHora } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { index as indiceDeReuniones } from '@/routes/proyectos/reuniones';
@@ -286,27 +288,35 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                     <div
                         class="flex max-h-48 flex-col overflow-y-auto rounded-md border border-borde-fuerte bg-panel"
                     >
-                        <label
+                        <div
                             v-for="tarea in props.tareasDisponibles"
                             :key="tarea.id"
                             class="flex items-center gap-fino border-b border-borde px-fino py-fino last:border-b-0 hover:bg-fila-hover"
                         >
                             <Checkbox
+                                :id="`vincular-tarea-${tarea.id}`"
                                 :model-value="seleccionadas.includes(tarea.id)"
+                                :aria-invalid="!!vincularForm.errors.tarea_ids"
                                 @update:model-value="
                                     alternarSeleccion(tarea.id)
                                 "
                             />
-                            <span
-                                class="font-mono text-fino text-texto-suave"
-                                >{{ tarea.codigo }}</span
+                            <Label
+                                :for="`vincular-tarea-${tarea.id}`"
+                                class="min-w-0 flex-1 gap-fino font-normal"
                             >
-                            <span
-                                class="min-w-0 flex-1 truncate text-fino text-texto"
-                                >{{ tarea.nombre }}</span
-                            >
-                        </label>
+                                <span
+                                    class="font-mono text-fino text-texto-suave"
+                                    >{{ tarea.codigo }}</span
+                                >
+                                <span
+                                    class="min-w-0 flex-1 truncate text-fino text-texto"
+                                    >{{ tarea.nombre }}</span
+                                >
+                            </Label>
+                        </div>
                     </div>
+                    <InputError :message="vincularForm.errors.tarea_ids" />
                     <div>
                         <Button
                             size="sm"

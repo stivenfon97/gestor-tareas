@@ -1,12 +1,25 @@
 <script setup lang="ts">
-import { ListFilter } from '@lucide/vue';
+import { ListFilter, Search } from '@lucide/vue';
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useEstadoEnLaUrl } from '@/composables/useEstadoEnLaUrl';
 import { trans } from '@/lib/i18n';
 import type { OpcionesDeTarea } from '@/types/tareas';
@@ -43,6 +56,12 @@ const activos = computed(
             (valor) => valor !== '' && valor !== null,
         ).length,
 );
+
+/*
+ * `SelectItem` no admite el valor vacío (reka-ui lo reserva para «sin
+ * selección»): «Todos» usa este centinela y en la URL sigue siendo `''`.
+ */
+const TODOS = '__todos__';
 
 const campos = computed(() => [
     {
@@ -84,58 +103,75 @@ const campos = computed(() => [
         </PopoverTrigger>
 
         <PopoverContent align="start" class="flex w-72 flex-col gap-corto">
-            <label class="flex flex-col gap-minimo">
-                <span class="text-micro text-texto-suave">
+            <div class="grid gap-minimo">
+                <Label
+                    for="filtro-tareas-texto"
+                    class="text-micro text-texto-suave"
+                >
                     {{ $t('comun.buscar') }}
-                </span>
-                <input
-                    type="search"
-                    class="h-8 w-full min-w-0 rounded-sm border border-borde bg-panel px-corto text-cuerpo text-texto"
-                    :value="props.filtros.texto ?? ''"
-                    :aria-label="$t('comun.buscar')"
-                    @input="
-                        estado.aplicarFiltro(
-                            'texto',
-                            ($event.target as HTMLInputElement).value,
-                            true,
-                        )
-                    "
-                />
-            </label>
+                </Label>
+                <InputGroup>
+                    <InputGroupInput
+                        id="filtro-tareas-texto"
+                        type="search"
+                        :model-value="props.filtros.texto ?? ''"
+                        :placeholder="$t('tareas.filtros.texto')"
+                        @update:model-value="
+                            (valor: string | number) =>
+                                estado.aplicarFiltro(
+                                    'texto',
+                                    String(valor),
+                                    true,
+                                )
+                        "
+                    />
+                    <InputGroupAddon>
+                        <Search aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
 
-            <label
+            <div
                 v-for="campo in campos"
                 :key="campo.clave"
-                class="flex flex-col gap-minimo"
+                class="grid gap-minimo"
             >
-                <span class="text-micro text-texto-suave">
+                <Label
+                    :for="`filtro-tareas-${campo.clave}`"
+                    class="text-micro text-texto-suave"
+                >
                     {{ campo.etiqueta }}
-                </span>
-                <select
-                    class="h-8 w-full min-w-0 rounded-sm border border-borde bg-panel px-corto text-cuerpo text-texto"
-                    :value="props.filtros[campo.clave] ?? ''"
-                    :aria-label="
-                        $t('comun.tabla.filtrar_por', {
-                            columna: campo.etiqueta,
-                        })
-                    "
-                    @change="
-                        estado.aplicarFiltro(
-                            campo.clave,
-                            ($event.target as HTMLSelectElement).value,
-                        )
+                </Label>
+                <Select
+                    :model-value="props.filtros[campo.clave] || TODOS"
+                    @update:model-value="
+                        (valor) =>
+                            estado.aplicarFiltro(
+                                campo.clave,
+                                valor === TODOS ? '' : String(valor),
+                            )
                     "
                 >
-                    <option value="">{{ $t('comun.tabla.todos') }}</option>
-                    <option
-                        v-for="opcion in campo.opciones"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
+                    <SelectTrigger
+                        :id="`filtro-tareas-${campo.clave}`"
+                        class="w-full"
                     >
-                        {{ opcion.etiqueta }}
-                    </option>
-                </select>
-            </label>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem :value="TODOS">
+                            {{ $t('comun.tabla.todos') }}
+                        </SelectItem>
+                        <SelectItem
+                            v-for="opcion in campo.opciones"
+                            :key="opcion.valor"
+                            :value="opcion.valor"
+                        >
+                            {{ opcion.etiqueta }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
 
             <Button
                 v-if="activos > 0"

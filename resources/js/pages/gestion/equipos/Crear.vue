@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { FileText, Users } from '@lucide/vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { index } from '@/routes/equipos';
 </script>
@@ -22,13 +27,36 @@ import { index } from '@/routes/equipos';
         >
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <Input id="nombre" name="nombre" required />
+                <InputGroup>
+                    <InputGroupInput
+                        id="nombre"
+                        name="nombre"
+                        required
+                        :placeholder="$t('gestion.equipos.nombre_marcador')"
+                        :aria-invalid="!!errors.nombre"
+                    />
+                    <InputGroupAddon>
+                        <Users aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.nombre" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="descripcion">{{ $t('comun.descripcion') }}</Label>
-                <Input id="descripcion" name="descripcion" />
+                <InputGroup>
+                    <InputGroupInput
+                        id="descripcion"
+                        name="descripcion"
+                        :placeholder="
+                            $t('gestion.equipos.descripcion_marcador')
+                        "
+                        :aria-invalid="!!errors.descripcion"
+                    />
+                    <InputGroupAddon>
+                        <FileText aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.descripcion" />
             </div>
 

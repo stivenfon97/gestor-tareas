@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Type } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +10,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 
 /**
@@ -67,12 +72,22 @@ const coincide = computed(() => escrito.value.trim() === props.nombre);
                 <Label for="confirmacion-por-nombre">
                     {{ props.etiquetaCampo }}
                 </Label>
-                <Input
-                    id="confirmacion-por-nombre"
-                    v-model="escrito"
-                    autocomplete="off"
-                    :placeholder="props.nombre"
-                />
+                <!--
+                    La coincidencia se comprueba en vivo: es una validación
+                    real, así que el campo se marca como válido al acertar.
+                -->
+                <InputGroup>
+                    <InputGroupInput
+                        id="confirmacion-por-nombre"
+                        v-model="escrito"
+                        autocomplete="off"
+                        :placeholder="props.nombre"
+                        :data-valido="coincide"
+                    />
+                    <InputGroupAddon>
+                        <Type aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
             </div>
 
             <DialogFooter class="gap-corto">

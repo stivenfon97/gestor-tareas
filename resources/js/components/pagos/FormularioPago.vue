@@ -1,10 +1,29 @@
 <script setup lang="ts">
 import { Link, useForm } from '@inertiajs/vue3';
+import {
+    ArrowLeftRight,
+    Calendar,
+    DollarSign,
+    FileText,
+    Hash,
+} from '@lucide/vue';
 import { computed, toRef } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useTrm } from '@/composables/useTrm';
 import type { RouteDefinition } from '@/wayfinder';
 
@@ -51,6 +70,17 @@ useTrm(
     toRef(form, 'origen_tasa'),
 );
 
+/*
+ * El `Select` de shadcn trabaja con cadenas y no admite un elemento con valor
+ * vacío: «sin periodo elegido» es `undefined`, que muestra el marcador.
+ */
+const periodoElegido = computed<string | undefined>({
+    get: () => (form.periodo_id === '' ? undefined : String(form.periodo_id)),
+    set: (valor) => {
+        form.periodo_id = valor === undefined ? '' : Number(valor);
+    },
+});
+
 const enviar = (): void => {
     form.submit(props.accion);
 };
@@ -60,27 +90,28 @@ const enviar = (): void => {
     <form class="space-y-6" @submit.prevent="enviar">
         <div v-if="esCreacion" class="grid gap-2">
             <Label for="periodo_id">{{ $t('pagos.periodo') }}</Label>
-            <select
-                id="periodo_id"
-                v-model="form.periodo_id"
-                required
-                class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-            >
-                <option value="" disabled>
-                    {{ $t('pagos.elegir_periodo') }}
-                </option>
-                <option
-                    v-for="periodo in props.periodos"
-                    :key="periodo.id"
-                    :value="periodo.id"
+            <Select v-model="periodoElegido" required>
+                <SelectTrigger
+                    id="periodo_id"
+                    class="w-full"
+                    :aria-invalid="!!form.errors.periodo_id"
                 >
-                    {{
-                        $t('tareas.periodo_numero', {
-                            consecutivo: String(periodo.consecutivo),
-                        })
-                    }}
-                </option>
-            </select>
+                    <SelectValue :placeholder="$t('pagos.elegir_periodo')" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem
+                        v-for="periodo in props.periodos"
+                        :key="periodo.id"
+                        :value="String(periodo.id)"
+                    >
+                        {{
+                            $t('tareas.periodo_numero', {
+                                consecutivo: String(periodo.consecutivo),
+                            })
+                        }}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
             <p
                 v-if="props.periodos && props.periodos.length === 0"
                 class="text-fino text-texto-suave"
@@ -92,12 +123,18 @@ const enviar = (): void => {
 
         <div class="grid gap-2">
             <Label for="fecha_pago">{{ $t('pagos.fecha_pago') }}</Label>
-            <Input
-                id="fecha_pago"
-                v-model="form.fecha_pago"
-                type="date"
-                required
-            />
+            <InputGroup>
+                <InputGroupInput
+                    id="fecha_pago"
+                    v-model="form.fecha_pago"
+                    type="date"
+                    required
+                    :aria-invalid="!!form.errors.fecha_pago"
+                />
+                <InputGroupAddon>
+                    <Calendar aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <p class="text-fino text-texto-suave">
                 {{ $t('pagos.fecha_pago_ayuda') }}
             </p>
@@ -107,47 +144,67 @@ const enviar = (): void => {
         <div class="grid grid-cols-2 gap-4">
             <div class="grid gap-2">
                 <Label for="monto_usd">{{ $t('pagos.monto_usd') }}</Label>
-                <Input
-                    id="monto_usd"
-                    v-model="form.monto_usd"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="monto_usd"
+                        v-model="form.monto_usd"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        inputmode="decimal"
+                        required
+                        :placeholder="$t('pagos.monto_usd_marcador')"
+                        :aria-invalid="!!form.errors.monto_usd"
+                    />
+                    <InputGroupAddon>
+                        <DollarSign aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="form.errors.monto_usd" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="tasa_cambio">{{ $t('pagos.tasa_cambio') }}</Label>
-                <Input
-                    id="tasa_cambio"
-                    v-model="form.tasa_cambio"
-                    type="number"
-                    step="0.0001"
-                    min="0"
-                    required
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="tasa_cambio"
+                        v-model="form.tasa_cambio"
+                        type="number"
+                        step="0.0001"
+                        min="0"
+                        inputmode="decimal"
+                        required
+                        :placeholder="$t('pagos.tasa_cambio_marcador')"
+                        :aria-invalid="!!form.errors.tasa_cambio"
+                    />
+                    <InputGroupAddon>
+                        <ArrowLeftRight aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="form.errors.tasa_cambio" />
             </div>
         </div>
 
         <div class="grid gap-2">
             <Label for="origen_tasa">{{ $t('pagos.origen_tasa') }}</Label>
-            <select
-                id="origen_tasa"
-                v-model="form.origen_tasa"
-                required
-                class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-            >
-                <option
-                    v-for="opcion in props.origenesTasa"
-                    :key="opcion.valor"
-                    :value="opcion.valor"
+            <Select v-model="form.origen_tasa" required>
+                <SelectTrigger
+                    id="origen_tasa"
+                    class="w-full"
+                    :aria-invalid="!!form.errors.origen_tasa"
                 >
-                    {{ opcion.etiqueta }}
-                </option>
-            </select>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem
+                        v-for="opcion in props.origenesTasa"
+                        :key="opcion.valor"
+                        :value="opcion.valor"
+                    >
+                        {{ opcion.etiqueta }}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
             <p class="text-fino text-texto-suave">
                 {{ $t('pagos.origen_tasa_ayuda') }}
             </p>
@@ -156,18 +213,34 @@ const enviar = (): void => {
 
         <div class="grid gap-2">
             <Label for="referencia">{{ $t('pagos.referencia') }}</Label>
-            <Input id="referencia" v-model="form.referencia" />
+            <InputGroup>
+                <InputGroupInput
+                    id="referencia"
+                    v-model="form.referencia"
+                    :placeholder="$t('pagos.referencia_marcador')"
+                    :aria-invalid="!!form.errors.referencia"
+                />
+                <InputGroupAddon>
+                    <Hash aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <InputError :message="form.errors.referencia" />
         </div>
 
         <div class="grid gap-2">
             <Label for="notas">{{ $t('pagos.notas') }}</Label>
-            <textarea
-                id="notas"
-                v-model="form.notas"
-                rows="3"
-                class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-            />
+            <InputGroup>
+                <InputGroupTextarea
+                    id="notas"
+                    v-model="form.notas"
+                    rows="3"
+                    :placeholder="$t('pagos.notas_marcador')"
+                    :aria-invalid="!!form.errors.notas"
+                />
+                <InputGroupAddon align="block-start">
+                    <FileText aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <InputError :message="form.errors.notas" />
         </div>
 

@@ -3,8 +3,16 @@ import { Form, Head } from '@inertiajs/vue3';
 import AsignarEquipoAProyectoController from '@/actions/App/Http/Controllers/AsignarEquipoAProyectoController';
 import ProyectoUsuarioController from '@/actions/App/Http/Controllers/ProyectoUsuarioController';
 import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 type Persona = { id: number; name: string; email: string };
 type Miembro = Persona & { rol: string };
@@ -49,23 +57,38 @@ const props = defineProps<{
                                 miembro.id,
                             ])
                         "
-                        class="flex items-center gap-2"
-                        v-slot="{ processing }"
+                        class="flex flex-wrap items-center gap-2"
+                        v-slot="{ errors, processing }"
                     >
-                        <select
-                            :id="`rol-${miembro.id}`"
+                        <Label :for="`rol-${miembro.id}`">{{
+                            $t('comun.rol')
+                        }}</Label>
+                        <Select
                             name="rol"
-                            class="h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                            required
+                            :default-value="miembro.rol"
                         >
-                            <option
-                                v-for="rol in props.roles"
-                                :key="rol.valor"
-                                :value="rol.valor"
-                                :selected="rol.valor === miembro.rol"
+                            <SelectTrigger
+                                :id="`rol-${miembro.id}`"
+                                size="sm"
+                                :aria-invalid="!!errors.rol"
                             >
-                                {{ $t(rol.etiqueta) }}
-                            </option>
-                        </select>
+                                <SelectValue
+                                    :placeholder="
+                                        $t('proyectos.miembros.rol_marcador')
+                                    "
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="rol in props.roles"
+                                    :key="rol.valor"
+                                    :value="rol.valor"
+                                >
+                                    {{ $t(rol.etiqueta) }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                         <Button
                             type="submit"
                             size="sm"
@@ -74,6 +97,7 @@ const props = defineProps<{
                         >
                             {{ $t('comun.guardar') }}
                         </Button>
+                        <InputError class="basis-full" :message="errors.rol" />
                     </Form>
 
                     <Form
@@ -113,41 +137,73 @@ const props = defineProps<{
             <Form
                 v-bind="ProyectoUsuarioController.store.form(props.proyecto.id)"
                 class="flex flex-wrap items-end gap-3"
-                v-slot="{ processing }"
+                v-slot="{ errors, processing }"
             >
                 <div class="grid flex-1 gap-2">
                     <Label for="usuario_id">{{ $t('comun.nombre') }}</Label>
-                    <select
-                        id="usuario_id"
+                    <!--
+                        Arranca en la primera persona, como el <select> nativo.
+                        La clave lo remonta cuando cambia la lista: si no, tras
+                        asignar a alguien seguiría apuntando a quien ya no está.
+                    -->
+                    <Select
+                        :key="props.candidatos.map((p) => p.id).join()"
                         name="usuario_id"
                         required
-                        class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                        :default-value="
+                            props.candidatos[0]
+                                ? String(props.candidatos[0].id)
+                                : undefined
+                        "
                     >
-                        <option
-                            v-for="persona in props.candidatos"
-                            :key="persona.id"
-                            :value="persona.id"
+                        <SelectTrigger
+                            id="usuario_id"
+                            class="w-full"
+                            :aria-invalid="!!errors.usuario_id"
                         >
-                            {{ persona.name }} · {{ persona.email }}
-                        </option>
-                    </select>
+                            <SelectValue
+                                :placeholder="
+                                    $t('proyectos.miembros.persona_marcador')
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="persona in props.candidatos"
+                                :key="persona.id"
+                                :value="String(persona.id)"
+                            >
+                                {{ persona.name }} · {{ persona.email }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.usuario_id" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="rol">{{ $t('comun.rol') }}</Label>
-                    <select
-                        id="rol"
+                    <Select
                         name="rol"
                         required
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                        :default-value="props.roles[0]?.valor"
                     >
-                        <option
-                            v-for="rol in props.roles"
-                            :key="rol.valor"
-                            :value="rol.valor"
-                        >
-                            {{ $t(rol.etiqueta) }}
-                        </option>
-                    </select>
+                        <SelectTrigger id="rol" :aria-invalid="!!errors.rol">
+                            <SelectValue
+                                :placeholder="
+                                    $t('proyectos.miembros.rol_marcador')
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="rol in props.roles"
+                                :key="rol.valor"
+                                :value="rol.valor"
+                            >
+                                {{ $t(rol.etiqueta) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.rol" />
                 </div>
                 <Button type="submit" :disabled="processing">{{
                     $t('comun.agregar')
@@ -169,43 +225,73 @@ const props = defineProps<{
                     )
                 "
                 class="flex flex-wrap items-end gap-3"
-                v-slot="{ processing }"
+                v-slot="{ errors, processing }"
             >
                 <div class="grid flex-1 gap-2">
                     <Label for="equipo_id">{{
                         $t('gestion.equipos.titulo')
                     }}</Label>
-                    <select
-                        id="equipo_id"
+                    <Select
+                        :key="props.equipos.map((e) => e.id).join()"
                         name="equipo_id"
                         required
-                        class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                        :default-value="
+                            props.equipos[0]
+                                ? String(props.equipos[0].id)
+                                : undefined
+                        "
                     >
-                        <option
-                            v-for="equipo in props.equipos"
-                            :key="equipo.id"
-                            :value="equipo.id"
+                        <SelectTrigger
+                            id="equipo_id"
+                            class="w-full"
+                            :aria-invalid="!!errors.equipo_id"
                         >
-                            {{ equipo.nombre }}
-                        </option>
-                    </select>
+                            <SelectValue
+                                :placeholder="
+                                    $t('proyectos.miembros.equipo_marcador')
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="equipo in props.equipos"
+                                :key="equipo.id"
+                                :value="String(equipo.id)"
+                            >
+                                {{ equipo.nombre }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.equipo_id" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="rol_equipo">{{ $t('comun.rol') }}</Label>
-                    <select
-                        id="rol_equipo"
+                    <Select
                         name="rol"
                         required
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                        :default-value="props.roles[0]?.valor"
                     >
-                        <option
-                            v-for="rol in props.roles"
-                            :key="rol.valor"
-                            :value="rol.valor"
+                        <SelectTrigger
+                            id="rol_equipo"
+                            :aria-invalid="!!errors.rol"
                         >
-                            {{ $t(rol.etiqueta) }}
-                        </option>
-                    </select>
+                            <SelectValue
+                                :placeholder="
+                                    $t('proyectos.miembros.rol_marcador')
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="rol in props.roles"
+                                :key="rol.valor"
+                                :value="rol.valor"
+                            >
+                                {{ $t(rol.etiqueta) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.rol" />
                 </div>
                 <Button type="submit" variant="outline" :disabled="processing">
                     {{ $t('comun.agregar') }}

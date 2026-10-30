@@ -1,11 +1,31 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import { Plus, Trash2 } from '@lucide/vue';
+import {
+    Building2,
+    Calendar,
+    FileText,
+    Plus,
+    Trash2,
+    Type,
+    User,
+} from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import EditorEnriquecido from '@/components/reuniones/EditorEnriquecido.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { trans } from '@/lib/i18n';
 import type { DocumentoTipTap } from '@/types/reuniones';
 import type { Opcion } from '@/types/tareas';
@@ -105,6 +125,12 @@ const alElegirMiembro = (asistente: Asistente, id: string): void => {
     }
 };
 
+/*
+ * `SelectItem` no admite el valor vacío (reka-ui lo reserva para «sin
+ * selección»): «No es usuario del sistema» usa este centinela.
+ */
+const NINGUNO = '__ninguno__';
+
 /** Error de una fila del repetidor: las claves `asistentes.N.campo` no son
  * literales del tipo de `form.errors`, igual que en `CapturaRapidaFormulario`. */
 const errorDeAsistente = (indice: number, campo: string): string | undefined =>
@@ -128,12 +154,18 @@ const enviar = (): void => {
                 <Label for="reunion-fecha">{{
                     trans('reuniones.campos.fecha')
                 }}</Label>
-                <Input
-                    id="reunion-fecha"
-                    v-model="form.fecha"
-                    type="datetime-local"
-                    required
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="reunion-fecha"
+                        v-model="form.fecha"
+                        type="datetime-local"
+                        required
+                        :aria-invalid="!!form.errors.fecha"
+                    />
+                    <InputGroupAddon>
+                        <Calendar aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="form.errors.fecha" />
             </div>
 
@@ -141,19 +173,24 @@ const enviar = (): void => {
                 <Label for="reunion-tipo">{{
                     trans('reuniones.campos.tipo')
                 }}</Label>
-                <select
-                    id="reunion-tipo"
-                    v-model="form.tipo"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option
-                        v-for="opcion in props.opciones.tipos"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
+                <Select v-model="form.tipo">
+                    <SelectTrigger
+                        id="reunion-tipo"
+                        class="w-full"
+                        :aria-invalid="!!form.errors.tipo"
                     >
-                        {{ trans(opcion.etiqueta) }}
-                    </option>
-                </select>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="opcion in props.opciones.tipos"
+                            :key="opcion.valor"
+                            :value="opcion.valor"
+                        >
+                            {{ trans(opcion.etiqueta) }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
                 <InputError :message="form.errors.tipo" />
             </div>
         </div>
@@ -162,12 +199,19 @@ const enviar = (): void => {
             <Label for="reunion-titulo">{{
                 trans('reuniones.campos.titulo')
             }}</Label>
-            <Input
-                id="reunion-titulo"
-                v-model="form.titulo"
-                required
-                maxlength="255"
-            />
+            <InputGroup>
+                <InputGroupInput
+                    id="reunion-titulo"
+                    v-model="form.titulo"
+                    required
+                    maxlength="255"
+                    :placeholder="trans('reuniones.marcadores.titulo')"
+                    :aria-invalid="!!form.errors.titulo"
+                />
+                <InputGroupAddon>
+                    <Type aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <InputError :message="form.errors.titulo" />
         </div>
 
@@ -175,27 +219,42 @@ const enviar = (): void => {
             <Label for="reunion-visibilidad">{{
                 trans('reuniones.campos.visibilidad')
             }}</Label>
-            <select
-                id="reunion-visibilidad"
-                v-model="form.visibilidad"
-                class="h-9 w-fit rounded-md border border-input bg-background px-3 text-sm text-foreground"
-            >
-                <option
-                    v-for="opcion in props.opciones.visibilidades"
-                    :key="opcion.valor"
-                    :value="opcion.valor"
+            <Select v-model="form.visibilidad">
+                <SelectTrigger
+                    id="reunion-visibilidad"
+                    :aria-invalid="!!form.errors.visibilidad"
                 >
-                    {{ trans(opcion.etiqueta) }}
-                </option>
-            </select>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem
+                        v-for="opcion in props.opciones.visibilidades"
+                        :key="opcion.valor"
+                        :value="opcion.valor"
+                    >
+                        {{ trans(opcion.etiqueta) }}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
             <InputError :message="form.errors.visibilidad" />
         </div>
 
         <div class="grid gap-fino">
-            <Label>{{ trans('reuniones.campos.contenido') }}</Label>
+            <!--
+                El editor no es un control nativo y `for` no lo alcanza: la
+                etiqueta se le asocia por `aria-labelledby` (ver
+                `EditorEnriquecido`).
+            -->
+            <Label id="reunion-contenido-etiqueta">{{
+                trans('reuniones.campos.contenido')
+            }}</Label>
             <EditorEnriquecido
                 v-model:json="form.contenido_json"
                 v-model:html="form.contenido_html"
+                etiquetado-por="reunion-contenido-etiqueta"
+                :invalido="
+                    !!form.errors.contenido_json || !!form.errors.contenido_html
+                "
             />
             <InputError :message="form.errors.contenido_json" />
             <InputError :message="form.errors.contenido_html" />
@@ -205,12 +264,18 @@ const enviar = (): void => {
             <Label for="reunion-acuerdos">{{
                 trans('reuniones.campos.acuerdos')
             }}</Label>
-            <textarea
-                id="reunion-acuerdos"
-                v-model="form.acuerdos"
-                rows="3"
-                class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-            />
+            <InputGroup>
+                <InputGroupTextarea
+                    id="reunion-acuerdos"
+                    v-model="form.acuerdos"
+                    rows="3"
+                    :placeholder="trans('reuniones.marcadores.acuerdos')"
+                    :aria-invalid="!!form.errors.acuerdos"
+                />
+                <InputGroupAddon align="block-start">
+                    <FileText aria-hidden="true" />
+                </InputGroupAddon>
+            </InputGroup>
             <InputError :message="form.errors.acuerdos" />
         </div>
 
@@ -244,11 +309,20 @@ const enviar = (): void => {
                     <Label :for="`asistente-nombre-${indice}`">{{
                         trans('reuniones.asistentes.nombre')
                     }}</Label>
-                    <Input
-                        :id="`asistente-nombre-${indice}`"
-                        v-model="asistente.nombre"
-                        required
-                    />
+                    <InputGroup>
+                        <InputGroupInput
+                            :id="`asistente-nombre-${indice}`"
+                            v-model="asistente.nombre"
+                            required
+                            :placeholder="
+                                trans('reuniones.marcadores.asistente_nombre')
+                            "
+                            :aria-invalid="!!errorDeAsistente(indice, 'nombre')"
+                        />
+                        <InputGroupAddon>
+                            <User aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
                     <InputError :message="errorDeAsistente(indice, 'nombre')" />
                 </div>
 
@@ -256,13 +330,28 @@ const enviar = (): void => {
                     <Label :for="`asistente-organizacion-${indice}`">{{
                         trans('reuniones.asistentes.organizacion')
                     }}</Label>
-                    <Input
-                        :id="`asistente-organizacion-${indice}`"
-                        :model-value="asistente.organizacion ?? ''"
-                        @update:model-value="
-                            (valor) =>
-                                (asistente.organizacion = String(valor) || null)
-                        "
+                    <InputGroup>
+                        <InputGroupInput
+                            :id="`asistente-organizacion-${indice}`"
+                            :model-value="asistente.organizacion ?? ''"
+                            :placeholder="
+                                trans('reuniones.marcadores.organizacion')
+                            "
+                            :aria-invalid="
+                                !!errorDeAsistente(indice, 'organizacion')
+                            "
+                            @update:model-value="
+                                (valor: string | number) =>
+                                    (asistente.organizacion =
+                                        String(valor) || null)
+                            "
+                        />
+                        <InputGroupAddon>
+                            <Building2 aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError
+                        :message="errorDeAsistente(indice, 'organizacion')"
                     />
                 </div>
 
@@ -270,28 +359,49 @@ const enviar = (): void => {
                     <Label :for="`asistente-usuario-${indice}`">{{
                         trans('reuniones.asistentes.usuario')
                     }}</Label>
-                    <select
-                        :id="`asistente-usuario-${indice}`"
-                        :value="asistente.usuario_id ?? ''"
-                        class="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                        @change="
-                            alElegirMiembro(
-                                asistente,
-                                ($event.target as HTMLSelectElement).value,
-                            )
+                    <Select
+                        :model-value="
+                            asistente.usuario_id === null
+                                ? NINGUNO
+                                : String(asistente.usuario_id)
+                        "
+                        @update:model-value="
+                            (valor) =>
+                                alElegirMiembro(
+                                    asistente,
+                                    valor === NINGUNO ? '' : String(valor),
+                                )
                         "
                     >
-                        <option value="">
-                            {{ trans('reuniones.asistentes.usuario_ninguno') }}
-                        </option>
-                        <option
-                            v-for="miembro in props.opciones.miembros"
-                            :key="miembro.id"
-                            :value="miembro.id"
+                        <SelectTrigger
+                            :id="`asistente-usuario-${indice}`"
+                            class="w-full"
+                            :aria-invalid="
+                                !!errorDeAsistente(indice, 'usuario_id')
+                            "
                         >
-                            {{ miembro.nombre }}
-                        </option>
-                    </select>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="NINGUNO">
+                                {{
+                                    trans(
+                                        'reuniones.asistentes.usuario_ninguno',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem
+                                v-for="miembro in props.opciones.miembros"
+                                :key="miembro.id"
+                                :value="String(miembro.id)"
+                            >
+                                {{ miembro.nombre }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError
+                        :message="errorDeAsistente(indice, 'usuario_id')"
+                    />
                 </div>
 
                 <Button

@@ -1,11 +1,23 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { Mail, User } from '@lucide/vue';
 import UsuarioController from '@/actions/App/Http/Controllers/Gestion/UsuarioController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { index } from '@/routes/usuarios';
 
 const props = defineProps<{
@@ -37,24 +49,38 @@ const props = defineProps<{
         >
             <div class="grid gap-2">
                 <Label for="name">{{ $t('comun.nombre') }}</Label>
-                <Input
-                    id="name"
-                    name="name"
-                    :default-value="props.usuario.name"
-                    required
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="name"
+                        name="name"
+                        :default-value="props.usuario.name"
+                        required
+                        :placeholder="$t('gestion.usuarios.nombre_marcador')"
+                        :aria-invalid="!!errors.name"
+                    />
+                    <InputGroupAddon>
+                        <User aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="email">{{ $t('comun.correo') }}</Label>
-                <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    :default-value="props.usuario.email"
-                    required
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="email"
+                        name="email"
+                        type="email"
+                        :default-value="props.usuario.email"
+                        required
+                        :placeholder="$t('gestion.usuarios.correo_marcador')"
+                        :aria-invalid="!!errors.email"
+                    />
+                    <InputGroupAddon>
+                        <Mail aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.email" />
             </div>
 
@@ -62,21 +88,35 @@ const props = defineProps<{
                 <Label for="rol_global">{{
                     $t('gestion.usuarios.rol_global')
                 }}</Label>
-                <select
-                    id="rol_global"
+                <!-- Sin rol guardado, como el <select> nativo: la primera opción. -->
+                <Select
                     name="rol_global"
                     required
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                    :default-value="
+                        props.usuario.rol_global ?? props.roles[0]?.valor
+                    "
                 >
-                    <option
-                        v-for="rol in props.roles"
-                        :key="rol.valor"
-                        :value="rol.valor"
-                        :selected="rol.valor === props.usuario.rol_global"
+                    <SelectTrigger
+                        id="rol_global"
+                        class="w-full"
+                        :aria-invalid="!!errors.rol_global"
                     >
-                        {{ $t(rol.etiqueta) }}
-                    </option>
-                </select>
+                        <SelectValue
+                            :placeholder="
+                                $t('gestion.usuarios.rol_global_marcador')
+                            "
+                        />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="rol in props.roles"
+                            :key="rol.valor"
+                            :value="rol.valor"
+                        >
+                            {{ $t(rol.etiqueta) }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
                 <InputError :message="errors.rol_global" />
             </div>
 

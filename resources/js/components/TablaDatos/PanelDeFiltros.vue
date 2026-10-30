@@ -1,7 +1,8 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { ChevronDown } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import FiltroDeColumna from './FiltroDeColumna.vue';
 import type { ColumnaDeTabla } from './tipos';
 
@@ -33,6 +34,9 @@ const conFiltro = computed(() =>
 );
 
 const abierto = ref(props.total > 0);
+
+/** Prefijo de los `id` de los controles, para asociarles su `Label`. */
+const prefijo = useId();
 </script>
 
 <template>
@@ -63,19 +67,22 @@ const abierto = ref(props.total > 0);
         <div
             class="flex flex-col gap-corto border-t border-borde px-celda py-corto"
         >
-            <label
+            <div
                 v-for="columna in conFiltro"
                 :key="columna.id"
                 class="flex flex-col gap-minimo"
             >
-                <span class="text-micro text-texto-suave">
+                <Label
+                    :for="`${prefijo}-${columna.id}`"
+                    class="text-micro text-texto-suave"
+                >
                     {{ columna.etiqueta }}
-                </span>
+                </Label>
                 <FiltroDeColumna
                     :filtro="columna.filtro!"
                     :etiqueta="columna.etiqueta"
                     :valor="props.filtros[columna.filtro!.clave] ?? ''"
-                    comodo
+                    :campo-id="`${prefijo}-${columna.id}`"
                     @cambiar="
                         (valor: string, retrasar: boolean) =>
                             emit(
@@ -86,7 +93,7 @@ const abierto = ref(props.total > 0);
                             )
                     "
                 />
-            </label>
+            </div>
 
             <Button
                 v-if="props.total > 0"

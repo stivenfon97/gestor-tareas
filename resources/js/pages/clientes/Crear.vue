@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { Building2, FileText, Mail, Phone, User } from '@lucide/vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { index } from '@/routes/clientes';
 </script>
@@ -22,12 +28,19 @@ import { index } from '@/routes/clientes';
         >
             <div class="grid gap-2">
                 <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <Input
-                    id="nombre"
-                    name="nombre"
-                    required
-                    autocomplete="organization"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="nombre"
+                        name="nombre"
+                        required
+                        autocomplete="organization"
+                        :placeholder="$t('clientes.nombre_marcador')"
+                        :aria-invalid="!!errors.nombre"
+                    />
+                    <InputGroupAddon>
+                        <Building2 aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.nombre" />
             </div>
 
@@ -35,11 +48,18 @@ import { index } from '@/routes/clientes';
                 <Label for="contacto_nombre">{{
                     $t('clientes.contacto_nombre')
                 }}</Label>
-                <Input
-                    id="contacto_nombre"
-                    name="contacto_nombre"
-                    autocomplete="name"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="contacto_nombre"
+                        name="contacto_nombre"
+                        autocomplete="name"
+                        :placeholder="$t('clientes.contacto_nombre_marcador')"
+                        :aria-invalid="!!errors.contacto_nombre"
+                    />
+                    <InputGroupAddon>
+                        <User aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.contacto_nombre" />
             </div>
 
@@ -47,12 +67,19 @@ import { index } from '@/routes/clientes';
                 <Label for="contacto_email">{{
                     $t('clientes.contacto_email')
                 }}</Label>
-                <Input
-                    id="contacto_email"
-                    name="contacto_email"
-                    type="email"
-                    autocomplete="email"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="contacto_email"
+                        name="contacto_email"
+                        type="email"
+                        autocomplete="email"
+                        :placeholder="$t('clientes.contacto_email_marcador')"
+                        :aria-invalid="!!errors.contacto_email"
+                    />
+                    <InputGroupAddon>
+                        <Mail aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.contacto_email" />
             </div>
 
@@ -60,22 +87,35 @@ import { index } from '@/routes/clientes';
                 <Label for="contacto_telefono">{{
                     $t('clientes.contacto_telefono')
                 }}</Label>
-                <Input
-                    id="contacto_telefono"
-                    name="contacto_telefono"
-                    autocomplete="tel"
-                />
+                <InputGroup>
+                    <InputGroupInput
+                        id="contacto_telefono"
+                        name="contacto_telefono"
+                        autocomplete="tel"
+                        :placeholder="$t('clientes.contacto_telefono_marcador')"
+                        :aria-invalid="!!errors.contacto_telefono"
+                    />
+                    <InputGroupAddon>
+                        <Phone aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="errors.contacto_telefono" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="notas">{{ $t('clientes.notas') }}</Label>
-                <textarea
-                    id="notas"
-                    name="notas"
-                    rows="4"
-                    class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                />
+                <InputGroup>
+                    <InputGroupTextarea
+                        id="notas"
+                        name="notas"
+                        rows="4"
+                        :placeholder="$t('clientes.notas_marcador')"
+                        :aria-invalid="!!errors.notas"
+                    />
+                    <InputGroupAddon align="block-start">
+                        <FileText aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <p class="text-xs text-muted-foreground">
                     {{ $t('clientes.notas_ayuda') }}
                 </p>

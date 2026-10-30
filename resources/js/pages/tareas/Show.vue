@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { AlignLeft, FileText } from '@lucide/vue';
 import { ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import Heading from '@/components/Heading.vue';
@@ -10,7 +11,19 @@ import ControlDeEstado from '@/components/tareas/ControlDeEstado.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupTextarea,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { formatearFecha, formatearFechaHora } from '@/lib/formato';
 import { index as tareasDelProyecto } from '@/routes/proyectos/tareas';
 import { show as mostrarReunion } from '@/routes/reuniones';
@@ -248,8 +261,19 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
         <!-- Descripción editable en línea -->
         <section class="flex flex-col gap-2">
             <div class="flex items-center justify-between gap-4">
+                <!--
+                    En edición el título de la sección es la etiqueta del campo:
+                    repetir «Descripción» encima del textarea sería ruido.
+                -->
                 <h3 class="text-base font-medium">
-                    {{ $t('tareas.descripcion') }}
+                    <Label
+                        v-if="editandoDescripcion"
+                        for="descripcion-en-linea"
+                        class="text-base"
+                    >
+                        {{ $t('tareas.descripcion') }}
+                    </Label>
+                    <template v-else>{{ $t('tareas.descripcion') }}</template>
                 </h3>
                 <Button
                     v-if="props.puede.editar && !editandoDescripcion"
@@ -262,11 +286,18 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
             </div>
 
             <template v-if="editandoDescripcion">
-                <textarea
-                    v-model="descripcion.descripcion"
-                    rows="6"
-                    class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                />
+                <InputGroup>
+                    <InputGroupTextarea
+                        id="descripcion-en-linea"
+                        v-model="descripcion.descripcion"
+                        rows="6"
+                        :placeholder="$t('tareas.marcadores.descripcion')"
+                        :aria-invalid="!!descripcion.errors.descripcion"
+                    />
+                    <InputGroupAddon align="block-start">
+                        <FileText aria-hidden="true" />
+                    </InputGroupAddon>
+                </InputGroup>
                 <InputError :message="descripcion.errors.descripcion" />
                 <div class="flex items-center gap-2">
                     <Button
@@ -410,31 +441,50 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
 
             <form
                 v-if="props.puede.comentar"
-                class="flex flex-col gap-2"
+                class="flex flex-col gap-4"
                 @submit.prevent="agregarNota"
             >
-                <Label for="nota">{{ $t('tareas.notas.contenido') }}</Label>
-                <textarea
-                    id="nota"
-                    v-model="nota.contenido"
-                    rows="3"
-                    class="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                />
-                <InputError :message="nota.errors.contenido" />
+                <div class="grid gap-2">
+                    <Label for="nota">{{ $t('tareas.notas.contenido') }}</Label>
+                    <InputGroup>
+                        <InputGroupTextarea
+                            id="nota"
+                            v-model="nota.contenido"
+                            rows="3"
+                            :placeholder="$t('tareas.marcadores.nota')"
+                            :aria-invalid="!!nota.errors.contenido"
+                        />
+                        <InputGroupAddon align="block-start">
+                            <AlignLeft aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="nota.errors.contenido" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="nota-visibilidad">{{
+                        $t('tareas.notas.visibilidad')
+                    }}</Label>
+                    <Select v-model="nota.visibilidad">
+                        <SelectTrigger
+                            id="nota-visibilidad"
+                            :aria-invalid="!!nota.errors.visibilidad"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="interna">
+                                {{ $t('enums.visibilidad.interna') }}
+                            </SelectItem>
+                            <SelectItem value="cliente">
+                                {{ $t('enums.visibilidad.cliente') }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="nota.errors.visibilidad" />
+                </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                    <select
-                        v-model="nota.visibilidad"
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                        :aria-label="$t('tareas.notas.visibilidad')"
-                    >
-                        <option value="interna">
-                            {{ $t('enums.visibilidad.interna') }}
-                        </option>
-                        <option value="cliente">
-                            {{ $t('enums.visibilidad.cliente') }}
-                        </option>
-                    </select>
                     <Button type="submit" size="sm" :disabled="nota.processing">
                         {{ $t('tareas.notas.agregar') }}
                     </Button>

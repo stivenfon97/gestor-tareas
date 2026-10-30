@@ -14,6 +14,7 @@ return [
     'vencido' => 'Vencido',
     'en_curso' => 'en curso',
     'notas' => 'Notas',
+    'notas_marcador' => 'Objetivo o acuerdos del periodo',
     'sin_notas' => 'Sin notas.',
     'fecha_fin' => 'Fecha de fin',
     'fecha_fin_prevista' => 'Fecha de fin prevista',

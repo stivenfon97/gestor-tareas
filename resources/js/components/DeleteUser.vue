@@ -68,7 +68,7 @@ const passwordInput = useTemplateRef('passwordInput');
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only">{{
+                            <Label for="password">{{
                                 $t('ajustes.eliminar.contrasena')
                             }}</Label>
                             <PasswordInput
@@ -76,6 +76,7 @@ const passwordInput = useTemplateRef('passwordInput');
                                 name="password"
                                 ref="passwordInput"
                                 :placeholder="$t('ajustes.eliminar.contrasena')"
+                                :aria-invalid="!!errors.password"
                             />
                             <InputError :message="errors.password" />
                         </div>
