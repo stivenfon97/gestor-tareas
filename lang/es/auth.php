@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 return [
-    'failed' => 'Estas credenciales no coinciden con nuestros registros.',
+    'failed' => 'El correo o la contraseña no son correctos.',
     'password' => 'La contraseña es incorrecta.',
     'throttle' => 'Demasiados intentos de acceso. Inténtalo de nuevo en :seconds segundos.',
-    'desactivado' => 'Esta cuenta está desactivada. Habla con el administrador.',
+    'desactivado' => 'Esta cuenta está desactivada. Comunícate con el administrador.',
 
     /*
      * Pantallas de acceso. Están fuera del menú y son las que menos se revisan,
@@ -17,18 +17,18 @@ return [
      * `AuthSimpleLayout`, igual que `nav.*` lo hace `NavMain`.
      */
     'acceso' => [
-        'titulo' => 'Entra a tu cuenta',
+        'titulo' => 'Ingresa a tu cuenta',
         'descripcion' => 'Escribe tu correo y tu contraseña.',
         'correo' => 'Correo electrónico',
         'correo_marcador' => 'correo@ejemplo.com',
         'contrasena' => 'Contraseña',
         'contrasena_marcador' => 'Contraseña',
-        'recordarme' => 'No cerrar la sesión',
+        'recordarme' => 'Mantener la sesión abierta',
         'olvidaste' => '¿Olvidaste tu contraseña?',
-        'entrar' => 'Entrar',
-        'con_passkey' => 'Entrar con passkey',
-        'con_passkey_cargando' => 'Comprobando…',
-        'con_passkey_separador' => 'O entra con tu contraseña',
+        'entrar' => 'Ingresar',
+        'con_passkey' => 'Ingresar con passkey',
+        'con_passkey_cargando' => 'Verificando…',
+        'con_passkey_separador' => 'O ingresa con tu contraseña',
     ],
 
     'recuperar' => [
@@ -36,7 +36,7 @@ return [
         'descripcion' => 'Escribe tu correo y te enviamos un enlace para cambiarla.',
         'enviar' => 'Enviar el enlace',
         'volver' => 'O vuelve a',
-        'volver_enlace' => 'entrar',
+        'volver_enlace' => 'ingresar',
     ],
 
     'restablecer' => [
@@ -50,7 +50,7 @@ return [
     'verificar' => [
         'titulo' => 'Verifica tu correo',
         'descripcion' => 'Abre el enlace que acabamos de enviarte por correo.',
-        'reenviado' => 'Te hemos enviado un enlace de verificación nuevo.',
+        'reenviado' => 'Te enviamos un nuevo enlace de verificación.',
         'reenviar' => 'Enviar otro enlace',
     ],
 

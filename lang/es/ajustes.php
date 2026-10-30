@@ -50,9 +50,9 @@ return [
      */
     'passkeys' => [
         'titulo' => 'Passkeys',
-        'descripcion' => 'Entra con la huella, la cara o el PIN del dispositivo, sin escribir la contraseña.',
+        'descripcion' => 'Ingresa con la huella, la cara o el PIN del dispositivo, sin escribir la contraseña.',
         'ninguna' => 'Todavía no hay ninguna passkey',
-        'ninguna_ayuda' => 'Añade una para entrar sin escribir la contraseña.',
+        'ninguna_ayuda' => 'Añade una para ingresar sin escribir la contraseña.',
         'no_compatible' => 'Este navegador no admite passkeys.',
         'anadir' => 'Añadir una passkey',
         'nombre' => 'Nombre de la passkey',
