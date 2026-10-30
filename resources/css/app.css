@@ -98,8 +98,9 @@
     --container-contenido: 90rem; /* 1440px */
 
     /*
-     * Radios pequeños: es el lenguaje de un instrumento, no de una tarjeta de
-     * producto. No hay radio grande.
+     * Radios del preset de shadcn-vue (tema Emerald, radio «Default»): campos
+     * y botones `rounded-md` (8px), paneles y menús `rounded-lg` (10px). Sigue
+     * sin haber radio de tarjeta de producto: nada de 12px o más.
      */
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -129,6 +130,15 @@
     --color-texto: var(--texto);
     --color-texto-suave: var(--texto-suave);
     --color-texto-tenue: var(--texto-tenue);
+
+    /*
+     * Estados de un campo de formulario (Input, InputGroup, Textarea, Select,
+     * Checkbox). El foco tiene su propio token y no reutiliza `--ring`: `--ring`
+     * es el foco de botones y enlaces y sigue siendo esmeralda. El error es
+     * `--destructive`; el éxito, `--exito`. Ver la skill `formularios-shadcn`.
+     */
+    --color-campo-foco: var(--campo-foco);
+    --color-exito: var(--exito);
 
     /* Compatibilidad con los componentes de shadcn ya instalados. */
     --color-background: var(--background);
@@ -232,7 +242,7 @@
 }
 
 :root {
-    --radius: 0.375rem; /* 6px: paneles y menús. Los campos bajan a 4px. */
+    --radius: 0.625rem; /* 10px, default del preset: paneles 10px, campos 8px. */
 
     /*
      * Marca esmeralda. `--marca` es fondo de acción primaria y color de enlace;
@@ -267,6 +277,14 @@
     --texto: hsl(24 10% 10%);
     --texto-suave: hsl(25 5% 40%);
     --texto-tenue: hsl(25 5% 41%);
+
+    /*
+     * Campo enfocado: azul en claro. El éxito es verde, no esmeralda: el
+     * esmeralda es de la acción primaria y un campo válido no es un botón.
+     * `--exito` llega a 5:1 sobre el panel, así que sirve también de texto.
+     */
+    --campo-foco: hsl(221 83% 53%);
+    --exito: hsl(142 72% 29%);
 
     /* Puente hacia los tokens de shadcn: mismos valores, otro nombre. */
     --background: var(--fondo);
@@ -367,6 +385,10 @@
     --texto: hsl(60 9% 96%);
     --texto-suave: hsl(24 5% 68%);
     --texto-tenue: hsl(24 5% 60%);
+
+    /* Campo enfocado: gris neutro en oscuro, sin tinte. Éxito aclarado. */
+    --campo-foco: hsl(0 0% 64%);
+    --exito: hsl(142 69% 58%);
 
     --background: var(--fondo);
     --foreground: var(--texto);
