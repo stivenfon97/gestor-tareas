@@ -1,6 +1,6 @@
 ---
 name: interfaz-estandar
-description: Usar SIEMPRE antes de crear o modificar cualquier pantalla, listado, tabla, cabecera, badge o botón de acción en Vue — páginas nuevas en resources/js/pages, migraciones de tablas a TablaDatos, columnas de acciones, chips de estado o rol, cambios de tema claro/oscuro y cualquier interfaz que un usuario vaya a ver. Cubre el estándar obligatorio de la aplicación: cabecera con icono de sección, listados sobre TablaDatos con búsqueda general, filtros visibles y paginación completa, acciones como iconos con tono y tooltip (BotonDeAccion), categorías como Badge con tono (lib/tonos.ts), el tema claro atenuado y cómo verificar todo con datos de volumen en claro, oscuro y móvil.
+description: Usar SIEMPRE antes de crear o modificar cualquier pantalla, listado, tabla, formulario, cabecera, badge, botón de acción o entrada del menú lateral en Vue — páginas nuevas en resources/js/pages, migraciones de tablas a TablaDatos, columnas de acciones, chips de estado o rol, cambios de tema claro/oscuro y cualquier interfaz que un usuario vaya a ver. Cubre el estándar obligatorio de la aplicación: cabecera con icono de sección, listados sobre TablaDatos (o TablaLocal si es una lista incrustada) con búsqueda general, filtros visibles y paginación completa, formularios por secciones en tarjeta con validación en vivo (Precognition, nunca la del navegador), menú lateral por módulos, acciones como iconos con tono y tooltip (BotonDeAccion), categorías como Badge con tono (lib/tonos.ts), el tema claro atenuado y cómo verificar todo con datos de volumen en claro, oscuro y móvil.
 ---
 
 # Estándar de interfaz
@@ -94,6 +94,86 @@ Lo que el listado tiene que traer, sin excepción:
 `%` y `_`. Si el listado acota por permisos (proyectos), la búsqueda va dentro de ese
 acotado: pruébalo con un usuario que no deba ver lo ajeno.
 
+## 2b. Listas dentro de una ficha: `TablaLocal`
+
+Una lista corta que llega entera con una ficha (los proyectos de un cliente, los
+miembros de un proyecto o de un equipo) usa `TablaLocal`, de la misma carpeta: misma
+barra, mismas cabeceras, mismo pie, pero búsqueda, filtros, orden y paginación en el
+cliente y sin tocar la URL de la ficha. Las columnas se declaran igual
+(`ColumnaDeTabla`); en los filtros de opciones `valor(fila)` devuelve el valor crudo.
+
+El listado **principal** de una pantalla nunca es `TablaLocal`: va a `TablaDatos` con
+el estado en la URL.
+
+## 2c. Formularios: tarjeta por secciones
+
+Patrón de formulario por secciones de shadcn (Card + `Field`), con tres piezas de
+`components/formularios/`:
+
+```vue
+<Form novalidate :validation-timeout="500" v-bind="ClienteController.store.form()"
+      v-slot="{ errors, processing, validate, valid }">
+    <TarjetaDeFormulario>
+        <SeccionDeFormulario :titulo="$t('clientes.formulario.contacto')"
+                             :descripcion="$t('clientes.formulario.contacto_ayuda')">
+            <div class="grid gap-bloque md:grid-cols-2">
+                <Field>
+                    <Label for="contacto_email">{{ $t('clientes.contacto_email') }}</Label>
+                    <InputGroup>
+                        <InputGroupInput id="contacto_email" name="contacto_email" type="email"
+                            :aria-invalid="!!errors.contacto_email"
+                            @change="validate('contacto_email')"
+                            :data-valido="valid('contacto_email')" />
+                        <InputGroupAddon><Mail aria-hidden="true" /></InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="errors.contacto_email" />
+                </Field>
+                …
+            </div>
+        </SeccionDeFormulario>
+        <template #pie>
+            <PieDeFormulario :procesando="processing" :cancelar="index()" />
+        </template>
+    </TarjetaDeFormulario>
+</Form>
+```
+
+- Una `SeccionDeFormulario` por grupo de datos que se piensan juntos; título y ayuda
+  a la izquierda, campos a la derecha (se apila en móvil). Los textos de sección van
+  en `{modulo}.formulario.{seccion}` y `{seccion}_ayuda`.
+- Campos cortos de la misma familia (nombre y correo, fecha y monto) en
+  `grid gap-bloque md:grid-cols-2`; texto largo a todo el ancho.
+- Cada campo es `Field` + `Label` + `InputGroup` con icono + `InputError` (skill
+  `formularios-shadcn`); la ayuda bajo un campo es `FieldDescription`.
+- `PieDeFormulario` pone «Cancelar» (outline) y «Guardar» (primaria, con spinner
+  mientras envía) siempre a la derecha. Nada de botones sueltos bajo el último campo.
+
+## 2d. Validación: la del servidor, en vivo; nunca la del navegador
+
+- **Todo `<Form>`/`<form>` lleva `novalidate`.** Los globos nativos del navegador
+  están prohibidos: salen en el idioma del navegador, tapan el campo y no siguen el
+  tema. `required`, `type="email"`… se quedan por semántica y teclado móvil.
+- La validación es la del `FormRequest`, en vivo con **Precognition** (integrado en
+  Inertia 3, sin paquetes extra; el middleware `HandlePrecognitiveRequests` ya está en
+  el grupo `web`):
+  - `<Form>`: `:validation-timeout="500"`, y en cada control
+    `@change="validate('campo')"` y `:data-valido="valid('campo')"`.
+  - `useForm`: `useForm({...}).withPrecognition(Controller.store()).setValidationTimeout(500)`
+    y `@change="form.validate('campo')"` / `:data-valido="form.valid('campo')"`.
+- El error sale bajo el campo con `InputError` y el control en rojo
+  (`aria-invalid`); el campo validado se pone en verde (`data-valido`). Al enviar, los
+  errores que falten llegan igual del servidor.
+- Toda regla nueva va en el `FormRequest`, no en el cliente: así la validación en
+  vivo y el envío dicen siempre lo mismo. Prueba de referencia: `ClientesTest`
+  («la validación en vivo…»), con `postJson` y la cabecera `Precognition: true`.
+
+## 2e. Menú lateral por módulos
+
+`AppSidebar.vue` agrupa las entradas por módulo con `NavMain` (`etiqueta` +
+`items`): General, Trabajo, Comercial… La **administración de personas** (usuarios,
+equipos) va abajo, en el `SidebarFooter` junto al usuario, para no mezclarse con el
+trabajo diario. Un módulo nuevo es un grupo nuevo con su clave `nav.grupos.*`.
+
 ## 3. Acciones de fila: iconos con tono y tooltip
 
 **Nunca** un botón con texto dentro de una fila o tarjeta. Siempre
@@ -145,7 +225,8 @@ variante que le corresponda, tomada de `resources/js/lib/tonos.ts`:
 - Un valor nuevo (otro estado, otro rol) se añade **al mapa de `lib/tonos.ts`**, no en
   la página: así significa lo mismo en todas las pantallas.
 - Estados: punto (`bg-current`). Roles y tipos: icono lucide delante.
-- El estado de una **tarea** sigue con `BadgeEstado` y sus tokens `estado-*`.
+- El estado de una **tarea** sigue con `BadgeEstado` y sus tokens `estado-*`, también
+  con el punto delante.
 - Códigos y prefijos (`AC68`, `MAQ-0042`): `Badge variant="outline"` en mono.
 
 ## 5. Tema
@@ -175,7 +256,9 @@ variante que le corresponda, tomada de `resources/js/lib/tonos.ts`:
 ## Lista de comprobación
 
 - [ ] `CabeceraDePagina` con el icono de la sección.
-- [ ] Listado sobre `TablaDatos` con `busqueda`, filtros de opciones y paginación del servidor.
+- [ ] Listado sobre `TablaDatos` con `busqueda`, filtros de opciones y paginación del servidor (o `TablaLocal` si es una lista dentro de una ficha).
+- [ ] Formularios en `TarjetaDeFormulario` por secciones, con `PieDeFormulario`.
+- [ ] `novalidate` en todo formulario y validación en vivo con Precognition.
 - [ ] Acciones de fila con `BotonDeAccion` (icono + tono + etiqueta), sin texto.
 - [ ] Categorías con `Badge` de tono desde `lib/tonos.ts`; nada en gris.
 - [ ] Sin colores literales; correcto en claro, oscuro y móvil.

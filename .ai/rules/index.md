@@ -5,7 +5,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | Applies to | Rule file |
 | --- | --- |
 | app/** | .ai/rules/app.md |
-| resources/js/components/** | .ai/rules/components.md |
+| resources/js/components/**, resources/js/components/AppSidebar.vue | .ai/rules/components.md |
 | config/** | .ai/rules/config.md |
 | app/Http/Controllers/** | .ai/rules/controllers.md |
 | resources/css/** | .ai/rules/css.md |

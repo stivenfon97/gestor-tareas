@@ -244,3 +244,12 @@ const verContrasena = ref(false);
 - [ ] Probado en claro (foco azul) **y** en oscuro (foco gris), con un error forzado.
 - [ ] Los botones internos son `InputGroupButton type="button"` con `aria-label`
       traducido.
+
+## Contenedor del campo y del formulario
+
+- Cada campo va dentro de `Field` (`@/components/ui/field`, registro shadcn-vue
+  new-york-v4), no de un `<div class="grid gap-2">`. La ayuda bajo un campo es
+  `FieldDescription`.
+- El formulario completo se compone con `TarjetaDeFormulario`, `SeccionDeFormulario`
+  y `PieDeFormulario`, lleva `novalidate` y valida en vivo con Precognition. Detalle
+  en la skill `interfaz-estandar` §2c y §2d.

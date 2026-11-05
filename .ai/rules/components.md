@@ -1,6 +1,7 @@
 ---
 paths:
   - 'resources/js/components/**'
+  - resources/js/components/AppSidebar.vue
 ---
 
 # Components
@@ -30,3 +31,6 @@ Ese contenedor lleva `min-w-0`. Sin él, un hijo de un flex no baja de su ancho 
 Toda pantalla usa `components/CabeceraDePagina.vue`: título (`<h1>`), descripción opcional, slot `acciones` a la derecha, slot `meta` para badges, y borde inferior. No compongas otra a mano.
 
 **Sin mayúsculas forzadas en ningún sitio, incluidas las cabeceras `<th>`.** La fase 07 hizo una excepción con el `<th>` y la fase 07b la retiró viendo una captura: con acentos la caja alta grita a 11px, y además no se aplicaba a todas —el contenido de una columna ordenable es un `<button>`, que no hereda `text-transform`, así que media fila salía en caja mixta y media en alta.
+
+## El menú lateral va por módulos y la administración abajo
+Las entradas se agrupan con `NavMain` (`etiqueta` = clave `nav.grupos.*`, `items`): General, Trabajo, Comercial. Usuarios y equipos forman el grupo Administración y van en `SidebarFooter`, junto al usuario, para no mezclarse con los módulos de trabajo (pedido del dueño del producto). Un módulo nuevo es un grupo nuevo, no una entrada más en otro grupo.

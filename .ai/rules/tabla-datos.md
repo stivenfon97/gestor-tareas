@@ -37,3 +37,6 @@ Sustituye a las decisiones anteriores de «paginación oculta con una página» 
 - Arriba, dentro del panel: `BuscadorDeTabla` (prop `busqueda`), un `FiltroFacetado` por cada filtro de opciones —aunque su columna esté oculta—, fichas de los filtros de texto activos y «Limpiar filtros»; a la derecha el slot `acciones` y `MenuCompacto`.
 - Los filtros de opciones ya no cuelgan de la cabecera de la columna; en la cabecera solo quedan los de texto que no son la búsqueda.
 - `PaginacionDeTabla` se pinta siempre: rango «Mostrando x–y de n», tamaño de página, página actual y primera/anterior/siguiente/última (deshabilitados con una sola página).
+
+## TablaLocal para listas incrustadas; TablaDatos para el listado principal
+`TablaLocal` reutiliza las piezas de `TablaDatos` (BuscadorDeTabla, FiltroFacetado, CabeceraDeColumna, PaginacionDeTabla, TarjetaDeFila) con búsqueda, filtros, orden y paginación en el cliente. Es solo para listas cortas que llegan enteras dentro de una ficha (proyectos de un cliente, miembros); un listado principal va siempre a `TablaDatos` con el estado en la URL. Cualquier cambio de aspecto se hace en las piezas compartidas para que las dos tablas no diverjan.

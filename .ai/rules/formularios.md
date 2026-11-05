@@ -9,14 +9,14 @@ paths:
 El sistema de diseño es **shadcn-vue con el preset Emerald** (Style Nova, Base color Neutral, Theme Emerald, Lucide, Radius Default). Un campo de texto **no** es un `<input>` con clases: es este bloque, y nada más.
 
 ```vue
-<div class="grid gap-2">
+<Field>
     <Label for="email">{{ $t('auth.acceso.correo') }}</Label>
     <InputGroup>
         <InputGroupInput id="email" type="email" :placeholder="$t('auth.acceso.correo_marcador')" :aria-invalid="!!errors.email" />
         <InputGroupAddon><Mail aria-hidden="true" /></InputGroupAddon>
     </InputGroup>
     <InputError :message="errors.email" />
-</div>
+</Field>
 ```
 
 - `Label` siempre, asociado por `for`/`id`: el placeholder no es una etiqueta.
@@ -34,3 +34,9 @@ Foco, error y éxito los pinta el componente desde tokens del tema. La página s
 | Éxito comprobado | `:data-valido="true"` | `--exito` |
 
 Prohibido escribir en una página `focus:border-*`, `ring-*`, `border-red-*` o cualquier `<style>` para un campo. Razón: el foco de campo es azul/gris y el de los botones es esmeralda; un parche local rompe uno de los dos modos y no se ve hasta cambiar de tema. Si falta un estado, se añade como token en `resources/css/app.css` (registrado en `@theme inline`) y se aplica en el componente de `components/ui/`.
+
+## Formularios en tarjeta por secciones y validación en vivo, nunca la del navegador
+Lo pidió el dueño del producto: los globos nativos del navegador «son horribles».
+- Todo `<Form>`/`<form>` lleva `novalidate`. La validación es la del FormRequest, en vivo con Precognition de Inertia 3 (`HandlePrecognitiveRequests` en el grupo `web`): `@change="validate('campo')"` + `:data-valido="valid('campo')"` con `:validation-timeout="500"`, o `useForm(...).withPrecognition(...).setValidationTimeout(500)`.
+- Altas y ediciones usan `components/formularios/`: `TarjetaDeFormulario` > `SeccionDeFormulario` (título y ayuda en `{modulo}.formulario.*`) > `Field`, y `PieDeFormulario` en `#pie`. Campos cortos emparejados en `grid gap-bloque md:grid-cols-2`.
+Detalle en la skill `interfaz-estandar` §2c y §2d.
