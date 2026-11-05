@@ -37,40 +37,75 @@ const { puede, esSoloLectura } = usePermisos();
  * Ocultar una entrada del menú no es un permiso: la ruta la protege su policy
  * o su middleware igualmente. Esto solo evita enseñar puertas cerradas.
  */
-const mainNavItems = computed<NavItem[]>(() => {
-    const items: NavItem[] = [
-        { title: 'nav.dashboard', href: dashboard(), icon: LayoutGrid },
-        /*
-         * Tareas va segundo, antes que proyectos: es la pantalla que más se
-         * usa. Hasta la fase 07b no estaba en el menú y solo se llegaba
-         * entrando a un proyecto y buscando su pestaña.
-         *
-         * El listado se acota solo: `Tarea::visiblesPara()` no devuelve nada
-         * de un proyecto en el que no participas.
-         */
-        { title: 'nav.tareas', href: tareasIndex(), icon: ListChecks },
-        { title: 'nav.proyectos', href: proyectosIndex(), icon: FolderGit2 },
+/**
+ * El menú va por módulos: lo que se usa a diario arriba y la administración de
+ * personas abajo, pegada al usuario, para que no se mezcle con el trabajo.
+ */
+type GrupoDeMenu = { etiqueta: string; items: NavItem[] };
+
+const gruposPrincipales = computed<GrupoDeMenu[]>(() => {
+    const grupos: GrupoDeMenu[] = [
+        {
+            etiqueta: 'nav.grupos.general',
+            items: [
+                { title: 'nav.dashboard', href: dashboard(), icon: LayoutGrid },
+            ],
+        },
+        {
+            /*
+             * Tareas va antes que proyectos: es la pantalla que más se usa.
+             * El listado se acota solo: `Tarea::visiblesPara()` no devuelve
+             * nada de un proyecto en el que no participas.
+             */
+            etiqueta: 'nav.grupos.trabajo',
+            items: [
+                { title: 'nav.tareas', href: tareasIndex(), icon: ListChecks },
+                {
+                    title: 'nav.proyectos',
+                    href: proyectosIndex(),
+                    icon: FolderGit2,
+                },
+            ],
+        },
     ];
 
     // El catálogo de clientes es interno: `ClientePolicy@viewAny` lo niega al
     // rol global `invitado`, así que tampoco se le enseña la puerta.
     if (!esSoloLectura.value) {
-        items.push({
-            title: 'nav.clientes',
-            href: clientesIndex(),
-            icon: Building2,
+        grupos.push({
+            etiqueta: 'nav.grupos.comercial',
+            items: [
+                {
+                    title: 'nav.clientes',
+                    href: clientesIndex(),
+                    icon: Building2,
+                },
+            ],
         });
     }
 
-    if (puede('usuarios.gestionar')) {
-        items.push(
-            { title: 'nav.usuarios', href: usuariosIndex(), icon: Users },
-            { title: 'nav.equipos', href: equiposIndex(), icon: UsersRound },
-        );
-    }
-
-    return items;
+    return grupos;
 });
+
+/*
+ * Ocultar una entrada del menú no es un permiso: la ruta la protege su policy
+ * o su middleware igualmente. Esto solo evita enseñar puertas cerradas.
+ */
+const grupoDeAdministracion = computed<GrupoDeMenu | null>(() =>
+    puede('usuarios.gestionar')
+        ? {
+              etiqueta: 'nav.grupos.administracion',
+              items: [
+                  { title: 'nav.usuarios', href: usuariosIndex(), icon: Users },
+                  {
+                      title: 'nav.equipos',
+                      href: equiposIndex(),
+                      icon: UsersRound,
+                  },
+              ],
+          }
+        : null,
+);
 </script>
 
 <template>
@@ -101,10 +136,21 @@ const mainNavItems = computed<NavItem[]>(() => {
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain
+                v-for="grupo in gruposPrincipales"
+                :key="grupo.etiqueta"
+                :etiqueta="grupo.etiqueta"
+                :items="grupo.items"
+            />
         </SidebarContent>
 
-        <SidebarFooter>
+        <SidebarFooter class="gap-corto">
+            <NavMain
+                v-if="grupoDeAdministracion"
+                :etiqueta="grupoDeAdministracion.etiqueta"
+                :items="grupoDeAdministracion.items"
+                class="px-0"
+            />
             <NavUser />
         </SidebarFooter>
     </Sidebar>

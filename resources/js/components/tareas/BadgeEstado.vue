@@ -46,7 +46,7 @@ const clases = computed(
     <span
         :class="
             cn(
-                'inline-flex shrink-0 items-center rounded-sm border font-medium whitespace-nowrap',
+                'inline-flex shrink-0 items-center gap-fino rounded-sm border font-medium whitespace-nowrap',
                 props.tamano === 'pequeno'
                     ? 'px-fino py-[1px] text-micro'
                     : 'px-ajustado py-minimo text-fino',
@@ -54,6 +54,12 @@ const clases = computed(
             )
         "
     >
+        <!-- El punto toma el color del texto del estado: refuerza el tono sin
+             añadir otro color, igual que los badges de `lib/tonos.ts`. -->
+        <span
+            class="size-1.5 shrink-0 rounded-full bg-current"
+            aria-hidden="true"
+        />
         {{ $t(`enums.estado_tarea.${props.estado}`) }}
     </span>
 </template>

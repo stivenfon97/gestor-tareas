@@ -3,7 +3,12 @@
 declare(strict_types=1);
 
 return [
-    'plataforma' => 'Platform',
+    'grupos' => [
+        'general' => 'General',
+        'trabajo' => 'Work',
+        'comercial' => 'Sales',
+        'administracion' => 'Administration',
+    ],
     'dashboard' => 'Dashboard',
     'clientes' => 'Clients',
     'tareas' => 'Tasks',

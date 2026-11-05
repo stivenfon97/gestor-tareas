@@ -10,7 +10,12 @@ import {
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import type { NavItem } from '@/types';
 
+/**
+ * Un grupo del menú lateral: rótulo del módulo y sus entradas. `etiqueta` es
+ * una clave de traducción; la resuelve este componente.
+ */
 defineProps<{
+    etiqueta: string;
     items: NavItem[];
 }>();
 
@@ -19,7 +24,7 @@ const { isCurrentUrl } = useCurrentUrl();
 
 <template>
     <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel>{{ $t('nav.plataforma') }}</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ $t(etiqueta) }}</SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
