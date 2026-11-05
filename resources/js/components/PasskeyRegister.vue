@@ -74,6 +74,7 @@ const handleCancel = () => {
     </Button>
 
     <form
+        novalidate
         v-else
         @submit="handleSubmit"
         class="space-y-4 rounded-lg border border-border bg-muted/50 p-4"

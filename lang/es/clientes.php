@@ -48,4 +48,13 @@ return [
         'sin_periodos_cerrados' => 'Ninguno todavía',
         'periodo' => 'Periodo :consecutivo · :proyecto',
     ],
+
+    'formulario' => [
+        'datos' => 'Datos del cliente',
+        'datos_ayuda' => 'Cómo aparece el cliente en proyectos, reportes y pagos.',
+        'contacto' => 'Contacto',
+        'contacto_ayuda' => 'La persona con la que se coordina el trabajo.',
+        'notas' => 'Notas internas',
+        'notas_ayuda' => 'Acuerdos y condiciones que el equipo debe tener a mano.',
+    ],
 ];

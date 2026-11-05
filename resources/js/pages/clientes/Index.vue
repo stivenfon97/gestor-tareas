@@ -217,6 +217,7 @@ const abrir = (cliente: Cliente): void => {
                         :etiqueta="$t('clientes.editar')"
                     />
                     <Form
+                        novalidate
                         v-if="props.puede.crear"
                         v-bind="EstadoClienteController.update.form(fila.id)"
                         v-slot="{ processing }"

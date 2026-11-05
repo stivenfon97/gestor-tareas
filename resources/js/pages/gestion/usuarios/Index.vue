@@ -197,6 +197,7 @@ const abrir = (usuario: Usuario): void => {
                         :etiqueta="$t('gestion.usuarios.editar')"
                     />
                     <Form
+                        novalidate
                         v-bind="EstadoUsuarioController.update.form(fila.id)"
                         v-slot="{ processing }"
                     >

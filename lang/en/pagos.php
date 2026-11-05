@@ -27,4 +27,13 @@ return [
     'notas_marcador' => 'Payment details, if needed',
     'usd' => 'USD',
     'cop' => 'COP',
+
+    'formulario' => [
+        'periodo' => 'Period and date',
+        'periodo_ayuda' => 'Which period is billed and when the payment arrived.',
+        'montos' => 'Amounts',
+        'montos_ayuda' => 'The amount in dollars and the exchange rate of the payment date; the peso value is calculated.',
+        'referencia' => 'Reference',
+        'referencia_ayuda' => 'Details to find the payment at the bank.',
+    ],
 ];

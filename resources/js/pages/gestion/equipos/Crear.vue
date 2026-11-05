@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Form, Head, Link } from '@inertiajs/vue3';
+import { Form, Head } from '@inertiajs/vue3';
 import { FileText, Users, UsersRound } from '@lucide/vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
+import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
+import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import {
     InputGroup,
     InputGroupAddon,
@@ -17,60 +20,71 @@ import { index } from '@/routes/equipos';
 <template>
     <Head :title="$t('gestion.equipos.crear')" />
 
-    <div class="flex max-w-xl flex-col gap-6">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
             :icono="UsersRound"
             :titulo="$t('gestion.equipos.crear')"
         />
 
         <Form
+            novalidate
             v-bind="EquipoController.store.form()"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
+            v-slot="{ errors, processing, validate, valid }"
         >
-            <div class="grid gap-2">
-                <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="nombre"
-                        name="nombre"
-                        required
-                        :placeholder="$t('gestion.equipos.nombre_marcador')"
-                        :aria-invalid="!!errors.nombre"
+            <TarjetaDeFormulario>
+                <SeccionDeFormulario
+                    :titulo="$t('gestion.equipos.formulario.datos')"
+                    :descripcion="$t('gestion.equipos.formulario.datos_ayuda')"
+                >
+                    <Field>
+                        <Label for="nombre">{{ $t('comun.nombre') }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="nombre"
+                                name="nombre"
+                                required
+                                :placeholder="
+                                    $t('gestion.equipos.nombre_marcador')
+                                "
+                                :aria-invalid="!!errors.nombre"
+                                @change="validate('nombre')"
+                                :data-valido="valid('nombre')"
+                            />
+                            <InputGroupAddon>
+                                <Users aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <InputError :message="errors.nombre" />
+                    </Field>
+                    <Field>
+                        <Label for="descripcion">{{
+                            $t('comun.descripcion')
+                        }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="descripcion"
+                                name="descripcion"
+                                :placeholder="
+                                    $t('gestion.equipos.descripcion_marcador')
+                                "
+                                :aria-invalid="!!errors.descripcion"
+                                @change="validate('descripcion')"
+                                :data-valido="valid('descripcion')"
+                            />
+                            <InputGroupAddon>
+                                <FileText aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <InputError :message="errors.descripcion" />
+                    </Field>
+                </SeccionDeFormulario>
+                <template #pie>
+                    <PieDeFormulario
+                        :procesando="processing"
+                        :cancelar="index()"
                     />
-                    <InputGroupAddon>
-                        <Users aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="errors.nombre" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="descripcion">{{ $t('comun.descripcion') }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="descripcion"
-                        name="descripcion"
-                        :placeholder="
-                            $t('gestion.equipos.descripcion_marcador')
-                        "
-                        :aria-invalid="!!errors.descripcion"
-                    />
-                    <InputGroupAddon>
-                        <FileText aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="errors.descripcion" />
-            </div>
-
-            <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">{{
-                    $t('comun.guardar')
-                }}</Button>
-                <Button as-child variant="ghost">
-                    <Link :href="index()">{{ $t('comun.cancelar') }}</Link>
-                </Button>
-            </div>
+                </template>
+            </TarjetaDeFormulario>
         </Form>
     </div>
 </template>

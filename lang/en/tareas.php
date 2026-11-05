@@ -148,4 +148,11 @@ return [
         'copiar_codigos' => 'Copy codes',
         'codigos_copiados' => ':total codes copied to the clipboard.',
     ],
+
+    'formulario' => [
+        'trabajo' => 'What needs to be done',
+        'trabajo_ayuda' => 'A self-explanatory name and the detail needed to do it.',
+        'clasificacion' => 'Classification',
+        'clasificacion_ayuda' => 'Type, priority and where the task lives in the project.',
+    ],
 ];

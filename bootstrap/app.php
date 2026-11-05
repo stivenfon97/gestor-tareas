@@ -7,6 +7,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleIdioma::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            // Validación en vivo de los formularios (Precognition): una
+            // petición precognitiva solo corre la autorización y las reglas del
+            // FormRequest y responde 204 o 422; nunca ejecuta el controlador.
+            // Las peticiones normales pasan sin tocar.
+            HandlePrecognitiveRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

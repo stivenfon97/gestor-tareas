@@ -81,4 +81,13 @@ return [
     'validacion' => [
         'documento_invalido' => 'The meeting content is not valid.',
     ],
+
+    'formulario' => [
+        'encuentro' => 'Meeting',
+        'encuentro_ayuda' => 'When it happened, its title and who can see it.',
+        'contenido' => 'Content',
+        'contenido_ayuda' => 'What was discussed and what was agreed.',
+        'asistentes' => 'Attendees',
+        'asistentes_ayuda' => 'Who took part, from the team or the client.',
+    ],
 ];

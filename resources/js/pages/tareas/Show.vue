@@ -440,6 +440,7 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
             </h3>
 
             <form
+                novalidate
                 v-if="props.puede.comentar"
                 class="flex flex-col gap-4"
                 @submit.prevent="agregarNota"

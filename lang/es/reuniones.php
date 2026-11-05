@@ -85,4 +85,13 @@ return [
     'validacion' => [
         'documento_invalido' => 'El contenido de la reunión no es válido.',
     ],
+
+    'formulario' => [
+        'encuentro' => 'Encuentro',
+        'encuentro_ayuda' => 'Cuándo fue, cómo se llama y quién puede verlo.',
+        'contenido' => 'Contenido',
+        'contenido_ayuda' => 'Lo que se habló y lo que quedó acordado.',
+        'asistentes' => 'Asistentes',
+        'asistentes_ayuda' => 'Quién participó, del equipo o del cliente.',
+    ],
 ];

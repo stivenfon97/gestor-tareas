@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import {
     ArrowLeftRight,
     Calendar,
@@ -8,8 +8,11 @@ import {
     Hash,
 } from '@lucide/vue';
 import { computed, toRef } from 'vue';
+import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
+import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
+import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import {
     InputGroup,
     InputGroupAddon,
@@ -62,7 +65,7 @@ const form = useForm({
     origen_tasa: props.inicial?.origen_tasa ?? 'manual',
     referencia: props.inicial?.referencia ?? '',
     notas: props.inicial?.notas ?? '',
-});
+}).withPrecognition(props.accion);
 
 useTrm(
     toRef(form, 'fecha_pago'),
@@ -87,170 +90,205 @@ const enviar = (): void => {
 </script>
 
 <template>
-    <form class="space-y-6" @submit.prevent="enviar">
-        <div v-if="esCreacion" class="grid gap-2">
-            <Label for="periodo_id">{{ $t('pagos.periodo') }}</Label>
-            <Select v-model="periodoElegido" required>
-                <SelectTrigger
-                    id="periodo_id"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.periodo_id"
-                >
-                    <SelectValue :placeholder="$t('pagos.elegir_periodo')" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem
-                        v-for="periodo in props.periodos"
-                        :key="periodo.id"
-                        :value="String(periodo.id)"
-                    >
-                        {{
-                            $t('tareas.periodo_numero', {
-                                consecutivo: String(periodo.consecutivo),
-                            })
-                        }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <p
-                v-if="props.periodos && props.periodos.length === 0"
-                class="text-fino text-texto-suave"
+    <form novalidate @submit.prevent="enviar">
+        <TarjetaDeFormulario>
+            <SeccionDeFormulario
+                :titulo="$t('pagos.formulario.periodo')"
+                :descripcion="$t('pagos.formulario.periodo_ayuda')"
             >
-                {{ $t('pagos.sin_periodos_disponibles') }}
-            </p>
-            <InputError :message="form.errors.periodo_id" />
-        </div>
+                <div class="grid gap-bloque md:grid-cols-2">
+                    <Field v-if="esCreacion">
+                        <Label for="periodo_id">{{
+                            $t('pagos.periodo')
+                        }}</Label>
+                        <Select v-model="periodoElegido" required>
+                            <SelectTrigger
+                                id="periodo_id"
+                                class="w-full"
+                                :aria-invalid="!!form.errors.periodo_id"
+                            >
+                                <SelectValue
+                                    :placeholder="$t('pagos.elegir_periodo')"
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="periodo in props.periodos"
+                                    :key="periodo.id"
+                                    :value="String(periodo.id)"
+                                >
+                                    {{
+                                        $t('tareas.periodo_numero', {
+                                            consecutivo: String(
+                                                periodo.consecutivo,
+                                            ),
+                                        })
+                                    }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p
+                            v-if="props.periodos && props.periodos.length === 0"
+                            class="text-fino text-texto-suave"
+                        >
+                            {{ $t('pagos.sin_periodos_disponibles') }}
+                        </p>
+                        <InputError :message="form.errors.periodo_id" />
+                    </Field>
+                    <Field>
+                        <Label for="fecha_pago">{{
+                            $t('pagos.fecha_pago')
+                        }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="fecha_pago"
+                                v-model="form.fecha_pago"
+                                type="date"
+                                required
+                                :aria-invalid="!!form.errors.fecha_pago"
+                                @change="form.validate('fecha_pago')"
+                                :data-valido="form.valid('fecha_pago')"
+                            />
+                            <InputGroupAddon>
+                                <Calendar aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <p class="text-fino text-texto-suave">
+                            {{ $t('pagos.fecha_pago_ayuda') }}
+                        </p>
+                        <InputError :message="form.errors.fecha_pago" />
+                    </Field>
+                </div>
+            </SeccionDeFormulario>
+            <SeccionDeFormulario
+                :titulo="$t('pagos.formulario.montos')"
+                :descripcion="$t('pagos.formulario.montos_ayuda')"
+            >
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="grid gap-2">
+                        <Label for="monto_usd">{{
+                            $t('pagos.monto_usd')
+                        }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="monto_usd"
+                                v-model="form.monto_usd"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                inputmode="decimal"
+                                required
+                                :placeholder="$t('pagos.monto_usd_marcador')"
+                                :aria-invalid="!!form.errors.monto_usd"
+                                @change="form.validate('monto_usd')"
+                                :data-valido="form.valid('monto_usd')"
+                            />
+                            <InputGroupAddon>
+                                <DollarSign aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <InputError :message="form.errors.monto_usd" />
+                    </div>
 
-        <div class="grid gap-2">
-            <Label for="fecha_pago">{{ $t('pagos.fecha_pago') }}</Label>
-            <InputGroup>
-                <InputGroupInput
-                    id="fecha_pago"
-                    v-model="form.fecha_pago"
-                    type="date"
-                    required
-                    :aria-invalid="!!form.errors.fecha_pago"
+                    <div class="grid gap-2">
+                        <Label for="tasa_cambio">{{
+                            $t('pagos.tasa_cambio')
+                        }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="tasa_cambio"
+                                v-model="form.tasa_cambio"
+                                type="number"
+                                step="0.0001"
+                                min="0"
+                                inputmode="decimal"
+                                required
+                                :placeholder="$t('pagos.tasa_cambio_marcador')"
+                                :aria-invalid="!!form.errors.tasa_cambio"
+                                @change="form.validate('tasa_cambio')"
+                                :data-valido="form.valid('tasa_cambio')"
+                            />
+                            <InputGroupAddon>
+                                <ArrowLeftRight aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <InputError :message="form.errors.tasa_cambio" />
+                    </div>
+                </div>
+                <Field>
+                    <Label for="origen_tasa">{{
+                        $t('pagos.origen_tasa')
+                    }}</Label>
+                    <Select v-model="form.origen_tasa" required>
+                        <SelectTrigger
+                            id="origen_tasa"
+                            class="w-full"
+                            :aria-invalid="!!form.errors.origen_tasa"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="opcion in props.origenesTasa"
+                                :key="opcion.valor"
+                                :value="opcion.valor"
+                            >
+                                {{ opcion.etiqueta }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p class="text-fino text-texto-suave">
+                        {{ $t('pagos.origen_tasa_ayuda') }}
+                    </p>
+                    <InputError :message="form.errors.origen_tasa" />
+                </Field>
+            </SeccionDeFormulario>
+            <SeccionDeFormulario
+                :titulo="$t('pagos.formulario.referencia')"
+                :descripcion="$t('pagos.formulario.referencia_ayuda')"
+            >
+                <Field>
+                    <Label for="referencia">{{ $t('pagos.referencia') }}</Label>
+                    <InputGroup>
+                        <InputGroupInput
+                            id="referencia"
+                            v-model="form.referencia"
+                            :placeholder="$t('pagos.referencia_marcador')"
+                            :aria-invalid="!!form.errors.referencia"
+                            @change="form.validate('referencia')"
+                            :data-valido="form.valid('referencia')"
+                        />
+                        <InputGroupAddon>
+                            <Hash aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="form.errors.referencia" />
+                </Field>
+                <Field>
+                    <Label for="notas">{{ $t('pagos.notas') }}</Label>
+                    <InputGroup>
+                        <InputGroupTextarea
+                            id="notas"
+                            v-model="form.notas"
+                            rows="3"
+                            :placeholder="$t('pagos.notas_marcador')"
+                            :aria-invalid="!!form.errors.notas"
+                            @change="form.validate('notas')"
+                            :data-valido="form.valid('notas')"
+                        />
+                        <InputGroupAddon align="block-start">
+                            <FileText aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="form.errors.notas" />
+                </Field>
+            </SeccionDeFormulario>
+            <template #pie>
+                <PieDeFormulario
+                    :procesando="form.processing"
+                    :cancelar="props.volverA"
                 />
-                <InputGroupAddon>
-                    <Calendar aria-hidden="true" />
-                </InputGroupAddon>
-            </InputGroup>
-            <p class="text-fino text-texto-suave">
-                {{ $t('pagos.fecha_pago_ayuda') }}
-            </p>
-            <InputError :message="form.errors.fecha_pago" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div class="grid gap-2">
-                <Label for="monto_usd">{{ $t('pagos.monto_usd') }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="monto_usd"
-                        v-model="form.monto_usd"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        inputmode="decimal"
-                        required
-                        :placeholder="$t('pagos.monto_usd_marcador')"
-                        :aria-invalid="!!form.errors.monto_usd"
-                    />
-                    <InputGroupAddon>
-                        <DollarSign aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="form.errors.monto_usd" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="tasa_cambio">{{ $t('pagos.tasa_cambio') }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="tasa_cambio"
-                        v-model="form.tasa_cambio"
-                        type="number"
-                        step="0.0001"
-                        min="0"
-                        inputmode="decimal"
-                        required
-                        :placeholder="$t('pagos.tasa_cambio_marcador')"
-                        :aria-invalid="!!form.errors.tasa_cambio"
-                    />
-                    <InputGroupAddon>
-                        <ArrowLeftRight aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="form.errors.tasa_cambio" />
-            </div>
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="origen_tasa">{{ $t('pagos.origen_tasa') }}</Label>
-            <Select v-model="form.origen_tasa" required>
-                <SelectTrigger
-                    id="origen_tasa"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.origen_tasa"
-                >
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem
-                        v-for="opcion in props.origenesTasa"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
-                    >
-                        {{ opcion.etiqueta }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <p class="text-fino text-texto-suave">
-                {{ $t('pagos.origen_tasa_ayuda') }}
-            </p>
-            <InputError :message="form.errors.origen_tasa" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="referencia">{{ $t('pagos.referencia') }}</Label>
-            <InputGroup>
-                <InputGroupInput
-                    id="referencia"
-                    v-model="form.referencia"
-                    :placeholder="$t('pagos.referencia_marcador')"
-                    :aria-invalid="!!form.errors.referencia"
-                />
-                <InputGroupAddon>
-                    <Hash aria-hidden="true" />
-                </InputGroupAddon>
-            </InputGroup>
-            <InputError :message="form.errors.referencia" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="notas">{{ $t('pagos.notas') }}</Label>
-            <InputGroup>
-                <InputGroupTextarea
-                    id="notas"
-                    v-model="form.notas"
-                    rows="3"
-                    :placeholder="$t('pagos.notas_marcador')"
-                    :aria-invalid="!!form.errors.notas"
-                />
-                <InputGroupAddon align="block-start">
-                    <FileText aria-hidden="true" />
-                </InputGroupAddon>
-            </InputGroup>
-            <InputError :message="form.errors.notas" />
-        </div>
-
-        <div class="flex items-center gap-3">
-            <Button type="submit" :disabled="form.processing">{{
-                $t('comun.guardar')
-            }}</Button>
-            <Button as-child variant="ghost">
-                <Link :href="props.volverA">{{ $t('comun.cancelar') }}</Link>
-            </Button>
-        </div>
+            </template>
+        </TarjetaDeFormulario>
     </form>
 </template>

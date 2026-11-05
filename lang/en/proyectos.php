@@ -94,4 +94,13 @@ return [
         'archivos' => 'Files',
         'reportes' => 'Reports',
     ],
+
+    'formulario' => [
+        'general' => 'Project',
+        'general_ayuda' => 'Which client it belongs to and what it is called.',
+        'identificacion' => 'Identification',
+        'identificacion_ayuda' => 'The project address and the prefix of its task codes.',
+        'detalle' => 'Description and status',
+        'detalle_ayuda' => 'What the system is for and where it stands.',
+    ],
 ];

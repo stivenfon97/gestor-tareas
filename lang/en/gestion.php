@@ -29,6 +29,14 @@ return [
         'sin_usuarios' => 'No users yet',
         'sin_usuarios_ayuda' => 'Create the first one to give someone access to the tool.',
         'nota_desactivar' => 'A user is deactivated rather than deleted, so the record of who did what stays intact.',
+        'formulario' => [
+            'cuenta' => 'Account details',
+            'cuenta_ayuda' => 'Name and email the person signs in with.',
+            'permisos' => 'Permissions',
+            'permisos_ayuda' => 'The global role decides what they can do across the app.',
+            'contrasena' => 'Password',
+            'contrasena_ayuda' => 'The person can change it later from their settings.',
+        ],
     ],
 
     'equipos' => [
@@ -49,5 +57,9 @@ return [
         'sin_equipos' => 'No teams yet',
         'sin_equipos_ayuda' => 'Create the first one to assign several people to a project at once.',
         'nota_no_otorga_permisos' => 'A team grants no permissions by itself: it is a shortcut for assigning people to a project. The effective role always lives on the project.',
+        'formulario' => [
+            'datos' => 'Team details',
+            'datos_ayuda' => 'A short name and what it is used for.',
+        ],
     ],
 ];

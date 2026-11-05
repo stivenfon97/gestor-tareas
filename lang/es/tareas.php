@@ -157,4 +157,11 @@ return [
         'copiar_codigos' => 'Copiar códigos',
         'codigos_copiados' => ':total códigos copiados al portapapeles.',
     ],
+
+    'formulario' => [
+        'trabajo' => 'Qué hay que hacer',
+        'trabajo_ayuda' => 'Un nombre que se entienda solo y el detalle necesario para hacerla.',
+        'clasificacion' => 'Clasificación',
+        'clasificacion_ayuda' => 'Tipo, prioridad y dónde vive la tarea dentro del proyecto.',
+    ],
 ];

@@ -53,6 +53,7 @@ const props = defineProps<{
 
                 <div class="flex items-center gap-2">
                     <Form
+                        novalidate
                         v-bind="
                             ProyectoUsuarioController.update.form([
                                 props.proyecto.id,
@@ -103,6 +104,7 @@ const props = defineProps<{
                     </Form>
 
                     <Form
+                        novalidate
                         v-bind="
                             ProyectoUsuarioController.destroy.form([
                                 props.proyecto.id,
@@ -137,6 +139,7 @@ const props = defineProps<{
             />
 
             <Form
+                novalidate
                 v-bind="ProyectoUsuarioController.store.form(props.proyecto.id)"
                 class="flex flex-wrap items-end gap-3"
                 v-slot="{ errors, processing }"
@@ -221,6 +224,7 @@ const props = defineProps<{
             />
 
             <Form
+                novalidate
                 v-bind="
                     AsignarEquipoAProyectoController.store.form(
                         props.proyecto.id,

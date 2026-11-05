@@ -223,3 +223,22 @@ it('la búsqueda del listado de clientes recorre nombre, contacto y correo', fun
     expect(collect($respuesta->viewData('page')['props']['clientes']['data'])->pluck('nombre')->all())
         ->toBe(['Textiles Bonanza S.A.S.']);
 })->with(['nombre' => 'bonanza', 'contacto' => 'pinzón', 'correo' => 'rosa@']);
+
+it('la validación en vivo devuelve el error del campo sin crear el cliente', function () {
+    $this->actingAs($this->administrador)
+        ->withHeaders(['Precognition' => 'true', 'Precognition-Validate-Only' => 'contacto_email'])
+        ->postJson(route('clientes.store'), ['nombre' => 'Maquila SPA', 'contacto_email' => 'patricio'])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['contacto_email' => 'dirección de correo válida']);
+
+    expect(Cliente::query()->where('nombre', 'Maquila SPA')->exists())->toBeFalse();
+});
+
+it('la validación en vivo de un campo correcto responde 204 y no ejecuta el alta', function () {
+    $this->actingAs($this->administrador)
+        ->withHeaders(['Precognition' => 'true', 'Precognition-Validate-Only' => 'contacto_email'])
+        ->postJson(route('clientes.store'), ['nombre' => 'Maquila SPA', 'contacto_email' => 'patricio@maquila.cl'])
+        ->assertNoContent();
+
+    expect(Cliente::query()->where('nombre', 'Maquila SPA')->exists())->toBeFalse();
+});

@@ -94,4 +94,13 @@ return [
         'archivos' => 'Archivos',
         'reportes' => 'Reportes',
     ],
+
+    'formulario' => [
+        'general' => 'Proyecto',
+        'general_ayuda' => 'A qué cliente pertenece y cómo se llama.',
+        'identificacion' => 'Identificación',
+        'identificacion_ayuda' => 'La dirección del proyecto y el prefijo de los códigos de sus tareas.',
+        'detalle' => 'Descripción y estado',
+        'detalle_ayuda' => 'Para qué es el sistema y en qué momento está.',
+    ],
 ];

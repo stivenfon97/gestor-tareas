@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Form, Head, Link } from '@inertiajs/vue3';
+import { Form, Head } from '@inertiajs/vue3';
 import { Building2, FileText, Mail, Phone, User } from '@lucide/vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
+import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
+import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
+import { Field, FieldDescription } from '@/components/ui/field';
 import {
     InputGroup,
     InputGroupAddon,
@@ -18,118 +21,146 @@ import { index } from '@/routes/clientes';
 <template>
     <Head :title="$t('clientes.crear')" />
 
-    <div class="flex max-w-xl flex-col gap-6">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina :icono="Building2" :titulo="$t('clientes.crear')" />
 
         <Form
+            novalidate
             v-bind="ClienteController.store.form()"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
+            v-slot="{ errors, processing, validate, valid }"
         >
-            <div class="grid gap-2">
-                <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="nombre"
-                        name="nombre"
-                        required
-                        autocomplete="organization"
-                        :placeholder="$t('clientes.nombre_marcador')"
-                        :aria-invalid="!!errors.nombre"
+            <TarjetaDeFormulario>
+                <SeccionDeFormulario
+                    :titulo="$t('clientes.formulario.datos')"
+                    :descripcion="$t('clientes.formulario.datos_ayuda')"
+                >
+                    <Field>
+                        <Label for="nombre">{{ $t('comun.nombre') }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="nombre"
+                                name="nombre"
+                                required
+                                autocomplete="organization"
+                                :placeholder="$t('clientes.nombre_marcador')"
+                                :aria-invalid="!!errors.nombre"
+                                @change="validate('nombre')"
+                                :data-valido="valid('nombre')"
+                            />
+                            <InputGroupAddon>
+                                <Building2 aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <InputError :message="errors.nombre" />
+                    </Field>
+                </SeccionDeFormulario>
+                <SeccionDeFormulario
+                    :titulo="$t('clientes.formulario.contacto')"
+                    :descripcion="$t('clientes.formulario.contacto_ayuda')"
+                >
+                    <div class="grid gap-bloque md:grid-cols-2">
+                        <Field>
+                            <Label for="contacto_nombre">{{
+                                $t('clientes.contacto_nombre')
+                            }}</Label>
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="contacto_nombre"
+                                    name="contacto_nombre"
+                                    autocomplete="name"
+                                    :placeholder="
+                                        $t('clientes.contacto_nombre_marcador')
+                                    "
+                                    :aria-invalid="!!errors.contacto_nombre"
+                                    @change="validate('contacto_nombre')"
+                                    :data-valido="valid('contacto_nombre')"
+                                />
+                                <InputGroupAddon>
+                                    <User aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
+                            <InputError :message="errors.contacto_nombre" />
+                        </Field>
+                        <Field>
+                            <Label for="contacto_email">{{
+                                $t('clientes.contacto_email')
+                            }}</Label>
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="contacto_email"
+                                    name="contacto_email"
+                                    type="email"
+                                    autocomplete="email"
+                                    :placeholder="
+                                        $t('clientes.contacto_email_marcador')
+                                    "
+                                    :aria-invalid="!!errors.contacto_email"
+                                    @change="validate('contacto_email')"
+                                    :data-valido="valid('contacto_email')"
+                                />
+                                <InputGroupAddon>
+                                    <Mail aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
+                            <InputError :message="errors.contacto_email" />
+                        </Field>
+                    </div>
+                    <Field>
+                        <Label for="contacto_telefono">{{
+                            $t('clientes.contacto_telefono')
+                        }}</Label>
+                        <InputGroup>
+                            <InputGroupInput
+                                id="contacto_telefono"
+                                name="contacto_telefono"
+                                autocomplete="tel"
+                                :placeholder="
+                                    $t('clientes.contacto_telefono_marcador')
+                                "
+                                :aria-invalid="!!errors.contacto_telefono"
+                                @change="validate('contacto_telefono')"
+                                :data-valido="valid('contacto_telefono')"
+                            />
+                            <InputGroupAddon>
+                                <Phone aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <InputError :message="errors.contacto_telefono" />
+                    </Field>
+                </SeccionDeFormulario>
+                <SeccionDeFormulario
+                    :titulo="$t('clientes.formulario.notas')"
+                    :descripcion="$t('clientes.formulario.notas_ayuda')"
+                >
+                    <Field>
+                        <Label for="notas">{{ $t('clientes.notas') }}</Label>
+                        <InputGroup>
+                            <InputGroupTextarea
+                                id="notas"
+                                name="notas"
+                                rows="4"
+                                :placeholder="$t('clientes.notas_marcador')"
+                                :aria-invalid="!!errors.notas"
+                                @change="validate('notas')"
+                                :data-valido="valid('notas')"
+                            />
+                            <InputGroupAddon align="block-start">
+                                <FileText aria-hidden="true" />
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <FieldDescription>
+                            {{ $t('clientes.notas_ayuda') }}
+                        </FieldDescription>
+                        <InputError :message="errors.notas" />
+                    </Field>
+                </SeccionDeFormulario>
+                <template #pie>
+                    <PieDeFormulario
+                        :procesando="processing"
+                        :cancelar="index()"
                     />
-                    <InputGroupAddon>
-                        <Building2 aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="errors.nombre" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="contacto_nombre">{{
-                    $t('clientes.contacto_nombre')
-                }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="contacto_nombre"
-                        name="contacto_nombre"
-                        autocomplete="name"
-                        :placeholder="$t('clientes.contacto_nombre_marcador')"
-                        :aria-invalid="!!errors.contacto_nombre"
-                    />
-                    <InputGroupAddon>
-                        <User aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="errors.contacto_nombre" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="contacto_email">{{
-                    $t('clientes.contacto_email')
-                }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="contacto_email"
-                        name="contacto_email"
-                        type="email"
-                        autocomplete="email"
-                        :placeholder="$t('clientes.contacto_email_marcador')"
-                        :aria-invalid="!!errors.contacto_email"
-                    />
-                    <InputGroupAddon>
-                        <Mail aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="errors.contacto_email" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="contacto_telefono">{{
-                    $t('clientes.contacto_telefono')
-                }}</Label>
-                <InputGroup>
-                    <InputGroupInput
-                        id="contacto_telefono"
-                        name="contacto_telefono"
-                        autocomplete="tel"
-                        :placeholder="$t('clientes.contacto_telefono_marcador')"
-                        :aria-invalid="!!errors.contacto_telefono"
-                    />
-                    <InputGroupAddon>
-                        <Phone aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <InputError :message="errors.contacto_telefono" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="notas">{{ $t('clientes.notas') }}</Label>
-                <InputGroup>
-                    <InputGroupTextarea
-                        id="notas"
-                        name="notas"
-                        rows="4"
-                        :placeholder="$t('clientes.notas_marcador')"
-                        :aria-invalid="!!errors.notas"
-                    />
-                    <InputGroupAddon align="block-start">
-                        <FileText aria-hidden="true" />
-                    </InputGroupAddon>
-                </InputGroup>
-                <p class="text-xs text-muted-foreground">
-                    {{ $t('clientes.notas_ayuda') }}
-                </p>
-                <InputError :message="errors.notas" />
-            </div>
-
-            <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">{{
-                    $t('comun.guardar')
-                }}</Button>
-                <Button as-child variant="ghost">
-                    <Link :href="index()">{{ $t('comun.cancelar') }}</Link>
-                </Button>
-            </div>
+                </template>
+            </TarjetaDeFormulario>
         </Form>
     </div>
 </template>

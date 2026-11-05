@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { Link, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { FileText, Type } from '@lucide/vue';
 import { computed, watch } from 'vue';
+import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
+import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
+import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
+import { Field, FieldDescription } from '@/components/ui/field';
 import {
     InputGroup,
     InputGroupAddon,
@@ -64,7 +67,7 @@ const form = useForm({
     modulo_id: props.inicial?.modulo_id ?? props.moduloSugerido ?? '',
     periodo_id: props.inicial?.periodo_id ?? '',
     tarea_origen_id: props.inicial?.tarea_origen_id ?? '',
-});
+}).withPrecognition(props.accion);
 
 /*
  * Al elegir el tipo, la prioridad se precarga con la que ese tipo sugiere. Es un
@@ -111,193 +114,218 @@ const enviar = (): void => {
 </script>
 
 <template>
-    <form class="space-y-6" @submit.prevent="enviar">
-        <div class="grid gap-2">
-            <Label for="nombre">{{ $t('comun.nombre') }}</Label>
-            <InputGroup>
-                <InputGroupInput
-                    id="nombre"
-                    v-model="form.nombre"
-                    required
-                    :placeholder="$t('tareas.marcadores.nombre')"
-                    :aria-invalid="!!form.errors.nombre"
+    <form novalidate @submit.prevent="enviar">
+        <TarjetaDeFormulario>
+            <SeccionDeFormulario
+                :titulo="$t('tareas.formulario.trabajo')"
+                :descripcion="$t('tareas.formulario.trabajo_ayuda')"
+            >
+                <Field>
+                    <Label for="nombre">{{ $t('comun.nombre') }}</Label>
+                    <InputGroup>
+                        <InputGroupInput
+                            id="nombre"
+                            v-model="form.nombre"
+                            required
+                            :placeholder="$t('tareas.marcadores.nombre')"
+                            :aria-invalid="!!form.errors.nombre"
+                            @change="form.validate('nombre')"
+                            :data-valido="form.valid('nombre')"
+                        />
+                        <InputGroupAddon>
+                            <Type aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="form.errors.nombre" />
+                </Field>
+                <Field>
+                    <Label for="descripcion">{{
+                        $t('tareas.descripcion')
+                    }}</Label>
+                    <InputGroup>
+                        <InputGroupTextarea
+                            id="descripcion"
+                            v-model="form.descripcion"
+                            rows="5"
+                            :placeholder="$t('tareas.marcadores.descripcion')"
+                            :aria-invalid="!!form.errors.descripcion"
+                            @change="form.validate('descripcion')"
+                            :data-valido="form.valid('descripcion')"
+                        />
+                        <InputGroupAddon align="block-start">
+                            <FileText aria-hidden="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <InputError :message="form.errors.descripcion" />
+                </Field>
+            </SeccionDeFormulario>
+            <SeccionDeFormulario
+                :titulo="$t('tareas.formulario.clasificacion')"
+                :descripcion="$t('tareas.formulario.clasificacion_ayuda')"
+            >
+                <div class="grid gap-bloque md:grid-cols-2">
+                    <Field>
+                        <Label for="tipo">{{ $t('tareas.tipo') }}</Label>
+                        <Select
+                            v-model="form.tipo"
+                            :disabled="esEdicion"
+                            required
+                        >
+                            <SelectTrigger
+                                id="tipo"
+                                class="w-full"
+                                :aria-invalid="!!form.errors.tipo"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="opcion in props.opciones.tipos"
+                                    :key="opcion.valor"
+                                    :value="opcion.valor"
+                                >
+                                    {{ $t(opcion.etiqueta) }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FieldDescription>
+                            {{ $t('tareas.tipo_no_cambia') }}
+                        </FieldDescription>
+                        <InputError :message="form.errors.tipo" />
+                    </Field>
+                    <Field>
+                        <Label for="prioridad">{{
+                            $t('tareas.prioridad')
+                        }}</Label>
+                        <Select v-model="form.prioridad" required>
+                            <SelectTrigger
+                                id="prioridad"
+                                class="w-full"
+                                :aria-invalid="!!form.errors.prioridad"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="opcion in props.opciones.prioridades"
+                                    :key="opcion.valor"
+                                    :value="opcion.valor"
+                                >
+                                    {{ $t(opcion.etiqueta) }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.prioridad" />
+                    </Field>
+                </div>
+                <div class="grid gap-bloque md:grid-cols-2">
+                    <Field>
+                        <Label for="modulo_id">{{ $t('tareas.modulo') }}</Label>
+                        <Select
+                            :model-value="comoOpcion(form.modulo_id)"
+                            @update:model-value="
+                                (valor) => (form.modulo_id = desdeOpcion(valor))
+                            "
+                        >
+                            <SelectTrigger
+                                id="modulo_id"
+                                class="w-full"
+                                :aria-invalid="!!form.errors.modulo_id"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="NINGUNO">
+                                    {{ $t('tareas.sin_modulo') }}
+                                </SelectItem>
+                                <SelectItem
+                                    v-for="modulo in props.opciones.modulos"
+                                    :key="modulo.id"
+                                    :value="String(modulo.id)"
+                                >
+                                    {{ modulo.ruta }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.modulo_id" />
+                    </Field>
+                    <Field v-if="esEdicion">
+                        <Label for="periodo_id">{{
+                            $t('tareas.periodo')
+                        }}</Label>
+                        <Select
+                            :model-value="comoOpcion(form.periodo_id)"
+                            @update:model-value="
+                                (valor) =>
+                                    (form.periodo_id = desdeOpcion(valor))
+                            "
+                        >
+                            <SelectTrigger
+                                id="periodo_id"
+                                class="w-full"
+                                :aria-invalid="!!form.errors.periodo_id"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="NINGUNO">
+                                    {{ $t('tareas.sin_periodo') }}
+                                </SelectItem>
+                                <SelectItem
+                                    v-for="periodo in props.opciones.periodos"
+                                    :key="periodo.id"
+                                    :value="String(periodo.id)"
+                                >
+                                    {{ periodo.consecutivo }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.periodo_id" />
+                    </Field>
+                </div>
+                <Field v-if="admiteOrigen && props.tareasDeOrigen">
+                    <Label for="tarea_origen_id">{{
+                        $t('tareas.origen')
+                    }}</Label>
+                    <Select
+                        :model-value="comoOpcion(form.tarea_origen_id)"
+                        @update:model-value="
+                            (valor) =>
+                                (form.tarea_origen_id = desdeOpcion(valor))
+                        "
+                    >
+                        <SelectTrigger
+                            id="tarea_origen_id"
+                            class="w-full"
+                            :aria-invalid="!!form.errors.tarea_origen_id"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="NINGUNO">
+                                {{ $t('tareas.sin_origen') }}
+                            </SelectItem>
+                            <SelectItem
+                                v-for="candidata in props.tareasDeOrigen"
+                                :key="candidata.id"
+                                :value="String(candidata.id)"
+                            >
+                                {{ candidata.codigo }} — {{ candidata.nombre }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FieldDescription>
+                        {{ $t('tareas.origen_ayuda') }}
+                    </FieldDescription>
+                    <InputError :message="form.errors.tarea_origen_id" />
+                </Field>
+            </SeccionDeFormulario>
+            <template #pie>
+                <PieDeFormulario
+                    :procesando="form.processing"
+                    :cancelar="props.volverA"
                 />
-                <InputGroupAddon>
-                    <Type aria-hidden="true" />
-                </InputGroupAddon>
-            </InputGroup>
-            <InputError :message="form.errors.nombre" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="descripcion">{{ $t('tareas.descripcion') }}</Label>
-            <InputGroup>
-                <InputGroupTextarea
-                    id="descripcion"
-                    v-model="form.descripcion"
-                    rows="5"
-                    :placeholder="$t('tareas.marcadores.descripcion')"
-                    :aria-invalid="!!form.errors.descripcion"
-                />
-                <InputGroupAddon align="block-start">
-                    <FileText aria-hidden="true" />
-                </InputGroupAddon>
-            </InputGroup>
-            <InputError :message="form.errors.descripcion" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="tipo">{{ $t('tareas.tipo') }}</Label>
-            <Select v-model="form.tipo" :disabled="esEdicion" required>
-                <SelectTrigger
-                    id="tipo"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.tipo"
-                >
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem
-                        v-for="opcion in props.opciones.tipos"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
-                    >
-                        {{ $t(opcion.etiqueta) }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <p class="text-xs text-muted-foreground">
-                {{ $t('tareas.tipo_no_cambia') }}
-            </p>
-            <InputError :message="form.errors.tipo" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="prioridad">{{ $t('tareas.prioridad') }}</Label>
-            <Select v-model="form.prioridad" required>
-                <SelectTrigger
-                    id="prioridad"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.prioridad"
-                >
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem
-                        v-for="opcion in props.opciones.prioridades"
-                        :key="opcion.valor"
-                        :value="opcion.valor"
-                    >
-                        {{ $t(opcion.etiqueta) }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <InputError :message="form.errors.prioridad" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="modulo_id">{{ $t('tareas.modulo') }}</Label>
-            <Select
-                :model-value="comoOpcion(form.modulo_id)"
-                @update:model-value="
-                    (valor) => (form.modulo_id = desdeOpcion(valor))
-                "
-            >
-                <SelectTrigger
-                    id="modulo_id"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.modulo_id"
-                >
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem :value="NINGUNO">
-                        {{ $t('tareas.sin_modulo') }}
-                    </SelectItem>
-                    <SelectItem
-                        v-for="modulo in props.opciones.modulos"
-                        :key="modulo.id"
-                        :value="String(modulo.id)"
-                    >
-                        {{ modulo.ruta }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <InputError :message="form.errors.modulo_id" />
-        </div>
-
-        <div v-if="esEdicion" class="grid gap-2">
-            <Label for="periodo_id">{{ $t('tareas.periodo') }}</Label>
-            <Select
-                :model-value="comoOpcion(form.periodo_id)"
-                @update:model-value="
-                    (valor) => (form.periodo_id = desdeOpcion(valor))
-                "
-            >
-                <SelectTrigger
-                    id="periodo_id"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.periodo_id"
-                >
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem :value="NINGUNO">
-                        {{ $t('tareas.sin_periodo') }}
-                    </SelectItem>
-                    <SelectItem
-                        v-for="periodo in props.opciones.periodos"
-                        :key="periodo.id"
-                        :value="String(periodo.id)"
-                    >
-                        {{ periodo.consecutivo }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <InputError :message="form.errors.periodo_id" />
-        </div>
-
-        <div v-if="admiteOrigen && props.tareasDeOrigen" class="grid gap-2">
-            <Label for="tarea_origen_id">{{ $t('tareas.origen') }}</Label>
-            <Select
-                :model-value="comoOpcion(form.tarea_origen_id)"
-                @update:model-value="
-                    (valor) => (form.tarea_origen_id = desdeOpcion(valor))
-                "
-            >
-                <SelectTrigger
-                    id="tarea_origen_id"
-                    class="w-full"
-                    :aria-invalid="!!form.errors.tarea_origen_id"
-                >
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem :value="NINGUNO">
-                        {{ $t('tareas.sin_origen') }}
-                    </SelectItem>
-                    <SelectItem
-                        v-for="candidata in props.tareasDeOrigen"
-                        :key="candidata.id"
-                        :value="String(candidata.id)"
-                    >
-                        {{ candidata.codigo }} — {{ candidata.nombre }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <p class="text-xs text-muted-foreground">
-                {{ $t('tareas.origen_ayuda') }}
-            </p>
-            <InputError :message="form.errors.tarea_origen_id" />
-        </div>
-
-        <div class="flex items-center gap-3">
-            <Button type="submit" :disabled="form.processing">{{
-                $t('comun.guardar')
-            }}</Button>
-            <Button as-child variant="ghost">
-                <Link :href="props.volverA">{{ $t('comun.cancelar') }}</Link>
-            </Button>
-        </div>
+            </template>
+        </TarjetaDeFormulario>
     </form>
 </template>

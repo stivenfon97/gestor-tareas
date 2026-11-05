@@ -27,4 +27,13 @@ return [
     'notas_marcador' => 'Detalles del pago, si hacen falta',
     'usd' => 'USD',
     'cop' => 'COP',
+
+    'formulario' => [
+        'periodo' => 'Periodo y fecha',
+        'periodo_ayuda' => 'Qué periodo se cobra y cuándo se recibió el pago.',
+        'montos' => 'Montos',
+        'montos_ayuda' => 'El monto en dólares y la TRM del día del pago; el valor en pesos se calcula.',
+        'referencia' => 'Referencia',
+        'referencia_ayuda' => 'Datos para encontrar el pago en el banco.',
+    ],
 ];

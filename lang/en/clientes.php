@@ -48,4 +48,13 @@ return [
         'sin_periodos_cerrados' => 'None yet',
         'periodo' => 'Period :consecutivo · :proyecto',
     ],
+
+    'formulario' => [
+        'datos' => 'Client details',
+        'datos_ayuda' => 'How the client appears in projects, reports and payments.',
+        'contacto' => 'Contact',
+        'contacto_ayuda' => 'The person you coordinate the work with.',
+        'notas' => 'Internal notes',
+        'notas_ayuda' => 'Agreements and terms the team should keep at hand.',
+    ],
 ];

@@ -29,6 +29,14 @@ return [
         'sin_usuarios' => 'Todavía no hay usuarios',
         'sin_usuarios_ayuda' => 'Crea el primero para darle acceso a la herramienta.',
         'nota_desactivar' => 'Un usuario se desactiva en lugar de borrarse, para no romper el historial de quién hizo qué.',
+        'formulario' => [
+            'cuenta' => 'Datos de la cuenta',
+            'cuenta_ayuda' => 'Nombre y correo con los que la persona entra.',
+            'permisos' => 'Permisos',
+            'permisos_ayuda' => 'El rol global decide qué puede hacer en toda la aplicación.',
+            'contrasena' => 'Contraseña',
+            'contrasena_ayuda' => 'La persona puede cambiarla luego desde sus ajustes.',
+        ],
     ],
 
     'equipos' => [
@@ -49,5 +57,9 @@ return [
         'sin_equipos' => 'Todavía no hay equipos',
         'sin_equipos_ayuda' => 'Crea el primero para asignar varias personas a un proyecto de golpe.',
         'nota_no_otorga_permisos' => 'El equipo no otorga permisos por sí mismo: sirve para asignar personas a un proyecto de golpe. El rol efectivo vive siempre en el proyecto.',
+        'formulario' => [
+            'datos' => 'Datos del equipo',
+            'datos_ayuda' => 'Un nombre corto y para qué se usa.',
+        ],
     ],
 ];

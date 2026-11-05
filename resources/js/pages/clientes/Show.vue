@@ -64,6 +64,7 @@ const props = defineProps<{
                         }}</Link>
                     </Button>
                     <Form
+                        novalidate
                         v-if="props.puede.editar"
                         v-bind="
                             EstadoClienteController.update.form(
