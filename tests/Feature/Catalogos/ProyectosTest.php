@@ -276,7 +276,9 @@ it('devuelve el concentrador del proyecto con su resumen y sin datos de relleno'
 it('la búsqueda del listado de proyectos encuentra por el nombre del cliente', function () {
     $roble = Cliente::factory()->create(['nombre' => 'Distribuidora El Roble S.A.S.']);
     Proyecto::factory()->for($roble)->create(['nombre' => 'Portal de Proveedores']);
-    Proyecto::factory()->for($this->cliente)->create(['nombre' => 'Mesa de Ayuda']);
+    // Nombre fijo: la fábrica de clientes también sortea «Distribuidora El Roble».
+    $bonanza = Cliente::factory()->create(['nombre' => 'Textiles Bonanza S.A.S.']);
+    Proyecto::factory()->for($bonanza)->create(['nombre' => 'Mesa de Ayuda']);
 
     $respuesta = $this->actingAs($this->administrador)
         ->get(route('proyectos.index', ['filter' => ['buscar' => 'roble']]))
