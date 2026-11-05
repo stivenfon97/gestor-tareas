@@ -347,7 +347,14 @@
     --muted-foreground: var(--texto-suave);
     --accent: var(--fila-hover);
     --accent-foreground: var(--texto);
-    --destructive: hsl(0 72% 41%);
+    /*
+     * Rojo de error: vivo, no apagado. Es lo que dice «esto está mal» bajo un
+     * campo y en el borde de un control inválido; con el 72% de saturación se
+     * leía marrón. 5.33:1 sobre `--panel`, 4.83:1 sobre `--fondo` y 5.55:1 con
+     * texto blanco encima (botón destructivo). No confundir con `cancelada`,
+     * que es tenue a propósito porque es información de archivo.
+     */
+    --destructive: hsl(0 86% 44%);
     --destructive-foreground: hsl(0 0% 100%);
     --border: var(--borde);
     --input: var(--borde-fuerte);
@@ -418,7 +425,8 @@
     --tono-aviso-solido: hsl(32 95% 38%);
     --tono-info-solido: hsl(221 83% 48%);
     --tono-acento-solido: hsl(270 60% 50%);
-    --tono-peligro-solido: hsl(0 72% 45%);
+    /* El mismo rojo que `--destructive`: el icono de eliminar y el error se leen igual. */
+    --tono-peligro-solido: hsl(0 86% 44%);
     --tono-neutro-solido: hsl(25 5% 40%);
 }
 
@@ -465,7 +473,8 @@
     --muted-foreground: var(--texto-suave);
     --accent: var(--fila-hover);
     --accent-foreground: var(--texto);
-    --destructive: hsl(0 84% 60%);
+    /* Rojo de error en oscuro: 5.44:1 sobre `--panel` y 5.84:1 sobre `--fondo`. */
+    --destructive: hsl(0 94% 66%);
     --destructive-foreground: hsl(0 0% 100%);
     --border: var(--borde);
     --input: var(--borde-fuerte);
@@ -519,7 +528,7 @@
     --tono-aviso-solido: hsl(38 92% 60%);
     --tono-info-solido: hsl(213 94% 68%);
     --tono-acento-solido: hsl(270 90% 75%);
-    --tono-peligro-solido: hsl(0 84% 66%);
+    --tono-peligro-solido: hsl(0 94% 66%);
     --tono-neutro-solido: hsl(24 5% 68%);
 }
 

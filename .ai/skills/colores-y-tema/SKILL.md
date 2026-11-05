@@ -147,6 +147,21 @@ fuente de verdad del **nombre** del token, no un generador de clases.
 Da siempre un valor de reserva neutro (`en_espera`) para que un estado inesperado del
 servidor no deje el badge sin estilo.
 
+## Rojo de error
+
+El rojo de error (`--destructive`, también `--tono-peligro-solido`) es **vivo**, no
+apagado: lo pidió el dueño del producto porque con el 72% de saturación se leía casi
+marrón bajo los campos.
+
+| Modo | Valor | Contraste |
+|---|---|---|
+| Claro | `hsl(0 86% 44%)` | 5.33:1 sobre `--panel`, 4.83:1 sobre `--fondo`, 5.55:1 con texto blanco encima |
+| Oscuro | `hsl(0 94% 66%)` | 5.44:1 sobre `--panel`, 5.84:1 sobre `--fondo` |
+
+No lo apagues para que «combine»: el error tiene que llamar la atención. Lo tenue es
+`cancelada`, que es información de archivo y no una alarma; son dos rojos distintos a
+propósito.
+
 ## Contraste mínimo
 
 **4.5:1** entre texto y su fondo, en **ambos modos**, para todo texto de tamaño normal
