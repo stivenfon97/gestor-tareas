@@ -2,7 +2,7 @@
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { Building2, FileText, Mail, Phone, User } from '@lucide/vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,7 @@ import { index } from '@/routes/clientes';
     <Head :title="$t('clientes.crear')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading variant="small" :title="$t('clientes.crear')" />
+        <CabeceraDePagina :icono="Building2" :titulo="$t('clientes.crear')" />
 
         <Form
             v-bind="ClienteController.store.form()"

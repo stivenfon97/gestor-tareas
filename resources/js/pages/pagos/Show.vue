@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { Banknote } from '@lucide/vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Button } from '@/components/ui/button';
 import { formatearFecha, formatearMonto, formatearNumero } from '@/lib/formato';
@@ -63,6 +64,7 @@ const campos = [
 
     <div class="flex max-w-xl flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="Banknote"
             :titulo="$t('recursos.pago')"
             :descripcion="
                 $t('tareas.periodo_numero', {

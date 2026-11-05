@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { NotebookPen } from '@lucide/vue';
 import { ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
@@ -121,6 +122,7 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
 
     <div class="flex max-w-3xl flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="NotebookPen"
             :titulo="props.reunion.titulo"
             :descripcion="props.proyecto.nombre"
         >

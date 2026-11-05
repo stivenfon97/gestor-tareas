@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { Banknote } from '@lucide/vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ const props = defineProps<{
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="Banknote"
             :titulo="$t('recursos.pagos')"
             :descripcion="props.proyecto.nombre"
         >

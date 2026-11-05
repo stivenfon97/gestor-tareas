@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { ListChecks } from '@lucide/vue';
 import TareaController from '@/actions/App/Http/Controllers/TareaController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import FormularioTarea from '@/components/tareas/FormularioTarea.vue';
 import { index } from '@/routes/proyectos/tareas';
 import type { OpcionesDeTarea } from '@/types/tareas';
@@ -22,10 +23,10 @@ const props = defineProps<{
     <Head :title="$t('tareas.crear')" />
 
     <div class="flex max-w-2xl flex-col gap-6">
-        <Heading
-            variant="small"
-            :title="$t('tareas.crear')"
-            :description="props.proyecto.nombre"
+        <CabeceraDePagina
+            :icono="ListChecks"
+            :titulo="$t('tareas.crear')"
+            :descripcion="props.proyecto.nombre"
         />
 
         <!--

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Banknote } from '@lucide/vue';
 import PagoController from '@/actions/App/Http/Controllers/PagoController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import FormularioPago from '@/components/pagos/FormularioPago.vue';
 import { index as pagosIndex } from '@/routes/proyectos/pagos';
 
@@ -22,10 +23,10 @@ const props = defineProps<{
     <Head :title="$t('pagos.registrar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading
-            variant="small"
-            :title="$t('pagos.registrar')"
-            :description="props.proyecto.nombre"
+        <CabeceraDePagina
+            :icono="Banknote"
+            :titulo="$t('pagos.registrar')"
+            :descripcion="props.proyecto.nombre"
         />
 
         <FormularioPago

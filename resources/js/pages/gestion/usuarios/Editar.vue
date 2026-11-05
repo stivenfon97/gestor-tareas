@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { Mail, User } from '@lucide/vue';
+import { Mail, User, Users } from '@lucide/vue';
 import UsuarioController from '@/actions/App/Http/Controllers/Gestion/UsuarioController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,10 +36,10 @@ const props = defineProps<{
     <Head :title="$t('gestion.usuarios.editar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading
-            variant="small"
-            :title="$t('gestion.usuarios.editar')"
-            :description="props.usuario.email"
+        <CabeceraDePagina
+            :icono="Users"
+            :titulo="$t('gestion.usuarios.editar')"
+            :descripcion="props.usuario.email"
         />
 
         <Form

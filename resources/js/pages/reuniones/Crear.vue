@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { NotebookPen } from '@lucide/vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import FormularioReunion from '@/components/reuniones/FormularioReunion.vue';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const props = defineProps<{
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="NotebookPen"
             :titulo="trans('reuniones.crear')"
             :descripcion="props.proyecto.nombre"
         >

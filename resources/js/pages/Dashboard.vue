@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Deferred, Head, Link } from '@inertiajs/vue3';
+import { LayoutGrid } from '@lucide/vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
@@ -75,6 +76,7 @@ const skeletonFilas = [1, 2, 3];
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="LayoutGrid"
             :titulo="$t('dashboard.titulo')"
             :descripcion="$t('dashboard.descripcion')"
         />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Calendar } from '@lucide/vue';
+import { Calendar, NotebookPen } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Badge } from '@/components/ui/badge';
@@ -92,6 +92,7 @@ const limpiarFiltros = (): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="NotebookPen"
             :titulo="trans('reuniones.bitacora')"
             :descripcion="props.proyecto.nombre"
         >

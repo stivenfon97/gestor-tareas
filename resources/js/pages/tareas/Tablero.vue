@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { SquareKanban } from '@lucide/vue';
 import { computed, nextTick, ref } from 'vue';
 import draggable from 'vuedraggable';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
@@ -308,6 +309,7 @@ const esActiva = (columna: number, fila: number): boolean =>
 
     <div class="flex min-w-0 flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="SquareKanban"
             :titulo="$t('tablero.titulo')"
             :descripcion="props.proyecto.nombre"
         >

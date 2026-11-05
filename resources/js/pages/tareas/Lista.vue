@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ChevronDown } from '@lucide/vue';
+import { ChevronDown, ListTree } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
@@ -104,6 +104,7 @@ const vacia = computed(() => props.grupos.every((grupo) => grupo.total === 0));
 
     <div class="flex min-w-0 flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="ListTree"
             :titulo="$t('tablero.lista.titulo')"
             :descripcion="props.proyecto.nombre"
         >

@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeftRight, Calendar, DollarSign, Hash } from '@lucide/vue';
+import {
+    ArrowLeftRight,
+    Calendar,
+    CalendarCheck2,
+    DollarSign,
+    Hash,
+} from '@lucide/vue';
 import { computed, ref, toRef } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
@@ -119,6 +125,7 @@ const confirmar = (): void => {
 
     <div class="flex max-w-3xl flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="CalendarCheck2"
             :titulo="
                 $t('periodos.cerrar_titulo', {
                     consecutivo: String(props.periodo.consecutivo),

@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { FileText, FolderKanban, Link as Enlace, Tag } from '@lucide/vue';
+import {
+    FileText,
+    FolderGit2,
+    FolderKanban,
+    Link as Enlace,
+    Tag,
+} from '@lucide/vue';
 import { computed, watch } from 'vue';
 import ProyectoController from '@/actions/App/Http/Controllers/ProyectoController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,7 +74,7 @@ const enviar = (): void => {
     <Head :title="$t('proyectos.crear')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading variant="small" :title="$t('proyectos.crear')" />
+        <CabeceraDePagina :icono="FolderGit2" :titulo="$t('proyectos.crear')" />
 
         <form class="space-y-6" @submit.prevent="enviar">
             <div class="grid gap-2">

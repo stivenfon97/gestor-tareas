@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Calendar, FileText } from '@lucide/vue';
+import { Calendar, CalendarRange, FileText } from '@lucide/vue';
 import { ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
@@ -77,6 +77,7 @@ const abrirPeriodo = (): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="CalendarRange"
             :titulo="$t('recursos.periodos')"
             :descripcion="props.proyecto.nombre"
         >

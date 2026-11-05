@@ -2,7 +2,7 @@
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { Building2, FileText, Mail, Phone, User } from '@lucide/vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,10 +31,10 @@ const props = defineProps<{
     <Head :title="$t('clientes.editar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading
-            variant="small"
-            :title="$t('clientes.editar')"
-            :description="props.cliente.nombre"
+        <CabeceraDePagina
+            :icono="Building2"
+            :titulo="$t('clientes.editar')"
+            :descripcion="props.cliente.nombre"
         />
 
         <Form

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { FileText, Users } from '@lucide/vue';
+import { FileText, Users, UsersRound } from '@lucide/vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
 import MiembroEquipoController from '@/actions/App/Http/Controllers/Gestion/MiembroEquipoController';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -34,10 +35,10 @@ const props = defineProps<{
     <Head :title="$t('gestion.equipos.editar')" />
 
     <div class="flex max-w-2xl flex-col gap-8">
-        <Heading
-            variant="small"
-            :title="$t('gestion.equipos.editar')"
-            :description="$t('gestion.equipos.nota_no_otorga_permisos')"
+        <CabeceraDePagina
+            :icono="UsersRound"
+            :titulo="$t('gestion.equipos.editar')"
+            :descripcion="$t('gestion.equipos.nota_no_otorga_permisos')"
         />
 
         <Form

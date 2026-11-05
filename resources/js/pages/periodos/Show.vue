@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Calendar, FileText } from '@lucide/vue';
+import { Calendar, CalendarRange, FileText } from '@lucide/vue';
 import { ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
@@ -111,6 +111,7 @@ const guardar = (): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="CalendarRange"
             :titulo="
                 $t('tareas.periodo_numero', {
                     consecutivo: String(props.periodo.consecutivo),

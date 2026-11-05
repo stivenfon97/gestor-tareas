@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Banknote } from '@lucide/vue';
 import PagoController from '@/actions/App/Http/Controllers/PagoController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import FormularioPago from '@/components/pagos/FormularioPago.vue';
 import { show } from '@/routes/pagos';
 
@@ -32,10 +33,10 @@ const props = defineProps<{
     <Head :title="$t('pagos.editar')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading
-            variant="small"
-            :title="$t('pagos.editar')"
-            :description="
+        <CabeceraDePagina
+            :icono="Banknote"
+            :titulo="$t('pagos.editar')"
+            :descripcion="
                 $t('tareas.periodo_numero', {
                     consecutivo: String(props.pago.periodo_consecutivo),
                 })

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { FileText, Users } from '@lucide/vue';
+import { FileText, Users, UsersRound } from '@lucide/vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +18,10 @@ import { index } from '@/routes/equipos';
     <Head :title="$t('gestion.equipos.crear')" />
 
     <div class="flex max-w-xl flex-col gap-6">
-        <Heading variant="small" :title="$t('gestion.equipos.crear')" />
+        <CabeceraDePagina
+            :icono="UsersRound"
+            :titulo="$t('gestion.equipos.crear')"
+        />
 
         <Form
             v-bind="EquipoController.store.form()"

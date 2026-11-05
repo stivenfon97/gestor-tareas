@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { UsersRound } from '@lucide/vue';
 import AsignarEquipoAProyectoController from '@/actions/App/Http/Controllers/AsignarEquipoAProyectoController';
 import ProyectoUsuarioController from '@/actions/App/Http/Controllers/ProyectoUsuarioController';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -30,10 +32,10 @@ const props = defineProps<{
     <Head :title="$t('proyectos.miembros.titulo')" />
 
     <div class="flex max-w-3xl flex-col gap-8">
-        <Heading
-            variant="small"
-            :title="$t('proyectos.miembros.titulo')"
-            :description="props.proyecto.nombre"
+        <CabeceraDePagina
+            :icono="UsersRound"
+            :titulo="$t('proyectos.miembros.titulo')"
+            :descripcion="props.proyecto.nombre"
         />
 
         <ul class="divide-y divide-border rounded-lg border border-border">

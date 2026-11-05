@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Deferred, Head, Link, router } from '@inertiajs/vue3';
-import { MoreHorizontal } from '@lucide/vue';
+import { FolderGit2, MoreHorizontal } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
@@ -165,6 +165,7 @@ const eliminar = (): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="FolderGit2"
             :titulo="props.proyecto.nombre"
             :descripcion="
                 props.proyecto.descripcion ?? props.proyecto.cliente.nombre

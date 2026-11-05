@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight } from '@lucide/vue';
+import { CalendarDays, ChevronLeft, ChevronRight } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
@@ -151,6 +151,7 @@ const configuracionActual = computed((): ConfiguracionDeVista => {
 
     <div class="flex min-w-0 flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="CalendarDays"
             :titulo="$t('tablero.agenda.titulo')"
             :descripcion="props.proyecto.nombre"
         >

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { Building2 } from '@lucide/vue';
 import EstadoClienteController from '@/actions/App/Http/Controllers/EstadoClienteController';
-import Heading from '@/components/Heading.vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatearFecha } from '@/lib/formato';
@@ -42,48 +43,51 @@ const props = defineProps<{
     <Head :title="props.cliente.nombre" />
 
     <div class="flex flex-col gap-6">
-        <div class="flex items-start justify-between gap-4">
-            <Heading
-                variant="small"
-                :title="props.cliente.nombre"
-                :description="props.cliente.contacto_nombre ?? undefined"
-            />
-            <div class="flex items-center gap-2">
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="index()">{{ $t('comun.volver') }}</Link>
-                </Button>
-                <Button
-                    v-if="props.puede.editar"
-                    as-child
-                    size="sm"
-                    variant="outline"
-                >
-                    <Link :href="edit(props.cliente.id)">{{
-                        $t('comun.editar')
-                    }}</Link>
-                </Button>
-                <Form
-                    v-if="props.puede.editar"
-                    v-bind="
-                        EstadoClienteController.update.form(props.cliente.id)
-                    "
-                    v-slot="{ processing }"
-                >
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        type="submit"
-                        :disabled="processing"
-                    >
-                        {{
-                            props.cliente.activo
-                                ? $t('clientes.desactivar')
-                                : $t('clientes.activar')
-                        }}
+        <CabeceraDePagina
+            :icono="Building2"
+            :titulo="props.cliente.nombre"
+            :descripcion="props.cliente.contacto_nombre ?? undefined"
+        >
+            <template #acciones>
+                <div class="flex items-center gap-2">
+                    <Button as-child variant="ghost" size="sm">
+                        <Link :href="index()">{{ $t('comun.volver') }}</Link>
                     </Button>
-                </Form>
-            </div>
-        </div>
+                    <Button
+                        v-if="props.puede.editar"
+                        as-child
+                        size="sm"
+                        variant="outline"
+                    >
+                        <Link :href="edit(props.cliente.id)">{{
+                            $t('comun.editar')
+                        }}</Link>
+                    </Button>
+                    <Form
+                        v-if="props.puede.editar"
+                        v-bind="
+                            EstadoClienteController.update.form(
+                                props.cliente.id,
+                            )
+                        "
+                        v-slot="{ processing }"
+                    >
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="submit"
+                            :disabled="processing"
+                        >
+                            {{
+                                props.cliente.activo
+                                    ? $t('clientes.desactivar')
+                                    : $t('clientes.activar')
+                            }}
+                        </Button>
+                    </Form>
+                </div>
+            </template>
+        </CabeceraDePagina>
 
         <div class="flex flex-wrap items-center gap-3 text-sm">
             <Badge :variant="props.cliente.activo ? 'secondary' : 'outline'">

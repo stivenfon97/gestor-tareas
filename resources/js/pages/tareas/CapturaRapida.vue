@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import Heading from '@/components/Heading.vue';
+import { Zap } from '@lucide/vue';
+import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import CapturaRapidaFormulario from '@/components/tareas/CapturaRapidaFormulario.vue';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/proyectos/tareas';
@@ -18,18 +19,19 @@ const props = defineProps<{
     <Head :title="$t('tareas.rapida.titulo')" />
 
     <div class="flex flex-col gap-6">
-        <div class="flex items-start justify-between gap-4">
-            <Heading
-                variant="small"
-                :title="$t('tareas.rapida.titulo')"
-                :description="$t('tareas.rapida.descripcion')"
-            />
-            <Button as-child variant="ghost" size="sm">
-                <Link :href="index(props.proyecto.id)">{{
-                    $t('comun.volver')
-                }}</Link>
-            </Button>
-        </div>
+        <CabeceraDePagina
+            :icono="Zap"
+            :titulo="$t('tareas.rapida.titulo')"
+            :descripcion="$t('tareas.rapida.descripcion')"
+        >
+            <template #acciones>
+                <Button as-child variant="ghost" size="sm">
+                    <Link :href="index(props.proyecto.id)">{{
+                        $t('comun.volver')
+                    }}</Link>
+                </Button>
+            </template>
+        </CabeceraDePagina>
 
         <CapturaRapidaFormulario
             :opciones="props.opciones"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { Send, ShieldAlert } from '@lucide/vue';
+import { FileSpreadsheet, Send, ShieldAlert } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
@@ -122,6 +122,7 @@ const esDuplicado = (reporte: FilaHistorial): boolean =>
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="FileSpreadsheet"
             :titulo="$t('reportes.titulo')"
             :descripcion="props.proyecto.nombre"
         >
