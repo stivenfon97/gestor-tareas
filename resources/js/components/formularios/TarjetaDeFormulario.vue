@@ -11,12 +11,17 @@
  * quedaban flotando bajo el último campo. La tarjeta da un objeto claro, la
  * sección dice para qué sirve cada bloque y el pie deja las acciones siempre
  * en el mismo sitio.
+ *
+ * **Ocupa todo el ancho del contenido** (el layout ya lo acota a
+ * `max-w-contenido`). Con un tope propio de 56rem los formularios quedaban
+ * estrechos en una pantalla de 1440px y la cabecera de la página no alineaba
+ * con ellos. Ninguna página de formulario lleva `max-w-*` en su contenedor.
  */
 import { Card, CardFooter } from '@/components/ui/card';
 </script>
 
 <template>
-    <Card class="w-full max-w-4xl gap-0 overflow-hidden py-0">
+    <Card class="w-full gap-0 overflow-hidden py-0">
         <div class="divide-y divide-borde">
             <slot />
         </div>

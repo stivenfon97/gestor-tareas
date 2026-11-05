@@ -221,7 +221,7 @@ const guardar = (): void => {
                                     :placeholder="$t('periodos.notas_marcador')"
                                     :aria-invalid="!!errores.notas"
                                 />
-                                <InputGroupAddon align="block-start">
+                                <InputGroupAddon>
                                     <FileText aria-hidden="true" />
                                 </InputGroupAddon>
                             </InputGroup>

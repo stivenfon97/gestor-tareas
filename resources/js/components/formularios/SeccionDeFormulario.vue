@@ -8,8 +8,10 @@
  * navegador lo pinta sobre el borde del fieldset), así que es un `FieldTitle`
  * y el fieldset se nombra con `aria-labelledby`.
  *
- * Para poner dos campos cortos en la misma fila se envuelven en
- * `<div class="grid gap-bloque md:grid-cols-2">`.
+ * Para poner campos cortos en la misma fila se envuelven en
+ * `<div class="grid gap-bloque md:grid-cols-2">`, o en
+ * `md:grid-cols-2 lg:grid-cols-3` cuando son tres de la misma familia
+ * (persona, correo y teléfono). Un texto largo va siempre a todo el ancho.
  */
 import { useId } from 'vue';
 import {
@@ -30,7 +32,7 @@ const id = useId();
 <template>
     <FieldSet
         :aria-labelledby="id"
-        class="grid gap-bloque px-seccion py-seccion md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] md:gap-pagina"
+        class="grid gap-bloque px-seccion py-seccion md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:gap-pagina lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:gap-vacio"
     >
         <div class="flex flex-col gap-fino">
             <FieldTitle :id="id" class="text-medio text-texto">

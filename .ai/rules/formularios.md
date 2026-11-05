@@ -40,3 +40,8 @@ Lo pidió el dueño del producto: los globos nativos del navegador «son horribl
 - Todo `<Form>`/`<form>` lleva `novalidate`. La validación es la del FormRequest, en vivo con Precognition de Inertia 3 (`HandlePrecognitiveRequests` en el grupo `web`): `@change="validate('campo')"` + `:data-valido="valid('campo')"` con `:validation-timeout="500"`, o `useForm(...).withPrecognition(...).setValidationTimeout(500)`.
 - Altas y ediciones usan `components/formularios/`: `TarjetaDeFormulario` > `SeccionDeFormulario` (título y ayuda en `{modulo}.formulario.*`) > `Field`, y `PieDeFormulario` en `#pie`. Campos cortos emparejados en `grid gap-bloque md:grid-cols-2`.
 Detalle en la skill `interfaz-estandar` §2c y §2d.
+
+## Formularios a todo el ancho e icono del textarea en línea
+El dueño del producto los vio estrechos y con un salto de línea entre el icono y el placeholder.
+- Ninguna página de formulario lleva `max-w-*` en su contenedor raíz y `TarjetaDeFormulario` no tiene tope: el layout ya acota a `max-w-contenido`. Tres campos cortos de la misma familia van en `md:grid-cols-2 lg:grid-cols-3`.
+- Un `InputGroupTextarea` lleva su icono con `InputGroupAddon` sin `align` (inline-start): `ui/input-group` lo alinea arriba, en la primera línea, cuando el grupo contiene un textarea. Prohibido `align="block-start"` en textareas.

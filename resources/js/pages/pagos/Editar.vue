@@ -32,7 +32,7 @@ const props = defineProps<{
 <template>
     <Head :title="$t('pagos.editar')" />
 
-    <div class="flex max-w-xl flex-col gap-6">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
             :icono="Banknote"
             :titulo="$t('pagos.editar')"

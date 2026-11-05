@@ -221,7 +221,7 @@ const enviar = (): void => {
                                 @change="form.validate('descripcion')"
                                 :data-valido="form.valid('descripcion')"
                             />
-                            <InputGroupAddon align="block-start">
+                            <InputGroupAddon>
                                 <FileText aria-hidden="true" />
                             </InputGroupAddon>
                         </InputGroup>

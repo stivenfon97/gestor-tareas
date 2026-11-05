@@ -143,7 +143,7 @@ const enviar = (): void => {
                             :placeholder="$t('tareas.marcadores.motivo_espera')"
                             :aria-invalid="!!form.errors.motivo_espera"
                         />
-                        <InputGroupAddon align="block-start">
+                        <InputGroupAddon>
                             <AlignLeft aria-hidden="true" />
                         </InputGroupAddon>
                     </InputGroup>
@@ -164,7 +164,7 @@ const enviar = (): void => {
                             "
                             :aria-invalid="!!form.errors.motivo_cancelacion"
                         />
-                        <InputGroupAddon align="block-start">
+                        <InputGroupAddon>
                             <AlignLeft aria-hidden="true" />
                         </InputGroupAddon>
                     </InputGroup>

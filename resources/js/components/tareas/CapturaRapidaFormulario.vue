@@ -141,7 +141,7 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                     :placeholder="$t('tareas.rapida.ejemplo')"
                     :aria-invalid="!!previsualizacion.errors.texto"
                 />
-                <InputGroupAddon align="block-start">
+                <InputGroupAddon>
                     <ListPlus aria-hidden="true" />
                 </InputGroupAddon>
             </InputGroup>
@@ -315,7 +315,7 @@ const errorDeFila = (indice: number, campo: string): string | undefined =>
                                             (fila.descripcion = String(valor))
                                     "
                                 />
-                                <InputGroupAddon align="block-start">
+                                <InputGroupAddon>
                                     <FileText aria-hidden="true" />
                                 </InputGroupAddon>
                             </InputGroup>

@@ -71,8 +71,19 @@ da (o un token nuevo en `app.css`, registrado en `@theme inline`), no un parche 
    `aria-hidden="true"`. El orden en la plantilla da igual: `InputGroupAddon` se coloca
    con `order-first`/`order-last` según `align`; ponerlo después del control mantiene el
    orden de tabulación natural.
-3. **`InputGroupInput`** para una línea, **`InputGroupTextarea`** para texto largo
-   (con `align="block-start"` en el addon si el icono va encima).
+3. **`InputGroupInput`** para una línea, **`InputGroupTextarea`** para texto largo.
+   El icono del textarea va **a la izquierda, en la misma línea que la primera línea
+   de texto**, con el `InputGroupAddon` por defecto (sin `align`): la variante
+   `inline-start` se alinea arriba sola cuando el grupo contiene un textarea
+   (`group-has-[>textarea]`). **Prohibido `align="block-start"` en un textarea**: deja
+   el icono en una fila propia, con un salto de línea antes del placeholder.
+
+   ```vue
+   <InputGroup>
+       <InputGroupTextarea id="notas" name="notas" rows="4" :placeholder="$t('clientes.notas_marcador')" />
+       <InputGroupAddon><FileText aria-hidden="true" /></InputGroupAddon>
+   </InputGroup>
+   ```
 4. **Botón interno con `InputGroupButton`** dentro de un `InputGroupAddon
    align="inline-end"`: ver contraseña, limpiar búsqueda, copiar. Variante `ghost` y
    tamaño `icon-xs` por defecto; siempre `type="button"` y `aria-label` traducido.

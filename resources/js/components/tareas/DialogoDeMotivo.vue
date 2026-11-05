@@ -98,7 +98,7 @@ const ayuda = computed(() =>
                         :placeholder="$t(marcador)"
                         autofocus
                     />
-                    <InputGroupAddon align="block-start">
+                    <InputGroupAddon>
                         <AlignLeft aria-hidden="true" />
                     </InputGroupAddon>
                 </InputGroup>

@@ -141,8 +141,17 @@ Patrón de formulario por secciones de shadcn (Card + `Field`), con tres piezas 
 - Una `SeccionDeFormulario` por grupo de datos que se piensan juntos; título y ayuda
   a la izquierda, campos a la derecha (se apila en móvil). Los textos de sección van
   en `{modulo}.formulario.{seccion}` y `{seccion}_ayuda`.
-- Campos cortos de la misma familia (nombre y correo, fecha y monto) en
-  `grid gap-bloque md:grid-cols-2`; texto largo a todo el ancho.
+- **El formulario ocupa todo el ancho del contenido.** `TarjetaDeFormulario` no lleva
+  tope y **ninguna página de formulario pone `max-w-*` en su contenedor raíz** (ni
+  `max-w-xl`, ni `max-w-2xl`): el layout ya acota a `max-w-contenido`. Lo que va
+  debajo del formulario en la misma página (la tabla de miembros, un «Agregar») usa
+  el mismo ancho.
+- Campos cortos de la misma familia en la misma fila: dos en
+  `grid gap-bloque md:grid-cols-2` (nombre y correo, fecha y monto), tres en
+  `md:grid-cols-2 lg:grid-cols-3` (persona, correo y teléfono de contacto). Texto
+  largo a todo el ancho.
+- El icono de un textarea va a la izquierda, en línea con la primera línea de texto:
+  `InputGroupAddon` sin `align`. Nunca `align="block-start"`.
 - Cada campo es `Field` + `Label` + `InputGroup` con icono + `InputError` (skill
   `formularios-shadcn`); la ayuda bajo un campo es `FieldDescription`.
 - `PieDeFormulario` pone «Cancelar» (outline) y «Guardar» (primaria, con spinner

@@ -75,7 +75,7 @@ const props = defineProps<{
                     :titulo="$t('clientes.formulario.contacto')"
                     :descripcion="$t('clientes.formulario.contacto_ayuda')"
                 >
-                    <div class="grid gap-bloque md:grid-cols-2">
+                    <div class="grid gap-bloque md:grid-cols-2 lg:grid-cols-3">
                         <Field>
                             <Label for="contacto_nombre">{{
                                 $t('clientes.contacto_nombre')
@@ -125,31 +125,33 @@ const props = defineProps<{
                             </InputGroup>
                             <InputError :message="errors.contacto_email" />
                         </Field>
+                        <Field>
+                            <Label for="contacto_telefono">{{
+                                $t('clientes.contacto_telefono')
+                            }}</Label>
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="contacto_telefono"
+                                    name="contacto_telefono"
+                                    :default-value="
+                                        props.cliente.contacto_telefono ?? ''
+                                    "
+                                    :placeholder="
+                                        $t(
+                                            'clientes.contacto_telefono_marcador',
+                                        )
+                                    "
+                                    :aria-invalid="!!errors.contacto_telefono"
+                                    @change="validate('contacto_telefono')"
+                                    :data-valido="valid('contacto_telefono')"
+                                />
+                                <InputGroupAddon>
+                                    <Phone aria-hidden="true" />
+                                </InputGroupAddon>
+                            </InputGroup>
+                            <InputError :message="errors.contacto_telefono" />
+                        </Field>
                     </div>
-                    <Field>
-                        <Label for="contacto_telefono">{{
-                            $t('clientes.contacto_telefono')
-                        }}</Label>
-                        <InputGroup>
-                            <InputGroupInput
-                                id="contacto_telefono"
-                                name="contacto_telefono"
-                                :default-value="
-                                    props.cliente.contacto_telefono ?? ''
-                                "
-                                :placeholder="
-                                    $t('clientes.contacto_telefono_marcador')
-                                "
-                                :aria-invalid="!!errors.contacto_telefono"
-                                @change="validate('contacto_telefono')"
-                                :data-valido="valid('contacto_telefono')"
-                            />
-                            <InputGroupAddon>
-                                <Phone aria-hidden="true" />
-                            </InputGroupAddon>
-                        </InputGroup>
-                        <InputError :message="errors.contacto_telefono" />
-                    </Field>
                 </SeccionDeFormulario>
                 <SeccionDeFormulario
                     :titulo="$t('clientes.formulario.notas')"
@@ -168,7 +170,7 @@ const props = defineProps<{
                                 @change="validate('notas')"
                                 :data-valido="valid('notas')"
                             />
-                            <InputGroupAddon align="block-start">
+                            <InputGroupAddon>
                                 <FileText aria-hidden="true" />
                             </InputGroupAddon>
                         </InputGroup>

@@ -294,7 +294,7 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                         :placeholder="$t('tareas.marcadores.descripcion')"
                         :aria-invalid="!!descripcion.errors.descripcion"
                     />
-                    <InputGroupAddon align="block-start">
+                    <InputGroupAddon>
                         <FileText aria-hidden="true" />
                     </InputGroupAddon>
                 </InputGroup>
@@ -455,7 +455,7 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                             :placeholder="$t('tareas.marcadores.nota')"
                             :aria-invalid="!!nota.errors.contenido"
                         />
-                        <InputGroupAddon align="block-start">
+                        <InputGroupAddon>
                             <AlignLeft aria-hidden="true" />
                         </InputGroupAddon>
                     </InputGroup>

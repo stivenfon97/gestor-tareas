@@ -123,7 +123,7 @@ const confirmar = (): void => {
 <template>
     <Head :title="$t('periodos.cerrar')" />
 
-    <div class="flex max-w-3xl flex-col gap-seccion">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
             :icono="CalendarCheck2"
             :titulo="

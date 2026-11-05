@@ -68,7 +68,7 @@ const columnasDeMiembros = computed((): ColumnaDeTabla<Persona>[] => [
 <template>
     <Head :title="$t('gestion.equipos.editar')" />
 
-    <div class="flex max-w-2xl flex-col gap-8">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
             :icono="UsersRound"
             :titulo="$t('gestion.equipos.editar')"

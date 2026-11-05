@@ -33,7 +33,7 @@ const props = defineProps<{
 <template>
     <Head :title="$t('tareas.editar')" />
 
-    <div class="flex max-w-2xl flex-col gap-6">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
             :icono="ListChecks"
             :titulo="$t('tareas.editar')"
