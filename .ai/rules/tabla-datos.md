@@ -23,13 +23,17 @@ Los 0.02px del corte no son un detalle: `md:` de Tailwind empieza en 768px, y co
 
 La decisión va con `useMediaQuery`, no con `hidden md:table`: pintar las dos formas duplica cada fila en el DOM y el tabulador itinerante se mueve por filas que nadie ve. A cambio, al cruzar el corte hay que volver a medir los anclajes y a sacar del tabulador lo que hay dentro de las filas (`watch(esMovil)`).
 
-Los filtros de columna cuelgan de la cabecera de cada columna, que en modo tarjeta no existe: los sirve `PanelDeFiltros`. Si lo quitas, desde el teléfono no se puede filtrar.
+Los filtros de texto de columna cuelgan de la cabecera, que en modo tarjeta no existe: los sirve `PanelDeFiltros`. Si lo quitas, desde el teléfono no se puede filtrar por texto. Los de opciones van en la barra a todos los anchos.
 
-## Los filtros no heredan el ancho de su columna, la tabla acaba en fila entera y la paginación se oculta con una página
+## Los filtros no heredan el ancho de su columna y la tabla acaba en fila entera
 **Ningún control de filtro hereda el ancho de su columna.** El `<select>` de «Tipo» salía como `Tc` porque la celda medía 40px. Ensanchar esa columna solo mueve el problema a la siguiente columna estrecha: el disparador es un icono de tamaño fijo en la cabecera (`FiltroDeCabecera.vue`) y el control vive en una capa flotante que se dimensiona por su contenido. `data-filtro-de-columna` y `data-filtro-cabecera` son lo que `make humo` abre y mide.
 
 **La tabla acaba siempre en una fila entera.** `altoMaximo` es un límite en píxeles sobre un contenido medido en filas y caía en mitad de una. `TablaDatos` recorta ese límite al pie de la última fila que cabe, midiendo las filas del DOM: `alto de fila × n` falla en cuanto un nombre ocupa dos líneas. El scroll vertical no se puede sacar del panel, porque el `<thead>` pegajoso necesita un contenedor que ruede.
 
-**Con `last_page === 1` no se pintan controles de paginación.** Queda el total de resultados.
+Dónde van la búsqueda, los filtros, el menú «Opciones» y la paginación lo fija la regla «Barra de herramientas arriba y pie de paginación siempre visible», más abajo.
 
-Los controles de la tabla (columnas, densidad, limpiar) van en el pie, en un solo menú, a todos los anchos: no puede existir una banda cuya única función sea alojar dos botones.
+## Barra de herramientas arriba y pie de paginación siempre visible
+Sustituye a las decisiones anteriores de «paginación oculta con una página» y «controles solo en el pie»; las pidió retirar el dueño del producto al ver la tabla sin forma visible de filtrar ni paginar.
+- Arriba, dentro del panel: `BuscadorDeTabla` (prop `busqueda`), un `FiltroFacetado` por cada filtro de opciones —aunque su columna esté oculta—, fichas de los filtros de texto activos y «Limpiar filtros»; a la derecha el slot `acciones` y `MenuCompacto`.
+- Los filtros de opciones ya no cuelgan de la cabecera de la columna; en la cabecera solo quedan los de texto que no son la búsqueda.
+- `PaginacionDeTabla` se pinta siempre: rango «Mostrando x–y de n», tamaño de página, página actual y primera/anterior/siguiente/última (deshabilitados con una sola página).

@@ -35,3 +35,6 @@ Toda prueba de visibilidad comprueba la respuesta (`$respuesta->viewData('page')
 
 ## Inertia::defer() necesita un grupo propio por cada bloque independiente
 Sin segundo argumento, todo `Inertia::defer(fn () => …)` de una misma página cae en el grupo `'default'` y el cliente los pide todos en **una sola** petición: un bloque lento retrasa a los demás. Para que cada bloque cargue en paralelo, dale un nombre de grupo propio y distinto: `Inertia::defer(fn () => …, 'nombre_del_bloque')`. Precedente: `DashboardController` (fase 12), cuatro bloques con cuatro grupos.
+
+## La búsqueda general de un listado es BuscarEnColumnas, dentro del acotado por permisos
+Cada listado servido a `TablaDatos` declara `AllowedFilter::custom('buscar', new BuscarEnColumnas([...]))` con las columnas que recorre (admite relaciones con punto: `cliente.nombre`). Agrupa sus `OR` en un `where` propio, así que no salta el acotado por permisos del listado; pruébalo con un usuario que no deba ver lo ajeno (ver `ProyectosTest`). Escapa `LIKE` con `ESCAPE '!'` porque la barra invertida no vale igual en MySQL y en SQLite (pruebas). Tareas mantiene su filtro `texto`.

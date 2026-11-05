@@ -25,7 +25,10 @@ defender cuando aparezca la tentación de meterle un caso particular.
 | `TablaDatos/FiltroDeColumna.vue` | El control: filtro de texto o de opciones |
 | `TablaDatos/FiltroDeCabecera.vue` | Disparador y capa flotante del filtro, en la cabecera |
 | `TablaDatos/LeyendaDeColumna.vue` | Clave de lectura de una columna, en la cabecera |
-| `TablaDatos/MenuCompacto.vue` | Los cuatro controles agrupados, en el pie |
+| `TablaDatos/MenuCompacto.vue` | Columnas, densidad y limpiar, en la barra de herramientas |
+| `TablaDatos/BuscadorDeTabla.vue` | Búsqueda general (prop `busqueda`) |
+| `TablaDatos/FiltroFacetado.vue` | Un filtro de opciones como botón con nombre en la barra |
+| `TablaDatos/PaginacionDeTabla.vue` | El pie: rango, tamaño de página y navegación |
 | `TablaDatos/TarjetaDeFila.vue` | Una fila apilada como tarjeta (por debajo de `md`) |
 | `TablaDatos/PanelDeFiltros.vue` | Los filtros de columna, apilados (por debajo de `md`) |
 | `TablaDatos/EstadoVacio.vue` | Los dos vacíos |
@@ -115,7 +118,7 @@ const columnas = computed((): ColumnaDeTabla<FilaTarea>[] => [
 - **`leyenda-{id}`** — clave de lectura de esa columna. Si el slot existe, la cabecera
   pinta un botón de información que la abre. Es lo que explica una columna de símbolos:
   el componente no sabe qué significa un icono, la página sí.
-- **`acciones`** — controles propios de la página, en el pie junto a «Opciones».
+- **`acciones`** — controles propios de la página, en la barra junto a «Opciones».
 - **`vacio-acciones`** — la salida del vacío inicial (normalmente «crear»).
 
 ### Eventos
@@ -364,8 +367,12 @@ El desplazamiento vertical no se puede sacar del panel: un `<thead>` pegajoso ne
 contenedor que ruede, y ese contenedor tiene que rodar también en horizontal por las
 columnas ancladas.
 
-### Con una sola página no hay controles de paginación
+### El pie de paginación se pinta siempre
 
-«Por página · Página 1 de 1 · ‹ ›» con `last_page` a uno son cuatro controles que no
-llevan a ninguna parte: dos nacen deshabilitados y el tercero informa de que no hay nada
-más. Queda el total de resultados, que sí dice algo.
+Antes, con `last_page` a uno, el pie desaparecía. Al verlo con datos reales se retiró:
+una tabla sin pie no dice si hay más resultados ni deja cambiar el tamaño de página.
+`PaginacionDeTabla` muestra siempre «Mostrando x–y de n», el tamaño de página, la página
+actual y primera/anterior/siguiente/última, deshabilitados cuando no llevan a ninguna
+parte. Arriba, `BuscadorDeTabla` y un `FiltroFacetado` por cada filtro de opciones
+forman la barra de herramientas. Detalle en la skill `interfaz-estandar`.
+

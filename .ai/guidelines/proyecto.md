@@ -18,6 +18,11 @@ facturables. Corre en local sobre Docker.
   `components/ui/` y tokens del tema; nada de CSS inventado. Los formularios siguen la
   skill `formularios-shadcn`: `Label` + `InputGroup` con icono lucide + `InputError`, y
   los estados de foco, error y éxito por atributo, nunca por clase.
+- **Toda interfaz, nueva o existente, sigue la skill `interfaz-estandar`** — léela antes
+  de crear o tocar una pantalla: `CabeceraDePagina` con icono de sección, listados sobre
+  `TablaDatos` con búsqueda, filtros visibles y paginación, acciones de fila como iconos
+  con tono y tooltip (`BotonDeAccion`) y categorías como `Badge` con tono
+  (`lib/tonos.ts`), nunca en gris.
 - **El dinero es `decimal`, nunca `float`.** Montos `decimal(12,2)`, tasas de cambio
   `decimal(12,4)`.
 - **Enums de PHP para conjuntos cerrados de valores**, no tablas de catálogo.

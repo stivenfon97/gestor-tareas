@@ -27,3 +27,7 @@ grep -o 'bg-estado-[a-z-]*-fondo' public/build/assets/app-*.css | sort -u
 ```
 
 Los nombres de la escala tipográfica y de espaciado (`text-cuerpo`, `px-celda`, `h-fila-comoda`) no chocan con la escala numérica de Tailwind a propósito: redefinir `--text-sm` movería de golpe las pantallas que aún no se han migrado. Inventario completo en `docs/05-identidad-visual.md`.
+
+## El tema claro no usa blanco puro; las categorías usan tokens tono-*
+El claro se atenuó a petición del dueño del producto porque deslumbraba: fondo `hsl(40 8% 93.5%)`, paneles a 98%, menú lateral un escalón por debajo del fondo. No vuelvas a `--panel: 100%` ni a `bg-white`.
+Los tonos de categoría (`tono-exito|aviso|info|acento|peligro|neutro` con `-fondo`, `-texto`, `-borde` y `-solido`) se apoyan en las familias de los estados y los consumen las variantes de `Badge` y `BotonDeAccion`. `-solido` es el color de un icono suelto sobre el panel (≥3:1); `-texto` va sobre `-fondo` (≥4.5:1). Todo token nuevo, en `:root`, `.dark` y `@theme inline`.
