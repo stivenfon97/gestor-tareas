@@ -136,3 +136,64 @@ it('no deja al administrador desactivarse a sí mismo', function () {
 it('no hay registro público', function () {
     $this->get('/register')->assertNotFound();
 });
+
+/* -------------------------------------------- listado servido a TablaDatos */
+
+/** @return array<int, string> */
+function correosDelListadoDeUsuarios($respuesta): array
+{
+    return array_column($respuesta->viewData('page')['props']['usuarios']['data'], 'email');
+}
+
+it('el listado de usuarios deja llegar a quien queda en la página siguiente', function () {
+    User::factory()->count(15)->create();
+
+    $paginador = $this->actingAs($this->administrador)
+        ->get(route('usuarios.index', ['por_pagina' => 15, 'page' => 2]))
+        ->assertOk()
+        ->viewData('page')['props']['usuarios'];
+
+    expect($paginador['per_page'])->toBe(15)
+        ->and($paginador['last_page'])->toBe(2)
+        ->and($paginador['total'])->toBe(16)
+        ->and($paginador['data'])->toHaveCount(1);
+});
+
+it('el listado de usuarios filtra por lo que declara cada columna', function (array $filtro, string $esperado) {
+    User::factory()->create(['name' => 'Ana Ruiz', 'email' => 'ana@gestor.test', 'activo' => true]);
+    User::factory()->create(['name' => 'Beto Paz', 'email' => 'beto@otra.test', 'activo' => false]);
+    $this->administrador->update(['name' => 'Zoe', 'email' => 'zoe@admin.test']);
+
+    $respuesta = $this->actingAs($this->administrador)
+        ->get(route('usuarios.index', ['filter' => $filtro]))
+        ->assertOk();
+
+    expect(correosDelListadoDeUsuarios($respuesta))->toBe([$esperado])
+        ->and($respuesta->viewData('page')['props']['filtros'])->toBe($filtro);
+})->with([
+    'nombre' => [['name' => 'Rui'], 'ana@gestor.test'],
+    'correo' => [['email' => 'otra.test'], 'beto@otra.test'],
+    'inactivos' => [['activo' => '0'], 'beto@otra.test'],
+]);
+
+it('el listado de usuarios rechaza filtrar por una columna no declarada', function () {
+    $this->actingAs($this->administrador)
+        ->get(route('usuarios.index', ['filter' => ['password' => 'x']]))
+        ->assertStatus(400);
+});
+
+it('el listado de usuarios ordena y devuelve el estado de la URL a la tabla', function () {
+    User::factory()->create(['email' => 'a@gestor.test']);
+    User::factory()->create(['email' => 'z@gestor.test']);
+    $this->administrador->update(['email' => 'm@gestor.test']);
+
+    $respuesta = $this->actingAs($this->administrador)
+        ->get(route('usuarios.index', ['sort' => '-email', 'columnas' => 'nombre,correo']))
+        ->assertOk();
+
+    $props = $respuesta->viewData('page')['props'];
+
+    expect(correosDelListadoDeUsuarios($respuesta))->toBe(['z@gestor.test', 'm@gestor.test', 'a@gestor.test'])
+        ->and($props['orden'])->toBe([['campo' => 'email', 'direccion' => 'desc']])
+        ->and($props['columnasVisibles'])->toBe(['nombre', 'correo']);
+});

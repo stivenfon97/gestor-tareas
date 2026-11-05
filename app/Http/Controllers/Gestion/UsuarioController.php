@@ -9,7 +9,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Gestion\UsuarioStoreRequest;
 use App\Http\Requests\Gestion\UsuarioUpdateRequest;
 use App\Models\User;
+use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,7 +28,7 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class UsuarioController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $usuarios = QueryBuilder::for(User::class)
             ->allowedFilters(
@@ -35,7 +38,7 @@ class UsuarioController extends Controller
             ->defaultSort('name')
             ->allowedSorts('name', 'email', 'created_at')
             ->with('roles:id,name')
-            ->paginate(25)
+            ->paginate(EstadoDeTabla::porPagina($request))
             ->withQueryString()
             ->through(fn (User $usuario): array => [
                 'id' => $usuario->id,
@@ -47,6 +50,9 @@ class UsuarioController extends Controller
 
         return Inertia::render('gestion/usuarios/Index', [
             'usuarios' => $usuarios,
+            'filtros' => EstadoEnLaUrl::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, 'name'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
             'roles' => $this->rolesDisponibles(),
         ]);
     }

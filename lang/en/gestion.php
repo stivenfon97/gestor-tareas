@@ -25,6 +25,8 @@ return [
         'confirmar_contrasena_marcador' => 'Repeat the password',
         'no_puedes_desactivarte' => 'You cannot deactivate your own account.',
         'sin_registro_publico' => 'There is no public sign-up: the administrator creates accounts.',
+        'sin_usuarios' => 'No users yet',
+        'sin_usuarios_ayuda' => 'Create the first one to give someone access to the tool.',
         'nota_desactivar' => 'A user is deactivated rather than deleted, so the record of who did what stays intact.',
     ],
 
@@ -42,6 +44,8 @@ return [
         'nombre_marcador' => 'Team name',
         'descripcion_marcador' => 'What this team is for',
         'persona_marcador' => 'Choose a person',
+        'sin_equipos' => 'No teams yet',
+        'sin_equipos_ayuda' => 'Create the first one to assign several people to a project at once.',
         'nota_no_otorga_permisos' => 'A team grants no permissions by itself: it is a shortcut for assigning people to a project. The effective role always lives on the project.',
     ],
 ];

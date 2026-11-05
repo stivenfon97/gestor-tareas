@@ -25,6 +25,8 @@ return [
         'confirmar_contrasena_marcador' => 'Repite la contraseña',
         'no_puedes_desactivarte' => 'No puedes desactivar tu propia cuenta.',
         'sin_registro_publico' => 'No hay registro público: las cuentas las crea el administrador.',
+        'sin_usuarios' => 'Todavía no hay usuarios',
+        'sin_usuarios_ayuda' => 'Crea el primero para darle acceso a la herramienta.',
         'nota_desactivar' => 'Un usuario se desactiva en lugar de borrarse, para no romper el historial de quién hizo qué.',
     ],
 
@@ -42,6 +44,8 @@ return [
         'nombre_marcador' => 'Nombre del equipo',
         'descripcion_marcador' => 'Para qué se usa este equipo',
         'persona_marcador' => 'Elige una persona',
+        'sin_equipos' => 'Todavía no hay equipos',
+        'sin_equipos_ayuda' => 'Crea el primero para asignar varias personas a un proyecto de golpe.',
         'nota_no_otorga_permisos' => 'El equipo no otorga permisos por sí mismo: sirve para asignar personas a un proyecto de golpe. El rol efectivo vive siempre en el proyecto.',
     ],
 ];

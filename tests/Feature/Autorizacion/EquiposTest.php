@@ -116,3 +116,48 @@ it('el administrador administra equipos y sus miembros', function () {
 
     expect(Equipo::query()->where('nombre', 'Infraestructura')->exists())->toBeTrue();
 });
+
+/* -------------------------------------------- listado servido a TablaDatos */
+
+it('el listado de equipos deja llegar a los que quedan en la página siguiente', function () {
+    // Sin factory: la suya sortea entre cinco nombres únicos y se agota antes.
+    foreach (range(1, 15) as $numero) {
+        Equipo::query()->create(['nombre' => "Equipo de prueba {$numero}"]);
+    }
+
+    $paginador = $this->actingAs($this->administrador)
+        ->get(route('equipos.index', ['por_pagina' => 15, 'page' => 2]))
+        ->assertOk()
+        ->viewData('page')['props']['equipos'];
+
+    expect($paginador['per_page'])->toBe(15)
+        ->and($paginador['last_page'])->toBe(2)
+        ->and($paginador['total'])->toBe(16)
+        ->and($paginador['data'])->toHaveCount(1);
+});
+
+it('el listado de equipos filtra por nombre y devuelve el filtro a la tabla', function () {
+    Equipo::factory()->create(['nombre' => 'Zeta Soporte']);
+
+    $props = $this->actingAs($this->administrador)
+        ->get(route('equipos.index', ['filter' => ['nombre' => 'zeta sop']]))
+        ->assertOk()
+        ->viewData('page')['props'];
+
+    expect(array_column($props['equipos']['data'], 'nombre'))->toBe(['Zeta Soporte'])
+        ->and($props['filtros'])->toBe(['nombre' => 'zeta sop']);
+});
+
+it('el listado de equipos ordena y devuelve el estado de la URL a la tabla', function () {
+    $this->equipo->update(['nombre' => 'Alfa']);
+    Equipo::factory()->create(['nombre' => 'Zeta']);
+
+    $props = $this->actingAs($this->administrador)
+        ->get(route('equipos.index', ['sort' => '-nombre', 'columnas' => 'nombre']))
+        ->assertOk()
+        ->viewData('page')['props'];
+
+    expect(array_column($props['equipos']['data'], 'nombre'))->toBe(['Zeta', 'Alfa'])
+        ->and($props['orden'])->toBe([['campo' => 'nombre', 'direccion' => 'desc']])
+        ->and($props['columnasVisibles'])->toBe(['nombre']);
+});

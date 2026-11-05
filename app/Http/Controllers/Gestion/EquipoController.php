@@ -8,7 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Gestion\EquipoRequest;
 use App\Models\Equipo;
 use App\Models\User;
+use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,7 +26,7 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class EquipoController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Equipo::class);
 
@@ -32,10 +35,15 @@ class EquipoController extends Controller
             ->defaultSort('nombre')
             ->allowedSorts('nombre')
             ->withCount('usuarios')
-            ->paginate(25)
+            ->paginate(EstadoDeTabla::porPagina($request))
             ->withQueryString();
 
-        return Inertia::render('gestion/equipos/Index', ['equipos' => $equipos]);
+        return Inertia::render('gestion/equipos/Index', [
+            'equipos' => $equipos,
+            'filtros' => EstadoEnLaUrl::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, 'nombre'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
+        ]);
     }
 
     public function create(): Response

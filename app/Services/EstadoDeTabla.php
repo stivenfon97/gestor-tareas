@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
  * Traduce los parámetros de URL de un listado a las props que espera el
  * componente `TablaDatos`.
  *
- * Existe porque los tres listados —clientes, proyectos y tareas— necesitan lo
+ * Existe porque todos los listados servidos con `TablaDatos` necesitan lo
  * mismo, y porque la interfaz no debe tener que descomponer `sort` por su
  * cuenta: si lo hiciera, el formato del parámetro pasaría a ser un contrato
  * implícito entre dos capas que nadie prueba.
