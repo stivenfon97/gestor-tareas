@@ -61,5 +61,8 @@ return [
             'datos' => 'Team details',
             'datos_ayuda' => 'A short name and what it is used for.',
         ],
+        'sin_miembros' => 'The team has no members yet',
+        'sin_miembros_ayuda' => 'Add people with the form below.',
+        'retirar' => 'Remove from team',
     ],
 ];

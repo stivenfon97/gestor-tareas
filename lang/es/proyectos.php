@@ -81,6 +81,10 @@ return [
         'persona_marcador' => 'Elige una persona',
         'rol_marcador' => 'Elige un rol',
         'equipo_marcador' => 'Elige un equipo',
+        'sin_miembros' => 'Nadie participa todavía en este proyecto',
+        'sin_miembros_ayuda' => 'Asigna personas o un equipo completo desde los formularios de abajo.',
+        'guardar_rol' => 'Guardar el rol',
+        'quitar' => 'Quitar del proyecto',
     ],
 
     'secciones' => [

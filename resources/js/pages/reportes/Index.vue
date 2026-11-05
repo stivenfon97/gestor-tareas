@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { FileSpreadsheet, Send, ShieldAlert } from '@lucide/vue';
+import {
+    Copy,
+    Download,
+    FileSpreadsheet,
+    Send,
+    ShieldAlert,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import InputError from '@/components/InputError.vue';
+import { TablaDatos } from '@/components/TablaDatos';
+import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -16,9 +25,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { formatearFechaHora } from '@/lib/formato';
+import { trans } from '@/lib/i18n';
+import { tonoDeTipoReporte } from '@/lib/tonos';
 import { show as mostrarProyecto } from '@/routes/proyectos';
-import { store } from '@/routes/proyectos/reportes';
+import { index, store } from '@/routes/proyectos/reportes';
 import { descargar } from '@/routes/reportes';
+import type { RespuestaPaginada } from '@/types/paginacion';
 
 type Periodo = {
     id: number;
@@ -41,6 +53,7 @@ type FilaHistorial = {
     hash: string;
     generado_por: string;
     generado_en: string;
+    duplicado: boolean;
 };
 
 const props = defineProps<{
@@ -51,7 +64,11 @@ const props = defineProps<{
         prefijo_tarea: string;
     };
     periodos: Periodo[];
-    reportes: FilaHistorial[];
+    reportes: RespuestaPaginada<FilaHistorial>;
+    filtros: Record<string, string>;
+    orden: OrdenDeColumna[];
+    columnasVisibles: string[] | null;
+    tipos: Array<{ valor: string; etiqueta: string }>;
     puede: { generar: boolean };
 }>();
 
@@ -102,19 +119,78 @@ const generar = (tipo: TipoReporte): void => {
     });
 };
 
-/** Dos filas con el mismo hash: se regeneró exactamente lo mismo. */
-const conteoPorHash = computed<Map<string, number>>(() => {
-    const conteo = new Map<string, number>();
-
-    for (const reporte of props.reportes) {
-        conteo.set(reporte.hash, (conteo.get(reporte.hash) ?? 0) + 1);
-    }
-
-    return conteo;
-});
-
-const esDuplicado = (reporte: FilaHistorial): boolean =>
-    (conteoPorHash.value.get(reporte.hash) ?? 0) > 1;
+const columnas = computed((): ColumnaDeTabla<FilaHistorial>[] => [
+    {
+        id: 'generado_en',
+        etiqueta: trans('reportes.historial.fecha'),
+        valor: (fila) => formatearFechaHora(fila.generado_en),
+        ordenPor: 'generado_en',
+        fija: true,
+        principal: true,
+        mono: true,
+        anchoMinimo: '11rem',
+    },
+    {
+        id: 'tipo',
+        etiqueta: trans('reportes.historial.tipo'),
+        valor: (fila) => fila.tipo,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'tipo',
+            opciones: props.tipos.map((opcion) => ({
+                valor: opcion.valor,
+                etiqueta: trans(opcion.etiqueta),
+            })),
+        },
+        ajustada: true,
+        prioritaria: true,
+    },
+    {
+        id: 'periodo',
+        etiqueta: trans('reportes.historial.periodo'),
+        valor: (fila) => fila.periodo_consecutivo,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'periodo_id',
+            opciones: props.periodos.map((periodo) => ({
+                valor: String(periodo.id),
+                etiqueta: trans('tareas.periodo_numero', {
+                    consecutivo: String(periodo.consecutivo),
+                }),
+            })),
+        },
+        mono: true,
+        prioritaria: true,
+    },
+    {
+        id: 'generado_por',
+        etiqueta: trans('reportes.historial.generado_por'),
+        valor: (fila) => fila.generado_por,
+        anchoMinimo: '10rem',
+    },
+    {
+        id: 'total_tareas',
+        etiqueta: trans('reportes.historial.total_tareas'),
+        valor: (fila) => fila.total_tareas,
+        ordenPor: 'total_tareas',
+        alineacion: 'derecha',
+        mono: true,
+        ajustada: true,
+    },
+    {
+        id: 'hash',
+        etiqueta: trans('reportes.historial.hash'),
+        valor: (fila) => fila.hash.slice(0, 10),
+        mono: true,
+    },
+    {
+        id: 'acciones',
+        etiqueta: trans('comun.acciones'),
+        alineacion: 'derecha',
+        ajustada: true,
+        prioritaria: true,
+    },
+]);
 </script>
 
 <template>
@@ -252,100 +328,68 @@ const esDuplicado = (reporte: FilaHistorial): boolean =>
             </div>
         </section>
 
-        <EstadoVacio
-            v-if="props.periodos.length > 0 && props.reportes.length === 0"
-            :titulo="$t('reportes.historial.vacio')"
-            :cuerpo="$t('reportes.historial.vacio_ayuda')"
-        />
-
-        <div
-            v-else-if="props.reportes.length > 0"
-            class="overflow-x-auto rounded-md border border-borde-fuerte bg-panel"
+        <TablaDatos
+            v-if="props.periodos.length > 0"
+            :url="index(props.proyecto.id).url"
+            :filas="props.reportes.data"
+            :columnas="columnas"
+            :clave="(fila) => fila.id"
+            :orden="props.orden"
+            :filtros="props.filtros"
+            :columnas-visibles="props.columnasVisibles"
+            :paginacion="props.reportes"
+            :etiqueta="$t('reportes.historial.titulo')"
+            :busqueda="{
+                clave: 'buscar',
+                marcador: $t('reportes.historial.buscar'),
+            }"
+            :vacio="{
+                titulo: $t('reportes.historial.vacio'),
+                cuerpo: $t('reportes.historial.vacio_ayuda'),
+            }"
         >
-            <table class="w-full min-w-3xl text-left text-cuerpo">
-                <thead class="bg-panel-cabecera text-texto-suave">
-                    <tr>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('reportes.historial.fecha') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('reportes.historial.tipo') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('reportes.historial.periodo') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('reportes.historial.generado_por') }}
-                        </th>
-                        <th class="px-celda py-corto text-right font-medium">
-                            {{ $t('reportes.historial.total_tareas') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('reportes.historial.hash') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('comun.acciones') }}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="reporte in props.reportes"
-                        :key="reporte.id"
-                        class="border-t border-borde hover:bg-fila-hover"
+            <template #celda-tipo="{ fila }">
+                <Badge :variant="tonoDeTipoReporte(fila.tipo)">
+                    <FileSpreadsheet aria-hidden="true" />
+                    {{ $t(`enums.tipo_reporte.${fila.tipo}`) }}
+                </Badge>
+            </template>
+
+            <template #celda-periodo="{ fila }">
+                {{
+                    $t('tareas.periodo_numero', {
+                        consecutivo: String(fila.periodo_consecutivo),
+                    })
+                }}
+            </template>
+
+            <template #celda-hash="{ fila }">
+                <div class="flex items-center gap-fino">
+                    <span class="font-mono text-fino text-texto-suave">{{
+                        fila.hash.slice(0, 10)
+                    }}</span>
+                    <Badge
+                        v-if="fila.duplicado"
+                        variant="aviso"
+                        :title="$t('reportes.historial.duplicado')"
                     >
-                        <td class="px-celda py-corto text-texto-suave">
-                            {{ formatearFechaHora(reporte.generado_en) }}
-                        </td>
-                        <td class="px-celda py-corto">
-                            <Badge
-                                :variant="
-                                    reporte.tipo === 'completo'
-                                        ? 'outline'
-                                        : 'secondary'
-                                "
-                            >
-                                {{ $t(`enums.tipo_reporte.${reporte.tipo}`) }}
-                            </Badge>
-                        </td>
-                        <td
-                            class="px-celda py-corto font-mono text-texto-suave"
-                        >
-                            {{ reporte.periodo_consecutivo }}
-                        </td>
-                        <td class="px-celda py-corto">
-                            {{ reporte.generado_por }}
-                        </td>
-                        <td
-                            class="px-celda py-corto text-right font-mono text-texto-suave"
-                        >
-                            {{ reporte.total_tareas }}
-                        </td>
-                        <td class="px-celda py-corto">
-                            <div class="flex items-center gap-fino">
-                                <span
-                                    class="font-mono text-fino text-texto-suave"
-                                    >{{ reporte.hash.slice(0, 10) }}</span
-                                >
-                                <Badge
-                                    v-if="esDuplicado(reporte)"
-                                    variant="outline"
-                                    :title="$t('reportes.historial.duplicado')"
-                                >
-                                    {{ $t('reportes.historial.duplicado') }}
-                                </Badge>
-                            </div>
-                        </td>
-                        <td class="px-celda py-corto">
-                            <Button as-child size="sm" variant="outline">
-                                <a :href="descargar(reporte.id).url">{{
-                                    $t('reportes.historial.descargar_historico')
-                                }}</a>
-                            </Button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                        <Copy aria-hidden="true" />
+                        {{ $t('reportes.historial.duplicado') }}
+                    </Badge>
+                </div>
+            </template>
+
+            <template #celda-acciones="{ fila }">
+                <div class="flex items-center justify-end">
+                    <BotonDeAccion
+                        :href="descargar(fila.id).url"
+                        nativo
+                        :icono="Download"
+                        tono="info"
+                        :etiqueta="$t('reportes.historial.descargar_historico')"
+                    />
+                </div>
+            </template>
+        </TablaDatos>
     </div>
 </template>

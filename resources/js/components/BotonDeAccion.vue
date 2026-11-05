@@ -40,12 +40,18 @@ const props = withDefaults(
         icono: Component;
         tono?: TonoDeAccion;
         href?: string | UrlMethodPair;
+        /**
+         * Enlace que no es una visita de Inertia (una descarga, otra
+         * aplicación): se pinta como `<a>` nativo.
+         */
+        nativo?: boolean;
         type?: 'button' | 'submit';
         disabled?: boolean;
     }>(),
     {
         tono: 'neutro',
         href: undefined,
+        nativo: false,
         type: 'button',
         disabled: false,
     },
@@ -75,7 +81,26 @@ const clasesPorTono: Record<TonoDeAccion, string> = {
                     size="icon-sm"
                     :class="cn('size-7', clasesPorTono[props.tono])"
                 >
-                    <Link :href="props.href" :aria-label="props.etiqueta">
+                    <a
+                        v-if="props.nativo"
+                        :href="
+                            typeof props.href === 'string'
+                                ? props.href
+                                : props.href.url
+                        "
+                        :aria-label="props.etiqueta"
+                    >
+                        <component
+                            :is="props.icono"
+                            class="size-4"
+                            aria-hidden="true"
+                        />
+                    </a>
+                    <Link
+                        v-else
+                        :href="props.href"
+                        :aria-label="props.etiqueta"
+                    >
                         <component
                             :is="props.icono"
                             class="size-4"

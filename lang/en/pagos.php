@@ -36,4 +36,7 @@ return [
         'referencia' => 'Reference',
         'referencia_ayuda' => 'Details to find the payment at the bank.',
     ],
+    'monto_cop' => 'Amount COP',
+    'ver' => 'View payment',
+    'buscar' => 'Search by reference, notes or period…',
 ];

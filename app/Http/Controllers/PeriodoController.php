@@ -5,17 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\AbrirPeriodo;
+use App\Enums\EstadoPeriodo;
 use App\Enums\EstadoTarea;
 use App\Exceptions\PeriodoAbiertoExistente;
 use App\Http\Requests\PeriodoRequest;
 use App\Models\Pago;
 use App\Models\Periodo;
 use App\Models\Proyecto;
+use App\Services\BuscarEnColumnas;
+use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
+use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * El cliente sí ve los periodos: son el marco de su reporte. Lo que no ve es el
@@ -27,23 +35,42 @@ use Inertia\Response;
  */
 class PeriodoController extends Controller
 {
-    public function index(Proyecto $proyecto): Response
+    public function index(Request $request, Proyecto $proyecto): Response
     {
         Gate::authorize('viewAny', [Periodo::class, $proyecto]);
 
         $puedeVerPagos = Gate::allows('viewAny', [Pago::class, $proyecto]);
 
-        $periodos = $proyecto->periodos()
+        $periodos = QueryBuilder::for($proyecto->periodos())
             ->withCount('tareas')
             ->with('pago:id,periodo_id,monto_usd,monto_cop,fecha_pago')
-            ->orderByDesc('consecutivo')
-            ->get();
+            ->allowedFilters(
+                AllowedFilter::exact('estado'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['consecutivo', 'notas'])),
+            )
+            ->defaultSort('-consecutivo')
+            ->allowedSorts(
+                'consecutivo',
+                'fecha_inicio',
+                'fecha_fin',
+                AllowedSort::field('tareas', 'tareas_count'),
+            )
+            ->paginate(EstadoDeTabla::porPagina($request))
+            ->withQueryString()
+            ->through(fn (Periodo $periodo): array => self::comoFila($periodo, $puedeVerPagos));
 
         $abierto = $proyecto->periodoAbierto()->first(['id', 'consecutivo']);
 
         return Inertia::render('periodos/Index', [
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
-            'periodos' => $periodos->map(fn (Periodo $periodo): array => self::comoFila($periodo, $puedeVerPagos)),
+            'periodos' => $periodos,
+            'filtros' => EstadoEnLaUrl::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, '-consecutivo'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
+            'estados' => collect(EstadoPeriodo::cases())->map(fn (EstadoPeriodo $estado): array => [
+                'valor' => $estado->value,
+                'etiqueta' => 'enums.estado_periodo.'.$estado->value,
+            ])->all(),
             // Separado en dos: sin permiso, el botón no se pinta; con permiso
             // pero un periodo ya abierto, se pinta deshabilitado y se explica
             // por qué en lugar de desaparecer sin más.

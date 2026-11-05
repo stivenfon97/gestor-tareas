@@ -26,6 +26,7 @@ import { index } from '@/routes/clientes';
 
         <Form
             novalidate
+            :validation-timeout="500"
             v-bind="ClienteController.store.form()"
             v-slot="{ errors, processing, validate, valid }"
         >

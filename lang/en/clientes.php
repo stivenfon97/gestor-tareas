@@ -57,4 +57,5 @@ return [
         'notas' => 'Internal notes',
         'notas_ayuda' => 'Agreements and terms the team should keep at hand.',
     ],
+    'sin_proyectos_ayuda' => 'Create a project and choose this client to see it here.',
 ];

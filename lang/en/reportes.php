@@ -32,6 +32,8 @@ return [
         'descargar_historico' => 'Download historical',
         'vacio' => 'No report has been generated yet',
         'vacio_ayuda' => 'The first one you generate stays here, with its permanent record.',
+        'titulo' => 'Report history',
+        'buscar' => 'Search by file, hash or author…',
     ],
 
     'resumen' => [

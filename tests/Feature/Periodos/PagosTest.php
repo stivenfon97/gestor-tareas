@@ -118,5 +118,18 @@ it('el índice de pagos no incluye periodos de otro proyecto', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $pagina) => $pagina
             ->component('pagos/Index')
-            ->has('pagos', 1));
+            ->has('pagos.data', 1));
+});
+
+it('la búsqueda del índice de pagos encuentra por referencia', function () {
+    $otroPeriodo = Periodo::factory()->cerrado()->create(['proyecto_id' => $this->proyecto->id, 'consecutivo' => 2]);
+    Pago::factory()->for($this->periodo)->create(['referencia' => 'TRF-ROBLE-01']);
+    Pago::factory()->for($otroPeriodo)->create(['referencia' => 'TRF-OTRA-02']);
+
+    $this->actingAs($this->lider)
+        ->get(route('proyectos.pagos.index', [$this->proyecto, 'filter' => ['buscar' => 'roble']]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $pagina) => $pagina
+            ->has('pagos.data', 1)
+            ->where('pagos.data.0.referencia', 'TRF-ROBLE-01'));
 });

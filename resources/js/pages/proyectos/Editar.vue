@@ -53,7 +53,9 @@ const form = useForm({
     prefijo_tarea: props.proyecto.prefijo_tarea,
     descripcion: props.proyecto.descripcion ?? '',
     estado: props.proyecto.estado,
-}).withPrecognition(ProyectoController.update(props.proyecto.id));
+})
+    .withPrecognition(ProyectoController.update(props.proyecto.id))
+    .setValidationTimeout(500);
 
 const enviar = (): void => {
     form.submit(ProyectoController.update(props.proyecto.id));

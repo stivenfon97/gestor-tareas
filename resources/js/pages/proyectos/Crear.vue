@@ -45,7 +45,9 @@ const form = useForm({
     prefijo_tarea: '',
     descripcion: '',
     estado: props.estados[0]?.valor ?? 'activo',
-}).withPrecognition(ProyectoController.store());
+})
+    .withPrecognition(ProyectoController.store())
+    .setValidationTimeout(500);
 
 /*
  * El slug se sugiere mientras el usuario no lo toque. En cuanto lo edita a

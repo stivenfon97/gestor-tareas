@@ -13,12 +13,18 @@ use App\Http\Requests\ReporteRequest;
 use App\Models\Periodo;
 use App\Models\Proyecto;
 use App\Models\Reporte;
+use App\Services\BuscarEnColumnas;
+use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -33,7 +39,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class ReporteController extends Controller
 {
-    public function index(Proyecto $proyecto): Response
+    public function index(Request $request, Proyecto $proyecto): Response
     {
         Gate::authorize('viewAny', [Reporte::class, $proyecto]);
 
@@ -54,10 +60,27 @@ class ReporteController extends Controller
             ->get()
             ->groupBy('periodo_id');
 
-        $reportes = $proyecto->reportes()
+        // Duplicado = mismo contenido (hash) emitido más de una vez en el
+        // proyecto. Se calcula sobre todo el historial y no sobre la página,
+        // que solo ve treinta filas.
+        $hashesRepetidos = $proyecto->reportes()
+            ->select('hash')
+            ->groupBy('hash')
+            ->havingRaw('count(*) > 1')
+            ->pluck('hash')
+            ->flip();
+
+        $reportes = QueryBuilder::for($proyecto->reportes())
             ->with(['generadoPor:id,name', 'periodo:id,consecutivo'])
-            ->orderByDesc('generado_en')
-            ->get();
+            ->allowedFilters(
+                AllowedFilter::exact('tipo'),
+                AllowedFilter::exact('periodo_id'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['nombre_archivo', 'hash', 'generadoPor.name'])),
+            )
+            ->defaultSort('-generado_en')
+            ->allowedSorts('generado_en', 'total_tareas')
+            ->paginate(EstadoDeTabla::porPagina($request))
+            ->withQueryString();
 
         return Inertia::render('reportes/Index', [
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
@@ -75,7 +98,7 @@ class ReporteController extends Controller
                     ),
                 ];
             }),
-            'reportes' => $reportes->map(fn (Reporte $reporte): array => [
+            'reportes' => $reportes->through(fn (Reporte $reporte): array => [
                 'id' => $reporte->id,
                 'tipo' => $reporte->tipo->value,
                 'periodo_consecutivo' => $reporte->periodo->consecutivo,
@@ -85,7 +108,15 @@ class ReporteController extends Controller
                 'hash' => $reporte->hash,
                 'generado_por' => $reporte->generadoPor->name,
                 'generado_en' => $reporte->generado_en->toDateTimeString(),
-            ])->values(),
+                'duplicado' => $hashesRepetidos->has($reporte->hash),
+            ]),
+            'filtros' => EstadoEnLaUrl::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, '-generado_en'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
+            'tipos' => collect(TipoReporte::cases())->map(fn (TipoReporte $tipo): array => [
+                'valor' => $tipo->value,
+                'etiqueta' => 'enums.tipo_reporte.'.$tipo->value,
+            ])->all(),
             'puede' => [
                 'generar' => Gate::allows('create', [Reporte::class, $proyecto]),
             ],

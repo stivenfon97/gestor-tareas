@@ -47,13 +47,16 @@ const props = defineProps<{
 
         <Form
             novalidate
+            :validation-timeout="500"
             v-bind="UsuarioController.update.form(props.usuario.id)"
             v-slot="{ errors, processing, validate, valid }"
         >
             <TarjetaDeFormulario>
                 <SeccionDeFormulario
                     :titulo="$t('gestion.usuarios.formulario.cuenta')"
-                    :descripcion="$t('gestion.usuarios.formulario.cuenta_ayuda')"
+                    :descripcion="
+                        $t('gestion.usuarios.formulario.cuenta_ayuda')
+                    "
                 >
                     <div class="grid gap-bloque md:grid-cols-2">
                         <Field>

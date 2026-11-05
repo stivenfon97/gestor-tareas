@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { FileText, Users, UsersRound } from '@lucide/vue';
+import { FileText, UserMinus, Users, UsersRound } from '@lucide/vue';
+import { computed } from 'vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
 import MiembroEquipoController from '@/actions/App/Http/Controllers/Gestion/MiembroEquipoController';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
 import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
 import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import { TablaLocal } from '@/components/TablaDatos';
+import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import {
@@ -24,6 +28,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { trans } from '@/lib/i18n';
 import { index } from '@/routes/equipos';
 
 type Persona = { id: number; name: string; email: string };
@@ -33,6 +38,31 @@ const props = defineProps<{
     miembros: Persona[];
     candidatos: Persona[];
 }>();
+
+const columnasDeMiembros = computed((): ColumnaDeTabla<Persona>[] => [
+    {
+        id: 'nombre',
+        etiqueta: trans('comun.nombre'),
+        valor: (fila) => fila.name,
+        ordenPor: 'nombre',
+        fija: true,
+        principal: true,
+    },
+    {
+        id: 'correo',
+        etiqueta: trans('comun.correo'),
+        valor: (fila) => fila.email,
+        ordenPor: 'correo',
+        prioritaria: true,
+    },
+    {
+        id: 'acciones',
+        etiqueta: trans('comun.acciones'),
+        alineacion: 'derecha',
+        ajustada: true,
+        prioritaria: true,
+    },
+]);
 </script>
 
 <template>
@@ -47,6 +77,7 @@ const props = defineProps<{
 
         <Form
             novalidate
+            :validation-timeout="500"
             v-bind="EquipoController.update.form(props.equipo.id)"
             v-slot="{ errors, processing, validate, valid }"
         >
@@ -111,45 +142,44 @@ const props = defineProps<{
         <section class="flex flex-col gap-4">
             <Heading variant="small" :title="$t('gestion.equipos.miembros')" />
 
-            <ul class="divide-y divide-border rounded-lg border border-border">
-                <li
-                    v-for="miembro in props.miembros"
-                    :key="miembro.id"
-                    class="flex items-center justify-between px-4 py-2 text-sm"
-                >
-                    <span>
-                        {{ miembro.name }}
-                        <span class="text-muted-foreground"
-                            >· {{ miembro.email }}</span
-                        >
-                    </span>
+            <TablaLocal
+                :filas="props.miembros"
+                :columnas="columnasDeMiembros"
+                :clave="(fila) => fila.id"
+                :etiqueta="$t('gestion.equipos.miembros')"
+                :busqueda="$t('gestion.usuarios.buscar')"
+                :vacio="{
+                    titulo: $t('gestion.equipos.sin_miembros'),
+                    cuerpo: $t('gestion.equipos.sin_miembros_ayuda'),
+                }"
+            >
+                <template #celda-correo="{ fila }">
+                    <span class="break-all text-texto-suave">{{
+                        fila.email
+                    }}</span>
+                </template>
+                <template #celda-acciones="{ fila }">
                     <Form
                         novalidate
                         v-bind="
                             MiembroEquipoController.destroy.form([
                                 props.equipo.id,
-                                miembro.id,
+                                fila.id,
                             ])
                         "
                         v-slot="{ processing }"
+                        class="flex justify-end"
                     >
-                        <Button
-                            variant="ghost"
-                            size="sm"
+                        <BotonDeAccion
                             type="submit"
                             :disabled="processing"
-                        >
-                            {{ $t('comun.quitar') }}
-                        </Button>
+                            :icono="UserMinus"
+                            tono="aviso"
+                            :etiqueta="$t('gestion.equipos.retirar')"
+                        />
                     </Form>
-                </li>
-                <li
-                    v-if="props.miembros.length === 0"
-                    class="px-4 py-6 text-center text-sm text-muted-foreground"
-                >
-                    {{ $t('comun.sin_resultados') }}
-                </li>
-            </ul>
+                </template>
+            </TablaLocal>
 
             <Form
                 novalidate

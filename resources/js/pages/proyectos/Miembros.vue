@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { UsersRound } from '@lucide/vue';
+import { Check, UserMinus, UsersRound } from '@lucide/vue';
+import { computed } from 'vue';
 import AsignarEquipoAProyectoController from '@/actions/App/Http/Controllers/AsignarEquipoAProyectoController';
 import ProyectoUsuarioController from '@/actions/App/Http/Controllers/ProyectoUsuarioController';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import { TablaLocal } from '@/components/TablaDatos';
+import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -15,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { trans } from '@/lib/i18n';
 
 type Persona = { id: number; name: string; email: string };
 type Miembro = Persona & { rol: string };
@@ -26,111 +31,143 @@ const props = defineProps<{
     equipos: Array<{ id: number; nombre: string }>;
     roles: Array<{ valor: string; etiqueta: string }>;
 }>();
+
+const columnasDeMiembros = computed((): ColumnaDeTabla<Miembro>[] => [
+    {
+        id: 'nombre',
+        etiqueta: trans('comun.nombre'),
+        valor: (fila) => fila.name,
+        ordenPor: 'nombre',
+        fija: true,
+        principal: true,
+    },
+    {
+        id: 'correo',
+        etiqueta: trans('comun.correo'),
+        valor: (fila) => fila.email,
+        ordenPor: 'correo',
+        prioritaria: true,
+    },
+    {
+        id: 'rol',
+        etiqueta: trans('comun.rol'),
+        valor: (fila) => fila.rol,
+        ordenPor: 'rol',
+        filtro: {
+            tipo: 'opciones',
+            clave: 'rol',
+            opciones: props.roles.map((rol) => ({
+                valor: rol.valor,
+                etiqueta: trans(rol.etiqueta),
+            })),
+        },
+        ajustada: true,
+        prioritaria: true,
+    },
+    {
+        id: 'acciones',
+        etiqueta: trans('comun.acciones'),
+        alineacion: 'derecha',
+        ajustada: true,
+        prioritaria: true,
+    },
+]);
 </script>
 
 <template>
     <Head :title="$t('proyectos.miembros.titulo')" />
 
-    <div class="flex max-w-3xl flex-col gap-8">
+    <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
             :icono="UsersRound"
             :titulo="$t('proyectos.miembros.titulo')"
             :descripcion="props.proyecto.nombre"
         />
 
-        <ul class="divide-y divide-border rounded-lg border border-border">
-            <li
-                v-for="miembro in props.miembros"
-                :key="miembro.id"
-                class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
-            >
-                <span>
-                    {{ miembro.name }}
-                    <span class="text-muted-foreground"
-                        >· {{ miembro.email }}</span
-                    >
-                </span>
-
-                <div class="flex items-center gap-2">
-                    <Form
-                        novalidate
-                        v-bind="
-                            ProyectoUsuarioController.update.form([
-                                props.proyecto.id,
-                                miembro.id,
-                            ])
-                        "
-                        class="flex flex-wrap items-center gap-2"
-                        v-slot="{ errors, processing }"
-                    >
-                        <Label :for="`rol-${miembro.id}`">{{
-                            $t('comun.rol')
-                        }}</Label>
-                        <Select
-                            name="rol"
-                            required
-                            :default-value="miembro.rol"
+        <TablaLocal
+            :filas="props.miembros"
+            :columnas="columnasDeMiembros"
+            :clave="(fila) => fila.id"
+            :etiqueta="$t('proyectos.miembros.titulo')"
+            :busqueda="$t('gestion.usuarios.buscar')"
+            :vacio="{
+                titulo: $t('proyectos.miembros.sin_miembros'),
+                cuerpo: $t('proyectos.miembros.sin_miembros_ayuda'),
+            }"
+        >
+            <template #celda-correo="{ fila }">
+                <span class="break-all text-texto-suave">{{ fila.email }}</span>
+            </template>
+            <template #celda-rol="{ fila }">
+                <Form
+                    novalidate
+                    v-bind="
+                        ProyectoUsuarioController.update.form([
+                            props.proyecto.id,
+                            fila.id,
+                        ])
+                    "
+                    class="flex items-center gap-fino"
+                    v-slot="{ errors, processing }"
+                >
+                    <Label :for="`rol-${fila.id}`" class="sr-only">{{
+                        $t('comun.rol')
+                    }}</Label>
+                    <Select name="rol" :default-value="fila.rol">
+                        <SelectTrigger
+                            :id="`rol-${fila.id}`"
+                            size="sm"
+                            class="w-40"
+                            :aria-invalid="!!errors.rol"
                         >
-                            <SelectTrigger
-                                :id="`rol-${miembro.id}`"
-                                size="sm"
-                                :aria-invalid="!!errors.rol"
+                            <SelectValue
+                                :placeholder="
+                                    $t('proyectos.miembros.rol_marcador')
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="rol in props.roles"
+                                :key="rol.valor"
+                                :value="rol.valor"
                             >
-                                <SelectValue
-                                    :placeholder="
-                                        $t('proyectos.miembros.rol_marcador')
-                                    "
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="rol in props.roles"
-                                    :key="rol.valor"
-                                    :value="rol.valor"
-                                >
-                                    {{ $t(rol.etiqueta) }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Button
-                            type="submit"
-                            size="sm"
-                            variant="outline"
-                            :disabled="processing"
-                        >
-                            {{ $t('comun.guardar') }}
-                        </Button>
-                        <InputError class="basis-full" :message="errors.rol" />
-                    </Form>
-
-                    <Form
-                        novalidate
-                        v-bind="
-                            ProyectoUsuarioController.destroy.form([
-                                props.proyecto.id,
-                                miembro.id,
-                            ])
-                        "
-                        v-slot="{ processing }"
-                    >
-                        <Button
-                            type="submit"
-                            size="sm"
-                            variant="ghost"
-                            :disabled="processing"
-                        >
-                            {{ $t('comun.quitar') }}
-                        </Button>
-                    </Form>
-                </div>
-            </li>
-            <li
-                v-if="props.miembros.length === 0"
-                class="px-4 py-6 text-center text-sm text-muted-foreground"
-            >
-                {{ $t('comun.sin_resultados') }}
-            </li>
-        </ul>
+                                {{ $t(rol.etiqueta) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <BotonDeAccion
+                        type="submit"
+                        :disabled="processing"
+                        :icono="Check"
+                        tono="exito"
+                        :etiqueta="$t('proyectos.miembros.guardar_rol')"
+                    />
+                    <InputError :message="errors.rol" />
+                </Form>
+            </template>
+            <template #celda-acciones="{ fila }">
+                <Form
+                    novalidate
+                    v-bind="
+                        ProyectoUsuarioController.destroy.form([
+                            props.proyecto.id,
+                            fila.id,
+                        ])
+                    "
+                    v-slot="{ processing }"
+                    class="flex justify-end"
+                >
+                    <BotonDeAccion
+                        type="submit"
+                        :disabled="processing"
+                        :icono="UserMinus"
+                        tono="aviso"
+                        :etiqueta="$t('proyectos.miembros.quitar')"
+                    />
+                </Form>
+            </template>
+        </TablaLocal>
 
         <section class="flex flex-col gap-3">
             <Heading

@@ -65,7 +65,9 @@ const form = useForm({
     origen_tasa: props.inicial?.origen_tasa ?? 'manual',
     referencia: props.inicial?.referencia ?? '',
     notas: props.inicial?.notas ?? '',
-}).withPrecognition(props.accion);
+})
+    .withPrecognition(props.accion)
+    .setValidationTimeout(500);
 
 useTrm(
     toRef(form, 'fecha_pago'),

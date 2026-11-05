@@ -67,7 +67,9 @@ const form = useForm({
     modulo_id: props.inicial?.modulo_id ?? props.moduloSugerido ?? '',
     periodo_id: props.inicial?.periodo_id ?? '',
     tarea_origen_id: props.inicial?.tarea_origen_id ?? '',
-}).withPrecognition(props.accion);
+})
+    .withPrecognition(props.accion)
+    .setValidationTimeout(500);
 
 /*
  * Al elegir el tipo, la prioridad se precarga con la que ese tipo sugiere. Es un

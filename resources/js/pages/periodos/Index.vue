@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Calendar, CalendarRange, FileText } from '@lucide/vue';
-import { ref } from 'vue';
+import {
+    Calendar,
+    CalendarClock,
+    CalendarRange,
+    Eye,
+    FileText,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
-import EstadoVacio from '@/components/EstadoVacio.vue';
 import InputError from '@/components/InputError.vue';
+import { TablaDatos } from '@/components/TablaDatos';
+import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,9 +28,27 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { formatearFecha, formatearMonto } from '@/lib/formato';
+import { trans } from '@/lib/i18n';
+import { tonoDeEstadoPeriodo } from '@/lib/tonos';
 import { show as mostrarPeriodo } from '@/routes/periodos';
 import { show as mostrarProyecto } from '@/routes/proyectos';
-import { store } from '@/routes/proyectos/periodos';
+import { index, store } from '@/routes/proyectos/periodos';
+import type { RespuestaPaginada } from '@/types/paginacion';
+
+type FilaPeriodo = {
+    id: number;
+    consecutivo: number;
+    fecha_inicio: string;
+    fecha_fin: string | null;
+    estado: string;
+    vencido: boolean;
+    tareas_count: number;
+    pago: {
+        monto_usd: string;
+        monto_cop: string;
+        fecha_pago: string;
+    } | null;
+};
 
 const props = defineProps<{
     proyecto: {
@@ -31,23 +57,85 @@ const props = defineProps<{
         slug: string;
         prefijo_tarea: string;
     };
-    periodos: Array<{
-        id: number;
-        consecutivo: number;
-        fecha_inicio: string;
-        fecha_fin: string | null;
-        estado: string;
-        vencido: boolean;
-        tareas_count: number;
-        pago: {
-            monto_usd: string;
-            monto_cop: string;
-            fecha_pago: string;
-        } | null;
-    }>;
+    periodos: RespuestaPaginada<FilaPeriodo>;
+    filtros: Record<string, string>;
+    orden: OrdenDeColumna[];
+    columnasVisibles: string[] | null;
+    estados: Array<{ valor: string; etiqueta: string }>;
     puede: { gestionar: boolean; verPagos: boolean };
     periodoAbierto: { id: number; consecutivo: number } | null;
 }>();
+
+const columnas = computed((): ColumnaDeTabla<FilaPeriodo>[] => [
+    {
+        id: 'consecutivo',
+        etiqueta: trans('recursos.columnas.consecutivo'),
+        valor: (fila) => fila.consecutivo,
+        ordenPor: 'consecutivo',
+        fija: true,
+        principal: true,
+        anchoMinimo: '9rem',
+    },
+    {
+        id: 'fecha_inicio',
+        etiqueta: trans('recursos.columnas.fecha_inicio'),
+        valor: (fila) => formatearFecha(fila.fecha_inicio),
+        ordenPor: 'fecha_inicio',
+        mono: true,
+        prioritaria: true,
+    },
+    {
+        id: 'fecha_fin',
+        etiqueta: trans('periodos.fecha_fin'),
+        valor: (fila) =>
+            fila.fecha_fin ? formatearFecha(fila.fecha_fin) : '—',
+        ordenPor: 'fecha_fin',
+        mono: true,
+    },
+    {
+        id: 'estado',
+        etiqueta: trans('recursos.columnas.estado'),
+        valor: (fila) => fila.estado,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'estado',
+            opciones: props.estados.map((opcion) => ({
+                valor: opcion.valor,
+                etiqueta: trans(opcion.etiqueta),
+            })),
+        },
+        ajustada: true,
+        prioritaria: true,
+    },
+    {
+        id: 'tareas',
+        etiqueta: trans('proyectos.secciones.tareas'),
+        valor: (fila) => fila.tareas_count,
+        ordenPor: 'tareas',
+        alineacion: 'derecha',
+        mono: true,
+        ajustada: true,
+    },
+    ...(props.puede.verPagos
+        ? [
+              {
+                  id: 'pago',
+                  etiqueta: trans('recursos.pago'),
+                  alineacion: 'derecha' as const,
+                  mono: true,
+                  prioritaria: true,
+                  anchoMinimo: '8rem',
+              },
+          ]
+        : []),
+    {
+        id: 'acciones',
+        etiqueta: trans('comun.acciones'),
+        alineacion: 'derecha',
+        ajustada: true,
+        prioritaria: true,
+    },
+]);
 
 const abierto = ref(false);
 const fechaInicio = ref(new Date().toISOString().slice(0, 10));
@@ -167,108 +255,70 @@ const abrirPeriodo = (): void => {
             </template>
         </CabeceraDePagina>
 
-        <EstadoVacio
-            v-if="props.periodos.length === 0"
-            :titulo="$t('periodos.sin_periodos')"
-            :cuerpo="$t('periodos.sin_periodos_ayuda')"
-        />
-
-        <div
-            v-else
-            class="overflow-x-auto rounded-md border border-borde-fuerte bg-panel"
+        <TablaDatos
+            :url="index(props.proyecto.id).url"
+            :filas="props.periodos.data"
+            :columnas="columnas"
+            :clave="(fila) => fila.id"
+            :orden="props.orden"
+            :filtros="props.filtros"
+            :columnas-visibles="props.columnasVisibles"
+            :paginacion="props.periodos"
+            :etiqueta="$t('recursos.periodos')"
+            :busqueda="{ clave: 'buscar', marcador: $t('periodos.buscar') }"
+            :vacio="{
+                titulo: $t('periodos.sin_periodos'),
+                cuerpo: $t('periodos.sin_periodos_ayuda'),
+            }"
+            @abrir="(fila) => router.visit(mostrarPeriodo(fila.id).url)"
         >
-            <table class="w-full min-w-2xl text-left text-cuerpo">
-                <thead class="bg-panel-cabecera text-texto-suave">
-                    <tr>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('recursos.columnas.consecutivo') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('recursos.columnas.fecha_inicio') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('periodos.fecha_fin') }}
-                        </th>
-                        <th class="px-celda py-corto font-medium">
-                            {{ $t('recursos.columnas.estado') }}
-                        </th>
-                        <th class="px-celda py-corto text-right font-medium">
-                            {{ $t('proyectos.secciones.tareas') }}
-                        </th>
-                        <th
-                            v-if="props.puede.verPagos"
-                            class="px-celda py-corto font-medium"
-                        >
-                            {{ $t('recursos.pago') }}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="periodo in props.periodos"
-                        :key="periodo.id"
-                        class="border-t border-borde hover:bg-fila-hover"
-                    >
-                        <td class="px-celda py-corto">
-                            <Link
-                                :href="mostrarPeriodo(periodo.id)"
-                                class="font-mono text-texto underline-offset-4 hover:underline"
-                            >
-                                {{ periodo.consecutivo }}
-                            </Link>
-                        </td>
-                        <td class="px-celda py-corto text-texto-suave">
-                            {{ formatearFecha(periodo.fecha_inicio) }}
-                        </td>
-                        <td class="px-celda py-corto text-texto-suave">
-                            {{
-                                periodo.fecha_fin
-                                    ? formatearFecha(periodo.fecha_fin)
-                                    : '—'
-                            }}
-                        </td>
-                        <td class="px-celda py-corto">
-                            <div class="flex items-center gap-fino">
-                                <Badge
-                                    :variant="
-                                        periodo.estado === 'abierto'
-                                            ? 'outline'
-                                            : 'secondary'
-                                    "
-                                >
-                                    {{
-                                        $t(
-                                            `enums.estado_periodo.${periodo.estado}`,
-                                        )
-                                    }}
-                                </Badge>
-                                <Badge v-if="periodo.vencido" variant="outline">
-                                    {{ $t('periodos.vencido') }}
-                                </Badge>
-                            </div>
-                        </td>
-                        <td
-                            class="px-celda py-corto text-right font-mono text-texto-suave"
-                        >
-                            {{ periodo.tareas_count }}
-                        </td>
-                        <td
-                            v-if="props.puede.verPagos"
-                            class="px-celda py-corto text-texto-suave"
-                        >
-                            <span v-if="periodo.pago">
-                                {{
-                                    formatearMonto(
-                                        periodo.pago.monto_usd,
-                                        'USD',
-                                    )
-                                }}
-                            </span>
-                            <span v-else>—</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <template #celda-consecutivo="{ fila }">
+                <Link
+                    :href="mostrarPeriodo(fila.id)"
+                    class="font-medium underline-offset-4 hover:underline"
+                >
+                    {{
+                        $t('tareas.periodo_numero', {
+                            consecutivo: String(fila.consecutivo),
+                        })
+                    }}
+                </Link>
+            </template>
+
+            <template #celda-estado="{ fila }">
+                <div class="flex items-center gap-fino">
+                    <Badge :variant="tonoDeEstadoPeriodo(fila.estado)">
+                        <span
+                            class="size-1.5 rounded-full bg-current"
+                            aria-hidden="true"
+                        />
+                        {{ $t(`enums.estado_periodo.${fila.estado}`) }}
+                    </Badge>
+                    <Badge v-if="fila.vencido" variant="aviso">
+                        <CalendarClock aria-hidden="true" />
+                        {{ $t('periodos.vencido') }}
+                    </Badge>
+                </div>
+            </template>
+
+            <template #celda-pago="{ fila }">
+                <span v-if="fila.pago" class="text-texto">{{
+                    formatearMonto(fila.pago.monto_usd, 'USD')
+                }}</span>
+                <Badge v-else variant="neutro">{{
+                    $t('periodos.sin_pago')
+                }}</Badge>
+            </template>
+
+            <template #celda-acciones="{ fila }">
+                <div class="flex items-center justify-end">
+                    <BotonDeAccion
+                        :href="mostrarPeriodo(fila.id)"
+                        :icono="Eye"
+                        :etiqueta="$t('periodos.ver')"
+                    />
+                </div>
+            </template>
+        </TablaDatos>
     </div>
 </template>

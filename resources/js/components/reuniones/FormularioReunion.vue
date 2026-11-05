@@ -104,7 +104,9 @@ const form = useForm({
                       organizacion: null,
                   } as Asistente,
               ],
-}).withPrecognition(props.reunion ? 'put' : 'post', props.accionUrl);
+})
+    .withPrecognition(props.reunion ? 'put' : 'post', props.accionUrl)
+    .setValidationTimeout(500);
 
 const anadirAsistente = (): void => {
     form.asistentes.push({ usuario_id: null, nombre: '', organizacion: null });

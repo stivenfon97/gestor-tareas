@@ -32,6 +32,8 @@ return [
         'descargar_historico' => 'Descargar histórico',
         'vacio' => 'Todavía no se ha generado ningún reporte',
         'vacio_ayuda' => 'El primero que generes queda aquí, con su registro permanente.',
+        'titulo' => 'Historial de reportes',
+        'buscar' => 'Buscar por archivo, hash o quién lo generó…',
     ],
 
     // Hoja «Resumen» -solo en el reporte completo- del cliente, proyecto,

@@ -42,6 +42,7 @@ const props = defineProps<{
 
         <Form
             novalidate
+            :validation-timeout="500"
             v-bind="ClienteController.update.form(props.cliente.id)"
             v-slot="{ errors, processing, validate, valid }"
         >

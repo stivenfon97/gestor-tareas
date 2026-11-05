@@ -28,6 +28,7 @@ import { index } from '@/routes/equipos';
 
         <Form
             novalidate
+            :validation-timeout="500"
             v-bind="EquipoController.store.form()"
             v-slot="{ errors, processing, validate, valid }"
         >

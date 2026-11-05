@@ -81,6 +81,10 @@ return [
         'persona_marcador' => 'Choose a person',
         'rol_marcador' => 'Choose a role',
         'equipo_marcador' => 'Choose a team',
+        'sin_miembros' => 'Nobody takes part in this project yet',
+        'sin_miembros_ayuda' => 'Assign people or a whole team with the forms below.',
+        'guardar_rol' => 'Save role',
+        'quitar' => 'Remove from project',
     ],
 
     'secciones' => [

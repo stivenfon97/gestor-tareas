@@ -61,5 +61,8 @@ return [
             'datos' => 'Datos del equipo',
             'datos_ayuda' => 'Un nombre corto y para qué se usa.',
         ],
+        'sin_miembros' => 'El equipo todavía no tiene miembros',
+        'sin_miembros_ayuda' => 'Agrega personas desde el formulario de abajo.',
+        'retirar' => 'Retirar del equipo',
     ],
 ];

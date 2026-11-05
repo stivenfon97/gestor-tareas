@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { Building2 } from '@lucide/vue';
+import { Building2, Eye } from '@lucide/vue';
+import { computed } from 'vue';
 import EstadoClienteController from '@/actions/App/Http/Controllers/EstadoClienteController';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import { TablaLocal } from '@/components/TablaDatos';
+import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatearFecha } from '@/lib/formato';
+import { trans } from '@/lib/i18n';
+import { tonoDeActivo, tonoDeEstadoProyecto } from '@/lib/tonos';
 import { edit, index } from '@/routes/clientes';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 
@@ -37,6 +43,49 @@ const props = defineProps<{
     };
     puede: { editar: boolean };
 }>();
+
+type FilaProyecto = (typeof props.proyectos)[number];
+
+const columnasDeProyectos = computed((): ColumnaDeTabla<FilaProyecto>[] => [
+    {
+        id: 'nombre',
+        etiqueta: trans('comun.nombre'),
+        valor: (fila) => fila.nombre,
+        ordenPor: 'nombre',
+        fija: true,
+        principal: true,
+    },
+    {
+        id: 'prefijo',
+        etiqueta: trans('proyectos.prefijo'),
+        valor: (fila) => fila.prefijo_tarea,
+        ordenPor: 'prefijo',
+        ajustada: true,
+        prioritaria: true,
+    },
+    {
+        id: 'estado',
+        etiqueta: trans('comun.estado'),
+        valor: (fila) => fila.estado,
+        filtro: {
+            tipo: 'opciones',
+            clave: 'estado',
+            opciones: ['activo', 'pausado', 'finalizado'].map((valor) => ({
+                valor,
+                etiqueta: trans(`enums.estado_proyecto.${valor}`),
+            })),
+        },
+        ajustada: true,
+        prioritaria: true,
+    },
+    {
+        id: 'acciones',
+        etiqueta: trans('comun.acciones'),
+        alineacion: 'derecha',
+        ajustada: true,
+        prioritaria: true,
+    },
+]);
 </script>
 
 <template>
@@ -91,7 +140,11 @@ const props = defineProps<{
         </CabeceraDePagina>
 
         <div class="flex flex-wrap items-center gap-3 text-sm">
-            <Badge :variant="props.cliente.activo ? 'secondary' : 'outline'">
+            <Badge :variant="tonoDeActivo(props.cliente.activo)">
+                <span
+                    class="size-1.5 rounded-full bg-current"
+                    aria-hidden="true"
+                />
                 {{
                     props.cliente.activo
                         ? $t('clientes.activo')
@@ -166,57 +219,49 @@ const props = defineProps<{
                 {{ $t('clientes.proyectos') }}
             </h3>
 
-            <div class="overflow-x-auto rounded-lg border border-border">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-muted text-muted-foreground">
-                        <tr>
-                            <th class="px-4 py-2 font-medium">
-                                {{ $t('comun.nombre') }}
-                            </th>
-                            <th class="px-4 py-2 font-medium">
-                                {{ $t('proyectos.prefijo') }}
-                            </th>
-                            <th class="px-4 py-2 font-medium">
-                                {{ $t('comun.estado') }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="proyecto in props.proyectos"
-                            :key="proyecto.id"
-                            class="border-t border-border"
-                        >
-                            <td class="px-4 py-2">
-                                <Link
-                                    :href="mostrarProyecto(proyecto.id)"
-                                    class="underline-offset-4 hover:underline"
-                                >
-                                    {{ proyecto.nombre }}
-                                </Link>
-                            </td>
-                            <td class="px-4 py-2">
-                                {{ proyecto.prefijo_tarea }}
-                            </td>
-                            <td class="px-4 py-2">
-                                {{
-                                    $t(
-                                        `enums.estado_proyecto.${proyecto.estado}`,
-                                    )
-                                }}
-                            </td>
-                        </tr>
-                        <tr v-if="props.proyectos.length === 0">
-                            <td
-                                colspan="3"
-                                class="px-4 py-6 text-center text-muted-foreground"
-                            >
-                                {{ $t('clientes.sin_proyectos') }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <TablaLocal
+                :filas="props.proyectos"
+                :columnas="columnasDeProyectos"
+                :clave="(fila) => fila.id"
+                :etiqueta="$t('clientes.proyectos')"
+                :busqueda="$t('proyectos.buscar')"
+                :vacio="{
+                    titulo: $t('clientes.sin_proyectos'),
+                    cuerpo: $t('clientes.sin_proyectos_ayuda'),
+                }"
+            >
+                <template #celda-nombre="{ fila }">
+                    <Link
+                        :href="mostrarProyecto(fila.id)"
+                        class="underline-offset-4 hover:underline"
+                    >
+                        {{ fila.nombre }}
+                    </Link>
+                </template>
+                <template #celda-prefijo="{ fila }">
+                    <Badge variant="outline" class="font-mono">{{
+                        fila.prefijo_tarea
+                    }}</Badge>
+                </template>
+                <template #celda-estado="{ fila }">
+                    <Badge :variant="tonoDeEstadoProyecto(fila.estado)">
+                        <span
+                            class="size-1.5 rounded-full bg-current"
+                            aria-hidden="true"
+                        />
+                        {{ $t(`enums.estado_proyecto.${fila.estado}`) }}
+                    </Badge>
+                </template>
+                <template #celda-acciones="{ fila }">
+                    <div class="flex justify-end">
+                        <BotonDeAccion
+                            :href="mostrarProyecto(fila.id)"
+                            :icono="Eye"
+                            :etiqueta="$t('proyectos.ver')"
+                        />
+                    </div>
+                </template>
+            </TablaLocal>
         </section>
 
         <section v-if="props.cliente.notas" class="flex flex-col gap-2">

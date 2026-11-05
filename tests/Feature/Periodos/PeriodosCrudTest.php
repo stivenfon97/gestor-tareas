@@ -76,9 +76,9 @@ it('el índice lista los periodos del más reciente al más antiguo, con el pago
         ->assertOk()
         ->assertInertia(fn (Assert $pagina) => $pagina
             ->component('periodos/Index')
-            ->where('periodos.0.consecutivo', 2)
-            ->where('periodos.1.consecutivo', 1)
-            ->where('periodos.1.pago.monto_usd', '1500.00')
+            ->where('periodos.data.0.consecutivo', 2)
+            ->where('periodos.data.1.consecutivo', 1)
+            ->where('periodos.data.1.pago.monto_usd', '1500.00')
             ->where('puede.gestionar', true));
 });
 
@@ -175,4 +175,17 @@ it('editar una tarea sin tocar su periodo no falla aunque ese periodo ya esté c
         ->assertRedirect();
 
     expect($tarea->fresh()->periodo_id)->toBe($cerrado->id);
+});
+
+it('el índice de periodos filtra por estado y devuelve el filtro a la tabla', function () {
+    Periodo::factory()->cerrado()->create(['proyecto_id' => $this->proyecto->id, 'consecutivo' => 1]);
+    Periodo::factory()->create(['proyecto_id' => $this->proyecto->id, 'consecutivo' => 2]);
+
+    $this->actingAs($this->lider)
+        ->get(route('proyectos.periodos.index', [$this->proyecto, 'filter' => ['estado' => 'cerrado']]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $pagina) => $pagina
+            ->has('periodos.data', 1)
+            ->where('periodos.data.0.consecutivo', 1)
+            ->where('filtros', ['estado' => 'cerrado']));
 });

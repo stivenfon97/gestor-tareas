@@ -46,4 +46,7 @@ return [
         'confirmar_sin_pago' => 'No payment is registered: it can be added later.',
         'confirmar' => 'Confirm closing',
     ],
+    'buscar' => 'Search by number or notes…',
+    'ver' => 'View period',
+    'sin_pago' => 'No payment',
 ];

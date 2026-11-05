@@ -116,3 +116,19 @@ it('el listado de reportes no serializa ningún dato de pago, ni para quien sí 
         ->and($json)->not->toContain('tasa_cambio')
         ->and($json)->not->toContain('snapshot');
 });
+
+it('el historial marca como duplicado lo emitido dos veces aunque caiga en otra página', function () {
+    Tarea::factory()->for($this->proyecto)->create(['periodo_id' => $this->periodo->id, 'orden' => 1]);
+    $generar = app(GenerarReporte::class);
+    $generar($this->periodo, TipoReporte::Cliente, $this->lider);
+    $generar($this->periodo, TipoReporte::Cliente, $this->lider);
+
+    $props = $this->actingAs($this->lider)
+        ->get(route('proyectos.reportes.index', [$this->proyecto, 'por_pagina' => 15, 'filter' => ['tipo' => 'cliente'], 'sort' => '-generado_en']))
+        ->assertOk()
+        ->viewData('page')['props'];
+
+    expect($props['reportes']['data'])->toHaveCount(2)
+        ->and(array_column($props['reportes']['data'], 'duplicado'))->toBe([true, true])
+        ->and($props['filtros'])->toBe(['tipo' => 'cliente']);
+});

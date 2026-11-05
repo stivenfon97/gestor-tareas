@@ -1,4 +1,5 @@
 export { default as TablaDatos } from './TablaDatos.vue';
+export { default as TablaLocal } from './TablaLocal.vue';
 export type {
     AccionEnLote,
     Alineacion,

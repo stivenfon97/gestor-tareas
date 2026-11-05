@@ -46,4 +46,7 @@ return [
         'confirmar_sin_pago' => 'No se registra pago: se puede añadir después.',
         'confirmar' => 'Confirmar cierre',
     ],
+    'buscar' => 'Buscar por número o notas…',
+    'ver' => 'Ver periodo',
+    'sin_pago' => 'Sin pago',
 ];

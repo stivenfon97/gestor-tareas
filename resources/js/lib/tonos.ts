@@ -28,6 +28,22 @@ const ESTADO_PERIODO: Record<string, TonoDeBadge> = {
     cerrado: 'neutro',
 };
 
+const ORIGEN_TASA: Record<string, TonoDeBadge> = {
+    api: 'info',
+    manual: 'neutro',
+};
+
+const TIPO_REPORTE: Record<string, TonoDeBadge> = {
+    completo: 'acento',
+    cliente: 'info',
+};
+
+export const tonoDeOrigenTasa = (origen: string): TonoDeBadge =>
+    ORIGEN_TASA[origen] ?? 'neutro';
+
+export const tonoDeTipoReporte = (tipo: string): TonoDeBadge =>
+    TIPO_REPORTE[tipo] ?? 'neutro';
+
 export const tonoDeActivo = (activo: boolean): TonoDeBadge =>
     activo ? 'exito' : 'neutro';
 

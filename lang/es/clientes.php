@@ -57,4 +57,5 @@ return [
         'notas' => 'Notas internas',
         'notas_ayuda' => 'Acuerdos y condiciones que el equipo debe tener a mano.',
     ],
+    'sin_proyectos_ayuda' => 'Crea un proyecto y elige este cliente para verlo aquí.',
 ];

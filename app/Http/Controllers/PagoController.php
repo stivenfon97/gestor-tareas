@@ -9,7 +9,10 @@ use App\Http\Requests\PagoRequest;
 use App\Models\Pago;
 use App\Models\Periodo;
 use App\Models\Proyecto;
+use App\Services\BuscarEnColumnas;
 use App\Services\ConsultarTrm;
+use App\Services\EstadoDeTabla;
+use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +20,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * El dinero no se le muestra al cliente. `PagoPolicy` lo niega para cualquier
@@ -25,26 +30,41 @@ use Inertia\Response;
  */
 class PagoController extends Controller
 {
-    public function index(Proyecto $proyecto): Response
+    public function index(Request $request, Proyecto $proyecto): Response
     {
         Gate::authorize('viewAny', [Pago::class, $proyecto]);
 
-        $pagos = Pago::query()
-            ->whereIn('periodo_id', $proyecto->periodos()->select('id'))
+        $pagos = QueryBuilder::for(Pago::query()->whereIn('periodo_id', $proyecto->periodos()->select('id')))
             ->with('periodo:id,consecutivo')
-            ->orderByDesc('fecha_pago')
-            ->get(['id', 'periodo_id', 'fecha_pago', 'monto_usd', 'tasa_cambio', 'monto_cop', 'origen_tasa']);
-
-        return Inertia::render('pagos/Index', [
-            'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
-            'pagos' => $pagos->map(fn (Pago $pago): array => [
+            ->allowedFilters(
+                AllowedFilter::exact('origen_tasa'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['referencia', 'notas', 'periodo.consecutivo'])),
+            )
+            ->defaultSort('-fecha_pago')
+            ->allowedSorts('fecha_pago', 'monto_usd', 'monto_cop', 'tasa_cambio')
+            ->paginate(EstadoDeTabla::porPagina($request))
+            ->withQueryString()
+            ->through(fn (Pago $pago): array => [
                 'id' => $pago->id,
                 'periodo_consecutivo' => $pago->periodo->consecutivo,
                 'fecha_pago' => $pago->fecha_pago->toDateString(),
                 'monto_usd' => $pago->monto_usd,
+                'tasa_cambio' => $pago->tasa_cambio,
                 'monto_cop' => $pago->monto_cop,
                 'origen_tasa' => $pago->origen_tasa->value,
-            ]),
+                'referencia' => $pago->referencia,
+            ]);
+
+        return Inertia::render('pagos/Index', [
+            'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
+            'pagos' => $pagos,
+            'filtros' => EstadoEnLaUrl::filtros($request),
+            'orden' => EstadoDeTabla::orden($request, '-fecha_pago'),
+            'columnasVisibles' => EstadoDeTabla::columnas($request),
+            'origenes' => collect(OrigenTasaCambio::cases())->map(fn (OrigenTasaCambio $origen): array => [
+                'valor' => $origen->value,
+                'etiqueta' => 'enums.origen_tasa_cambio.'.$origen->value,
+            ])->all(),
             'puede' => ['registrar' => Gate::allows('create', [Pago::class, $proyecto])],
         ]);
     }
