@@ -1,0 +1,41 @@
+import type { BadgeVariants } from '@/components/ui/badge';
+
+/**
+ * Qué tono de `Badge` lleva cada valor de una categoría que no es el estado de
+ * una tarea (esa tiene su propio `BadgeEstado`).
+ *
+ * Vive en un solo sitio para que «activo» sea verde en clientes, usuarios y
+ * proyectos a la vez: si cada página eligiera su color, el mismo dato se leería
+ * distinto según la pantalla. Un valor que no esté en el mapa cae en `neutro`,
+ * nunca en un badge sin estilo.
+ */
+export type TonoDeBadge = NonNullable<BadgeVariants['variant']>;
+
+const ROL_GLOBAL: Record<string, TonoDeBadge> = {
+    administrador: 'acento',
+    miembro: 'info',
+    invitado: 'neutro',
+};
+
+const ESTADO_PROYECTO: Record<string, TonoDeBadge> = {
+    activo: 'exito',
+    pausado: 'aviso',
+    finalizado: 'neutro',
+};
+
+const ESTADO_PERIODO: Record<string, TonoDeBadge> = {
+    abierto: 'info',
+    cerrado: 'neutro',
+};
+
+export const tonoDeActivo = (activo: boolean): TonoDeBadge =>
+    activo ? 'exito' : 'neutro';
+
+export const tonoDeRolGlobal = (rol: string | null): TonoDeBadge =>
+    (rol !== null ? ROL_GLOBAL[rol] : undefined) ?? 'neutro';
+
+export const tonoDeEstadoProyecto = (estado: string): TonoDeBadge =>
+    ESTADO_PROYECTO[estado] ?? 'neutro';
+
+export const tonoDeEstadoPeriodo = (estado: string): TonoDeBadge =>
+    ESTADO_PERIODO[estado] ?? 'neutro';

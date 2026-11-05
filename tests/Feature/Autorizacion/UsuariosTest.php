@@ -197,3 +197,27 @@ it('el listado de usuarios ordena y devuelve el estado de la URL a la tabla', fu
         ->and($props['orden'])->toBe([['campo' => 'email', 'direccion' => 'desc']])
         ->and($props['columnasVisibles'])->toBe(['nombre', 'correo']);
 });
+
+it('la búsqueda del listado de usuarios encuentra por nombre o por correo', function (string $termino) {
+    User::factory()->create(['name' => 'Ana Ruiz', 'email' => 'ana@gestor.test']);
+    User::factory()->create(['name' => 'Beto Paz', 'email' => 'beto@otra.test']);
+    $this->administrador->update(['name' => 'Zoe', 'email' => 'zoe@admin.test']);
+
+    $respuesta = $this->actingAs($this->administrador)
+        ->get(route('usuarios.index', ['filter' => ['buscar' => $termino]]))
+        ->assertOk();
+
+    expect(correosDelListadoDeUsuarios($respuesta))->toBe(['ana@gestor.test']);
+})->with(['nombre' => 'ana ru', 'correo' => 'ana@']);
+
+it('la búsqueda trata el comodín de LIKE como un carácter literal', function () {
+    User::factory()->create(['name' => 'Ana Ruiz', 'email' => 'ana_ruiz@gestor.test']);
+    User::factory()->create(['name' => 'Beto Paz', 'email' => 'betopaz@gestor.test']);
+    $this->administrador->update(['email' => 'zoe@admin.test']);
+
+    $respuesta = $this->actingAs($this->administrador)
+        ->get(route('usuarios.index', ['filter' => ['buscar' => '_']]))
+        ->assertOk();
+
+    expect(correosDelListadoDeUsuarios($respuesta))->toBe(['ana_ruiz@gestor.test']);
+});

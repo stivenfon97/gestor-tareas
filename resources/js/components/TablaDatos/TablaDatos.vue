@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
-import { Check, ChevronLeft, ChevronRight, Minus } from '@lucide/vue';
+import { Check, Minus, X } from '@lucide/vue';
 import { getCoreRowModel, useVueTable } from '@tanstack/vue-table';
 import type {
     ColumnDef,
@@ -13,35 +13,32 @@ import {
     onBeforeUnmount,
     onMounted,
     ref,
-    useId,
     watch,
 } from 'vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useDensidad } from '@/composables/useDensidad';
 import { useEstadoDeTabla } from '@/composables/useEstadoDeTabla';
 import { cn } from '@/lib/utils';
+import BuscadorDeTabla from './BuscadorDeTabla.vue';
 import CabeceraDeColumna from './CabeceraDeColumna.vue';
 import EsqueletoDeTabla from './EsqueletoDeTabla.vue';
 import FiltroDeCabecera from './FiltroDeCabecera.vue';
+import FiltroFacetado from './FiltroFacetado.vue';
 import LeyendaDeColumna from './LeyendaDeColumna.vue';
 import MenuCompacto from './MenuCompacto.vue';
+import PaginacionDeTabla from './PaginacionDeTabla.vue';
 import PanelDeFiltros from './PanelDeFiltros.vue';
 import TarjetaDeFila from './TarjetaDeFila.vue';
 import type {
     AccionEnLote,
+    BusquedaDeTabla,
     ColumnaDeTabla,
+    OpcionDeFiltro,
     OrdenDeColumna,
-    PaginacionDeTabla,
+    PaginacionDeTabla as Paginacion,
     TextoVacio,
 } from './tipos';
 
@@ -73,12 +70,18 @@ const props = withDefaults(
         orden: OrdenDeColumna[];
         filtros: Record<string, string>;
         columnasVisibles: string[] | null;
-        paginacion: PaginacionDeTabla;
+        paginacion: Paginacion;
 
         /** Rótulo accesible de la tabla. Va al `<caption>`. */
         etiqueta: string;
         /** Texto del vacío «todavía no hay datos». El otro vacío es genérico. */
         vacio: TextoVacio;
+
+        /**
+         * Búsqueda general, siempre visible en la barra. Su `clave` es un
+         * `allowedFilters` del controlador que recorre varias columnas.
+         */
+        busqueda?: BusquedaDeTabla | null;
 
         seleccionable?: boolean;
         accionesEnLote?: AccionEnLote[];
@@ -88,6 +91,7 @@ const props = withDefaults(
         altoMaximo?: string;
     }>(),
     {
+        busqueda: null,
         seleccionable: false,
         accionesEnLote: () => [],
         cargando: false,
@@ -602,17 +606,57 @@ const totalFiltros = computed(
 
 const sinFilas = computed(() => props.filas.length === 0 && !props.cargando);
 
+/* ------------------------------------------------- barra de herramientas */
+
+const claveDeBusqueda = computed(() => props.busqueda?.clave ?? null);
+
 /**
- * Con una sola página los controles de paginación no llevan a ninguna parte:
- * las dos flechas nacen deshabilitadas y «Página 1 de 1» informa de que no hay
- * nada más. El total de resultados sí dice algo, y ese se queda.
+ * Los filtros de opciones van en la barra, como un botón con nombre por cada
+ * uno, **aunque su columna esté oculta**: ocultar la columna «Estado» no debe
+ * quitar la forma de filtrar por estado.
  */
-const hayVariasPaginas = computed(() => props.paginacion.last_page > 1);
+const filtrosFacetados = computed(() =>
+    props.columnas.flatMap((columna) =>
+        columna.filtro?.tipo === 'opciones' &&
+        columna.filtro.clave !== claveDeBusqueda.value
+            ? [
+                  {
+                      clave: columna.filtro.clave,
+                      etiqueta: columna.etiqueta,
+                      opciones: columna.filtro.opciones as OpcionDeFiltro[],
+                  },
+              ]
+            : [],
+    ),
+);
 
-/** Tamaños de página que admite el servidor. */
-const TAMANOS_DE_PAGINA = [15, 30, 50, 100] as const;
+/** Un filtro de texto de columna cuelga de su cabecera, si no es la búsqueda. */
+const tieneFiltroDeTexto = (columna: ColumnaDeTabla<T>): boolean =>
+    columna.filtro?.tipo === 'texto' &&
+    columna.filtro.clave !== claveDeBusqueda.value;
 
-const idPorPagina = useId();
+const columnasConFiltroDeTexto = computed(() =>
+    columnasVisiblesEnOrden.value.filter(tieneFiltroDeTexto),
+);
+
+/**
+ * Los filtros de texto puestos desde una cabecera se ven como fichas en la
+ * barra: puestos desde un icono de 14px, eran invisibles hasta que alguien se
+ * preguntaba por qué faltaban filas.
+ */
+const fichasDeTexto = computed(() =>
+    props.columnas.flatMap((columna) => {
+        const clave = columna.filtro?.clave;
+        const valor = clave !== undefined ? props.filtros[clave] : undefined;
+
+        return tieneFiltroDeTexto(columna) &&
+            clave !== undefined &&
+            valor !== undefined &&
+            valor !== ''
+            ? [{ clave, etiqueta: columna.etiqueta, valor }]
+            : [];
+    }),
+);
 
 /**
  * La casilla de la cabecera: marcada, a medias o vacía. Función y no
@@ -677,8 +721,8 @@ const alternarColumna = (id: string, visible: boolean): void => {
              puede filtrar desde el teléfono, que es justo donde más falta
              hace. -->
         <PanelDeFiltros
-            v-if="esMovil"
-            :columnas="columnasVisiblesEnOrden"
+            v-if="esMovil && columnasConFiltroDeTexto.length > 0"
+            :columnas="columnasConFiltroDeTexto"
             :filtros="props.filtros"
             :total="totalFiltros"
             @aplicar="estado.aplicarFiltro"
@@ -699,49 +743,108 @@ const alternarColumna = (id: string, visible: boolean): void => {
             class="flex min-w-0 flex-col overflow-hidden rounded-md border border-borde-fuerte bg-panel"
         >
             <!--
-                Barra de estado de la tabla: cuántos resultados hay y el menú
-                que opera sobre ella.
+                Barra de herramientas: búsqueda, un botón por cada filtro de
+                opciones, limpiar, y a la derecha las acciones de la página y
+                el menú de columnas y densidad. Va **arriba y dentro del
+                panel**, que es donde se buscan los controles de una tabla.
 
-                Va **arriba y dentro del panel**. En el pie funcionaba, pero los
-                controles de una tabla se buscan arriba. Y no reconstruye la
-                banda que retiró la 07d: aquella cruzaba la pantalla **fuera**
-                del panel para alojar dos botones y nada más; esta va dentro del
-                borde, lleva el total de resultados —que es información, no un
-                control— y sustituye a la franja que antes ocupaba el pie.
+                Debajo, las fichas de los filtros de texto puestos desde una
+                cabecera, para que ningún filtro activo quede escondido.
             -->
             <div
-                class="flex items-center justify-between gap-corto border-b border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
+                class="flex flex-col gap-corto border-b border-borde bg-panel-cabecera px-celda py-corto"
+                data-barra-de-tabla
             >
-                <div class="flex min-w-0 items-center gap-corto">
-                    <MenuCompacto
-                        :columnas="props.columnas as ColumnaDeTabla<unknown>[]"
-                        :visibles="visiblesPedidas"
-                        :densidad="densidad"
-                        :hay-filtros-activos="hayFiltrosActivos"
-                        :hay-orden-multiple="props.orden.length > 1"
-                        @alternar-columna="alternarColumna"
-                        @restablecer-columnas="
-                            estado.fijarColumnas(
-                                columnasPorDefecto,
-                                columnasPorDefecto,
-                            )
+                <div class="flex flex-wrap items-center gap-corto">
+                    <BuscadorDeTabla
+                        v-if="props.busqueda"
+                        :valor="props.filtros[props.busqueda.clave] ?? ''"
+                        :marcador="props.busqueda.marcador"
+                        :etiqueta="props.busqueda.marcador"
+                        @cambiar="
+                            (valor: string, retrasar: boolean) =>
+                                estado.aplicarFiltro(
+                                    props.busqueda!.clave,
+                                    valor,
+                                    retrasar,
+                                )
                         "
-                        @fijar-densidad="fijarDensidad"
-                        @limpiar-filtros="estado.limpiarFiltros()"
-                        @limpiar-orden="estado.limpiarOrden()"
                     />
 
-                    <span class="truncate">
-                        {{
-                            $t('comun.tabla.total_resultados', {
-                                total: String(props.paginacion.total),
-                            })
-                        }}
-                    </span>
+                    <FiltroFacetado
+                        v-for="filtro in filtrosFacetados"
+                        :key="filtro.clave"
+                        :etiqueta="filtro.etiqueta"
+                        :opciones="filtro.opciones"
+                        :valor="props.filtros[filtro.clave] ?? ''"
+                        @cambiar="
+                            (valor: string) =>
+                                estado.aplicarFiltro(filtro.clave, valor, false)
+                        "
+                    />
+
+                    <Button
+                        v-if="hayFiltrosActivos"
+                        variant="ghost"
+                        size="sm"
+                        class="text-texto-suave"
+                        @click="estado.limpiarFiltros()"
+                    >
+                        <X aria-hidden="true" />
+                        {{ $t('comun.tabla.limpiar_filtros') }}
+                    </Button>
+
+                    <div class="ml-auto flex shrink-0 items-center gap-corto">
+                        <slot name="acciones" />
+                        <MenuCompacto
+                            :columnas="
+                                props.columnas as ColumnaDeTabla<unknown>[]
+                            "
+                            :visibles="visiblesPedidas"
+                            :densidad="densidad"
+                            :hay-filtros-activos="hayFiltrosActivos"
+                            :hay-orden-multiple="props.orden.length > 1"
+                            @alternar-columna="alternarColumna"
+                            @restablecer-columnas="
+                                estado.fijarColumnas(
+                                    columnasPorDefecto,
+                                    columnasPorDefecto,
+                                )
+                            "
+                            @fijar-densidad="fijarDensidad"
+                            @limpiar-filtros="estado.limpiarFiltros()"
+                            @limpiar-orden="estado.limpiarOrden()"
+                        />
+                    </div>
                 </div>
 
-                <div class="flex shrink-0 items-center gap-corto">
-                    <slot name="acciones" />
+                <div
+                    v-if="fichasDeTexto.length > 0"
+                    class="flex flex-wrap items-center gap-fino"
+                >
+                    <Badge
+                        v-for="ficha in fichasDeTexto"
+                        :key="ficha.clave"
+                        variant="info"
+                        class="gap-fino rounded-sm pr-fino font-normal"
+                    >
+                        <span class="font-medium">{{ ficha.etiqueta }}:</span>
+                        <span class="max-w-48 truncate">{{ ficha.valor }}</span>
+                        <button
+                            type="button"
+                            class="inline-flex size-4 items-center justify-center rounded-sm hover:bg-fila-activa"
+                            :aria-label="
+                                $t('comun.tabla.quitar_filtro_de', {
+                                    columna: ficha.etiqueta,
+                                })
+                            "
+                            @click="
+                                estado.aplicarFiltro(ficha.clave, '', false)
+                            "
+                        >
+                            <X class="size-3" aria-hidden="true" />
+                        </button>
+                    </Badge>
                 </div>
             </div>
 
@@ -927,8 +1030,13 @@ const alternarColumna = (id: string, visible: boolean): void => {
                                         <slot :name="`leyenda-${columna.id}`" />
                                     </LeyendaDeColumna>
 
+                                    <!-- Solo los de texto: los de opciones
+                                         viven en la barra, con su nombre. -->
                                     <FiltroDeCabecera
-                                        v-if="columna.filtro"
+                                        v-if="
+                                            columna.filtro &&
+                                            tieneFiltroDeTexto(columna)
+                                        "
                                         :filtro="columna.filtro"
                                         :etiqueta="columna.etiqueta"
                                         :valor="
@@ -1071,85 +1179,12 @@ const alternarColumna = (id: string, visible: boolean): void => {
                 </table>
             </div>
 
-            <!--
-                Pie: solo paginación, y **solo cuando hay más de una página**.
-                Con una sola, «Por página · Página 1 de 1 · ‹ ›» son cuatro
-                controles que no llevan a ninguna parte: dos nacen
-                deshabilitados y el tercero informa de que no hay nada más. El
-                total de resultados, que sí dice algo, vive arriba.
-            -->
-            <div
-                v-if="hayVariasPaginas"
-                class="flex items-center justify-end gap-corto border-t border-borde bg-panel-cabecera px-celda py-corto text-fino text-texto-suave"
-            >
-                <div class="flex items-center gap-corto">
-                    <!-- En móvil sobran: con el pulgar se pasa página, no se
-                     elige un tamaño ni se lee «página 2 de 9». -->
-                    <div v-if="!esMovil" class="flex items-center gap-fino">
-                        <Label
-                            :for="idPorPagina"
-                            class="text-fino font-normal text-texto-suave"
-                        >
-                            {{ $t('comun.tabla.por_pagina') }}
-                        </Label>
-                        <Select
-                            :model-value="String(props.paginacion.per_page)"
-                            @update:model-value="
-                                (valor) =>
-                                    estado.cambiarPorPagina(Number(valor))
-                            "
-                        >
-                            <SelectTrigger :id="idPorPagina" size="sm">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="opcion in TAMANOS_DE_PAGINA"
-                                    :key="opcion"
-                                    :value="String(opcion)"
-                                >
-                                    {{ opcion }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <span v-if="!esMovil">
-                        {{
-                            $t('comun.tabla.pagina_de', {
-                                actual: String(props.paginacion.current_page),
-                                total: String(props.paginacion.last_page),
-                            })
-                        }}
-                    </span>
-
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        :disabled="props.paginacion.current_page <= 1"
-                        :aria-label="$t('comun.anterior')"
-                        @click="
-                            estado.irAPagina(props.paginacion.current_page - 1)
-                        "
-                    >
-                        <ChevronLeft class="size-4" aria-hidden="true" />
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        :disabled="
-                            props.paginacion.current_page >=
-                            props.paginacion.last_page
-                        "
-                        :aria-label="$t('comun.siguiente')"
-                        @click="
-                            estado.irAPagina(props.paginacion.current_page + 1)
-                        "
-                    >
-                        <ChevronRight class="size-4" aria-hidden="true" />
-                    </Button>
-                </div>
-            </div>
+            <PaginacionDeTabla
+                :paginacion="props.paginacion"
+                :compacta="esMovil"
+                @ir-a-pagina="estado.irAPagina"
+                @cambiar-por-pagina="estado.cambiarPorPagina"
+            />
         </div>
 
         <!-- El error muestra el mensaje real del servidor: un «algo salió mal»

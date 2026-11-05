@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Gestion\EquipoRequest;
 use App\Models\Equipo;
 use App\Models\User;
+use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +32,10 @@ class EquipoController extends Controller
         Gate::authorize('viewAny', Equipo::class);
 
         $equipos = QueryBuilder::for(Equipo::class)
-            ->allowedFilters(AllowedFilter::partial('nombre'))
+            ->allowedFilters(
+                AllowedFilter::partial('nombre'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['nombre', 'descripcion'])),
+            )
             ->defaultSort('nombre')
             ->allowedSorts('nombre')
             ->withCount('usuarios')

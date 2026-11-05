@@ -14,6 +14,7 @@ use App\Models\Reporte;
 use App\Models\Reunion;
 use App\Models\User;
 use App\Services\Adjuntos;
+use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use App\Services\ResolverRolProyecto;
@@ -44,6 +45,7 @@ class ProyectoController extends Controller
                 AllowedFilter::partial('nombre'),
                 AllowedFilter::exact('estado'),
                 AllowedFilter::exact('cliente_id'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['nombre', 'prefijo_tarea', 'cliente.nombre'])),
             )
             ->when(
                 // Sin fila en el pivote no hay proyecto que ver, ni en el listado.

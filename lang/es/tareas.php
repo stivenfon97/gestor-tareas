@@ -6,6 +6,7 @@ return [
     'titulo' => 'Tareas',
     'crear' => 'Nueva tarea',
     'editar' => 'Editar tarea',
+    'buscar' => 'Buscar por código, nombre o descripción…',
     'creada' => 'Tarea :codigo creada.',
     'actualizada' => 'Tarea actualizada.',
     'eliminada' => 'Tarea eliminada.',

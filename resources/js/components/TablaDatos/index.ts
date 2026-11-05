@@ -2,6 +2,7 @@ export { default as TablaDatos } from './TablaDatos.vue';
 export type {
     AccionEnLote,
     Alineacion,
+    BusquedaDeTabla,
     ColumnaDeTabla,
     Densidad,
     Direccion,

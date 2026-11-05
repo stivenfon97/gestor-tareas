@@ -6,6 +6,7 @@ return [
     'titulo' => 'Tasks',
     'crear' => 'New task',
     'editar' => 'Edit task',
+    'buscar' => 'Search by code, name or description…',
     'creada' => 'Task :codigo created.',
     'actualizada' => 'Task updated.',
     'eliminada' => 'Task deleted.',

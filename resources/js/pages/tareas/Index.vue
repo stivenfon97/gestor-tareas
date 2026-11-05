@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ListChecks } from '@lucide/vue';
 import { computed } from 'vue';
 import { toast } from 'vue-sonner';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
@@ -290,6 +291,7 @@ const enLote = async (
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="ListChecks"
             :titulo="esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')"
             :descripcion="
                 esGlobal
@@ -341,6 +343,7 @@ const enLote = async (
             :filtros="props.filtros"
             :columnas-visibles="props.columnasVisibles"
             :paginacion="props.tareas"
+            :busqueda="{ clave: 'texto', marcador: $t('tareas.buscar') }"
             :etiqueta="
                 esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')
             "

@@ -10,6 +10,7 @@ return [
 
     'crear' => 'New project',
     'editar' => 'Edit project',
+    'ver' => 'View project',
     'creado' => 'Project created.',
     'actualizado' => 'Project updated.',
     'eliminado' => 'Project deleted.',
@@ -32,7 +33,7 @@ return [
     'prefijo_marcador' => 'ABC',
     'descripcion_marcador' => 'What the project is about',
     'estado_marcador' => 'Choose a status',
-    'buscar' => 'Search by name',
+    'buscar' => 'Search by name, prefix or client…',
     'todos_los_estados' => 'All statuses',
     'descripcion_listado' => 'Each project has its own modules, tasks and periods.',
     'ver_tareas' => 'View the project tasks',

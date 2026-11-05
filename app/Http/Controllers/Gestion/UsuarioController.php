@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Gestion\UsuarioStoreRequest;
 use App\Http\Requests\Gestion\UsuarioUpdateRequest;
 use App\Models\User;
+use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,8 @@ class UsuarioController extends Controller
             ->allowedFilters(
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
-                AllowedFilter::exact('activo'))
+                AllowedFilter::exact('activo'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['name', 'email'])))
             ->defaultSort('name')
             ->allowedSorts('name', 'email', 'created_at')
             ->with('roles:id,name')

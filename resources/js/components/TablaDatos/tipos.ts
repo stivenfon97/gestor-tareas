@@ -29,6 +29,16 @@ export type FiltroDeColumna =
     | { tipo: 'texto'; clave: string; marcador?: string }
     | { tipo: 'opciones'; clave: string; opciones: OpcionDeFiltro[] };
 
+/**
+ * Búsqueda general del listado. `clave` viaja como `filter[clave]` y tiene que
+ * ser un `allowedFilters` del controlador que recorra varias columnas
+ * (`BuscarEnColumnas`); `marcador` es el texto del campo, ya traducido.
+ */
+export type BusquedaDeTabla = {
+    clave: string;
+    marcador: string;
+};
+
 export type Alineacion = 'izquierda' | 'derecha';
 
 /**

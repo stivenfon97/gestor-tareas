@@ -272,3 +272,30 @@ it('devuelve el concentrador del proyecto con su resumen y sin datos de relleno'
         ),
     );
 });
+
+it('la búsqueda del listado de proyectos encuentra por el nombre del cliente', function () {
+    $roble = Cliente::factory()->create(['nombre' => 'Distribuidora El Roble S.A.S.']);
+    Proyecto::factory()->for($roble)->create(['nombre' => 'Portal de Proveedores']);
+    Proyecto::factory()->for($this->cliente)->create(['nombre' => 'Mesa de Ayuda']);
+
+    $respuesta = $this->actingAs($this->administrador)
+        ->get(route('proyectos.index', ['filter' => ['buscar' => 'roble']]))
+        ->assertOk();
+
+    expect(collect($respuesta->viewData('page')['props']['proyectos']['data'])->pluck('nombre')->all())
+        ->toBe(['Portal de Proveedores']);
+});
+
+it('la búsqueda no le enseña a un miembro proyectos en los que no participa', function () {
+    $miembro = usuarioCon(RolGlobal::Miembro);
+    $propio = Proyecto::factory()->for($this->cliente)->create(['nombre' => 'Portal Propio']);
+    Proyecto::factory()->for($this->cliente)->create(['nombre' => 'Portal Ajeno']);
+    asignarAProyecto($miembro, $propio, RolProyecto::Colaborador);
+
+    $respuesta = $this->actingAs($miembro)
+        ->get(route('proyectos.index', ['filter' => ['buscar' => 'portal']]))
+        ->assertOk();
+
+    expect(collect($respuesta->viewData('page')['props']['proyectos']['data'])->pluck('nombre')->all())
+        ->toBe(['Portal Propio']);
+});

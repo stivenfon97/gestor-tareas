@@ -6,6 +6,7 @@ return [
     'titulo' => 'Clientes',
     'crear' => 'Nuevo cliente',
     'editar' => 'Editar cliente',
+    'ver' => 'Ver cliente',
     'creado' => 'Cliente creado.',
     'actualizado' => 'Cliente actualizado.',
     'activado' => 'Cliente activado.',
@@ -30,7 +31,7 @@ return [
     'contacto_telefono_marcador' => '+57 300 123 4567',
     'notas_marcador' => 'Acuerdos, condiciones y detalles útiles para el equipo',
 
-    'buscar' => 'Buscar por nombre',
+    'buscar' => 'Buscar por nombre, contacto o correo…',
     'solo_activos' => 'Solo activos',
     'todos' => 'Todos',
 

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Pencil, UsersRound } from '@lucide/vue';
 import { computed } from 'vue';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { trans } from '@/lib/i18n';
 import { create, edit, index } from '@/routes/equipos';
@@ -31,11 +34,6 @@ const columnas = computed((): ColumnaDeTabla<Equipo>[] => [
         ordenPor: 'nombre',
         fija: true,
         anclada: true,
-        filtro: {
-            tipo: 'texto',
-            clave: 'nombre',
-            marcador: trans('comun.buscar'),
-        },
         principal: true,
         anchoMinimo: '14rem',
     },
@@ -59,6 +57,8 @@ const columnas = computed((): ColumnaDeTabla<Equipo>[] => [
         etiqueta: trans('comun.acciones'),
         alineacion: 'derecha',
         ajustada: true,
+        // En la tarjeta de móvil las acciones se ven sin desplegar «Ver más».
+        prioritaria: true,
     },
 ]);
 
@@ -72,6 +72,7 @@ const abrir = (equipo: Equipo): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="UsersRound"
             :titulo="$t('gestion.equipos.titulo')"
             :descripcion="$t('gestion.equipos.nota_no_otorga_permisos')"
         >
@@ -94,6 +95,10 @@ const abrir = (equipo: Equipo): void => {
             :columnas-visibles="props.columnasVisibles"
             :paginacion="props.equipos"
             :etiqueta="$t('gestion.equipos.titulo')"
+            :busqueda="{
+                clave: 'buscar',
+                marcador: $t('gestion.equipos.buscar'),
+            }"
             :vacio="{
                 titulo: $t('gestion.equipos.sin_equipos'),
                 cuerpo: $t('gestion.equipos.sin_equipos_ayuda'),
@@ -123,10 +128,22 @@ const abrir = (equipo: Equipo): void => {
                 }}</span>
             </template>
 
+            <template #celda-miembros="{ fila }">
+                <Badge :variant="fila.usuarios_count > 0 ? 'info' : 'neutro'">
+                    <UsersRound aria-hidden="true" />
+                    {{ fila.usuarios_count }}
+                </Badge>
+            </template>
+
             <template #celda-acciones="{ fila }">
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="edit(fila.id)">{{ $t('comun.editar') }}</Link>
-                </Button>
+                <div class="flex items-center justify-end">
+                    <BotonDeAccion
+                        :href="edit(fila.id)"
+                        :icono="Pencil"
+                        tono="info"
+                        :etiqueta="$t('gestion.equipos.editar')"
+                    />
+                </div>
             </template>
         </TablaDatos>
     </div>

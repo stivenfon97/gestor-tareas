@@ -86,5 +86,12 @@ return [
         'ayuda_teclado' => 'Use the arrow keys to move between rows, Enter to open the focused one and Space to select it.',
         'opciones' => 'Options',
         'ver_mas' => 'Show more',
+        'limpiar_busqueda' => 'Clear search',
+        'buscar_opcion' => 'Search…',
+        'sin_opciones' => 'No option matches.',
+        'mostrando' => 'Showing :desde–:hasta of :total',
+        'primera_pagina' => 'First page',
+        'ultima_pagina' => 'Last page',
+        'quitar_filtro_de' => 'Remove the :columna filter',
     ],
 ];

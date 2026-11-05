@@ -161,3 +161,15 @@ it('el listado de equipos ordena y devuelve el estado de la URL a la tabla', fun
         ->and($props['orden'])->toBe([['campo' => 'nombre', 'direccion' => 'desc']])
         ->and($props['columnasVisibles'])->toBe(['nombre']);
 });
+
+it('la búsqueda del listado de equipos recorre también la descripción', function () {
+    $this->equipo->update(['nombre' => 'Alfa', 'descripcion' => 'Atiende incidencias de producción']);
+    Equipo::factory()->create(['nombre' => 'Zeta', 'descripcion' => 'Diseña pantallas']);
+
+    $props = $this->actingAs($this->administrador)
+        ->get(route('equipos.index', ['filter' => ['buscar' => 'incidencias']]))
+        ->assertOk()
+        ->viewData('page')['props'];
+
+    expect(array_column($props['equipos']['data'], 'nombre'))->toBe(['Alfa']);
+});

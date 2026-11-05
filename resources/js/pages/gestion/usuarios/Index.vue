@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
+import {
+    Eye,
+    Pencil,
+    ShieldCheck,
+    UserCheck,
+    UserRound,
+    Users,
+    UserX,
+} from '@lucide/vue';
+import type { Component } from 'vue';
 import { computed } from 'vue';
 import EstadoUsuarioController from '@/actions/App/Http/Controllers/Gestion/EstadoUsuarioController';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { trans } from '@/lib/i18n';
+import { tonoDeActivo, tonoDeRolGlobal } from '@/lib/tonos';
 import { create, edit, index } from '@/routes/usuarios';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
@@ -34,11 +46,6 @@ const columnas = computed((): ColumnaDeTabla<Usuario>[] => [
         ordenPor: 'name',
         fija: true,
         anclada: true,
-        filtro: {
-            tipo: 'texto',
-            clave: 'name',
-            marcador: trans('comun.buscar'),
-        },
         principal: true,
         anchoMinimo: '14rem',
     },
@@ -47,11 +54,6 @@ const columnas = computed((): ColumnaDeTabla<Usuario>[] => [
         etiqueta: trans('comun.correo'),
         valor: (usuario) => usuario.email,
         ordenPor: 'email',
-        filtro: {
-            tipo: 'texto',
-            clave: 'email',
-            marcador: trans('comun.buscar'),
-        },
         prioritaria: true,
         anchoMinimo: '16rem',
     },
@@ -59,8 +61,8 @@ const columnas = computed((): ColumnaDeTabla<Usuario>[] => [
         id: 'rol',
         etiqueta: trans('gestion.usuarios.rol_global'),
         valor: (usuario) => usuario.rol_global,
+        ajustada: true,
         prioritaria: true,
-        anchoMinimo: '10rem',
     },
     {
         id: 'estado',
@@ -82,8 +84,17 @@ const columnas = computed((): ColumnaDeTabla<Usuario>[] => [
         etiqueta: trans('comun.acciones'),
         alineacion: 'derecha',
         ajustada: true,
+        // En la tarjeta de móvil las acciones se ven sin desplegar «Ver más».
+        prioritaria: true,
     },
 ]);
+
+/** El rol se reconoce por el icono antes de leerlo. */
+const ICONO_DE_ROL: Record<string, Component> = {
+    administrador: ShieldCheck,
+    miembro: UserRound,
+    invitado: Eye,
+};
 
 const abrir = (usuario: Usuario): void => {
     router.visit(edit(usuario.id).url);
@@ -95,6 +106,7 @@ const abrir = (usuario: Usuario): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="Users"
             :titulo="$t('gestion.usuarios.titulo')"
             :descripcion="$t('gestion.usuarios.sin_registro_publico')"
         >
@@ -117,6 +129,10 @@ const abrir = (usuario: Usuario): void => {
             :columnas-visibles="props.columnasVisibles"
             :paginacion="props.usuarios"
             :etiqueta="$t('gestion.usuarios.titulo')"
+            :busqueda="{
+                clave: 'buscar',
+                marcador: $t('gestion.usuarios.buscar'),
+            }"
             :vacio="{
                 titulo: $t('gestion.usuarios.sin_usuarios'),
                 cuerpo: $t('gestion.usuarios.sin_usuarios_ayuda'),
@@ -141,19 +157,29 @@ const abrir = (usuario: Usuario): void => {
             </template>
 
             <template #celda-correo="{ fila }">
-                <span class="text-texto-suave">{{ fila.email }}</span>
+                <span class="break-all text-texto-suave">{{ fila.email }}</span>
             </template>
 
             <template #celda-rol="{ fila }">
-                {{
-                    fila.rol_global
-                        ? $t(`enums.rol_global.${fila.rol_global}`)
-                        : '—'
-                }}
+                <Badge
+                    v-if="fila.rol_global"
+                    :variant="tonoDeRolGlobal(fila.rol_global)"
+                >
+                    <component
+                        :is="ICONO_DE_ROL[fila.rol_global] ?? UserRound"
+                        aria-hidden="true"
+                    />
+                    {{ $t(`enums.rol_global.${fila.rol_global}`) }}
+                </Badge>
+                <span v-else class="text-texto-tenue">—</span>
             </template>
 
             <template #celda-estado="{ fila }">
-                <Badge :variant="fila.activo ? 'secondary' : 'outline'">
+                <Badge :variant="tonoDeActivo(fila.activo)">
+                    <span
+                        class="size-1.5 rounded-full bg-current"
+                        aria-hidden="true"
+                    />
                     {{
                         fila.activo
                             ? $t('gestion.usuarios.activo')
@@ -163,28 +189,28 @@ const abrir = (usuario: Usuario): void => {
             </template>
 
             <template #celda-acciones="{ fila }">
-                <div class="flex items-center justify-end gap-corto">
-                    <Button as-child variant="ghost" size="sm">
-                        <Link :href="edit(fila.id)">{{
-                            $t('comun.editar')
-                        }}</Link>
-                    </Button>
+                <div class="flex items-center justify-end gap-minimo">
+                    <BotonDeAccion
+                        :href="edit(fila.id)"
+                        :icono="Pencil"
+                        tono="info"
+                        :etiqueta="$t('gestion.usuarios.editar')"
+                    />
                     <Form
                         v-bind="EstadoUsuarioController.update.form(fila.id)"
                         v-slot="{ processing }"
                     >
-                        <Button
-                            variant="outline"
-                            size="sm"
+                        <BotonDeAccion
                             type="submit"
                             :disabled="processing"
-                        >
-                            {{
+                            :icono="fila.activo ? UserX : UserCheck"
+                            :tono="fila.activo ? 'aviso' : 'exito'"
+                            :etiqueta="
                                 fila.activo
                                     ? $t('gestion.usuarios.desactivar')
                                     : $t('gestion.usuarios.activar')
-                            }}
-                        </Button>
+                            "
+                        />
                     </Form>
                 </div>
             </template>

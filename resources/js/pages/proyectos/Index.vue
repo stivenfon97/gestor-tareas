@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Eye, FolderGit2, ListChecks } from '@lucide/vue';
 import { computed } from 'vue';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
@@ -8,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatearFecha } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
+import { tonoDeEstadoProyecto } from '@/lib/tonos';
 import { create, index, show } from '@/routes/proyectos';
 import { index as tareasIndex } from '@/routes/tareas';
 import type { RespuestaPaginada } from '@/types/paginacion';
@@ -40,11 +43,6 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
         ordenPor: 'nombre',
         fija: true,
         anclada: true,
-        filtro: {
-            tipo: 'texto',
-            clave: 'nombre',
-            marcador: trans('comun.buscar'),
-        },
         // Titular de la tarjeta en móvil.
         principal: true,
         anchoMinimo: '16rem',
@@ -91,8 +89,8 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
                 etiqueta: trans(opcion.etiqueta),
             })),
         },
+        ajustada: true,
         prioritaria: true,
-        anchoMinimo: '8rem',
     },
     {
         id: 'creado',
@@ -103,6 +101,14 @@ const columnas = computed((): ColumnaDeTabla<Proyecto>[] => [
         // Nace oculta: solo interesa al ordenar por antigüedad.
         ocultaPorDefecto: true,
         anchoMinimo: '8rem',
+    },
+    {
+        id: 'acciones',
+        etiqueta: trans('comun.acciones'),
+        alineacion: 'derecha',
+        ajustada: true,
+        // En la tarjeta de móvil las acciones se ven sin desplegar «Ver más».
+        prioritaria: true,
     },
 ]);
 
@@ -117,6 +123,9 @@ const abrir = (proyecto: Proyecto): void => {
  */
 const ESTADOS_ABIERTOS = ['pendiente', 'en_proceso', 'en_espera'];
 
+const tareasDelProyecto = (id: number): string =>
+    `${tareasIndex().url}?filter[proyecto_id]=${id}`;
+
 const tareasAbiertasDe = (id: number): string =>
     `${tareasIndex().url}?filter[proyecto_id]=${id}&filter[estado]=${ESTADOS_ABIERTOS.join(',')}`;
 </script>
@@ -126,6 +135,7 @@ const tareasAbiertasDe = (id: number): string =>
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="FolderGit2"
             :titulo="$t('proyectos.titulo')"
             :descripcion="$t('proyectos.descripcion_listado')"
         >
@@ -146,6 +156,7 @@ const tareasAbiertasDe = (id: number): string =>
             :columnas-visibles="props.columnasVisibles"
             :paginacion="props.proyectos"
             :etiqueta="$t('proyectos.titulo')"
+            :busqueda="{ clave: 'buscar', marcador: $t('proyectos.buscar') }"
             :vacio="{
                 titulo: $t('proyectos.sin_proyectos'),
                 cuerpo: $t('proyectos.sin_proyectos_ayuda'),
@@ -195,9 +206,29 @@ const tareasAbiertasDe = (id: number): string =>
             </template>
 
             <template #celda-estado="{ fila }">
-                <span class="text-texto-suave">
+                <Badge :variant="tonoDeEstadoProyecto(fila.estado)">
+                    <span
+                        class="size-1.5 rounded-full bg-current"
+                        aria-hidden="true"
+                    />
                     {{ $t(`enums.estado_proyecto.${fila.estado}`) }}
-                </span>
+                </Badge>
+            </template>
+
+            <template #celda-acciones="{ fila }">
+                <div class="flex items-center justify-end gap-minimo">
+                    <BotonDeAccion
+                        :href="show(fila.id)"
+                        :icono="Eye"
+                        :etiqueta="$t('proyectos.ver')"
+                    />
+                    <BotonDeAccion
+                        :href="tareasDelProyecto(fila.id)"
+                        :icono="ListChecks"
+                        tono="info"
+                        :etiqueta="$t('proyectos.ver_tareas')"
+                    />
+                </div>
             </template>
         </TablaDatos>
     </div>

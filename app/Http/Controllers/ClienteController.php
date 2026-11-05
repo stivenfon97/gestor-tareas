@@ -10,6 +10,7 @@ use App\Models\Cliente;
 use App\Models\Periodo;
 use App\Models\Proyecto;
 use App\Models\Tarea;
+use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
@@ -38,6 +39,7 @@ class ClienteController extends Controller
             ->allowedFilters(
                 AllowedFilter::partial('nombre'),
                 AllowedFilter::exact('activo'),
+                AllowedFilter::custom('buscar', new BuscarEnColumnas(['nombre', 'contacto_nombre', 'contacto_email'])),
             )
             ->defaultSort('nombre')
             // Varios campos separados por coma (`sort=-created_at,nombre`) son

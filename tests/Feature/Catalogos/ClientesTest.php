@@ -211,3 +211,15 @@ it('deja fuera del listado de proyectos del miembro los que no son suyos', funct
     expect($ids)->toBe([$mio->id])
         ->and($ids)->not->toContain($ajeno->id);
 });
+
+it('la búsqueda del listado de clientes recorre nombre, contacto y correo', function (string $termino) {
+    Cliente::factory()->create(['nombre' => 'Textiles Bonanza S.A.S.', 'contacto_nombre' => 'Rosa Pinzón', 'contacto_email' => 'rosa@bonanza.co']);
+    Cliente::factory()->create(['nombre' => 'Agrícola La Esperanza Ltda.', 'contacto_nombre' => 'Iván Mora', 'contacto_email' => 'ivan@esperanza.co']);
+
+    $respuesta = $this->actingAs($this->miembro)
+        ->get(route('clientes.index', ['filter' => ['buscar' => $termino]]))
+        ->assertOk();
+
+    expect(collect($respuesta->viewData('page')['props']['clientes']['data'])->pluck('nombre')->all())
+        ->toBe(['Textiles Bonanza S.A.S.']);
+})->with(['nombre' => 'bonanza', 'contacto' => 'pinzón', 'correo' => 'rosa@']);

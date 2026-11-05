@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
+import { Building2, Eye, Pencil, Power, PowerOff } from '@lucide/vue';
 import { computed } from 'vue';
 import EstadoClienteController from '@/actions/App/Http/Controllers/EstadoClienteController';
+import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { trans } from '@/lib/i18n';
-import { create, index, show } from '@/routes/clientes';
+import { tonoDeActivo } from '@/lib/tonos';
+import { create, edit, index, show } from '@/routes/clientes';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
 type Cliente = {
@@ -37,11 +40,6 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
         ordenPor: 'nombre',
         fija: true,
         anclada: true,
-        filtro: {
-            tipo: 'texto',
-            clave: 'nombre',
-            marcador: trans('comun.buscar'),
-        },
         principal: true,
         anchoMinimo: '16rem',
     },
@@ -99,6 +97,8 @@ const columnas = computed((): ColumnaDeTabla<Cliente>[] => [
         etiqueta: trans('comun.acciones'),
         alineacion: 'derecha',
         ajustada: true,
+        // En la tarjeta de móvil las acciones se ven sin desplegar «Ver más».
+        prioritaria: true,
     },
 ]);
 
@@ -112,6 +112,7 @@ const abrir = (cliente: Cliente): void => {
 
     <div class="flex flex-col gap-seccion">
         <CabeceraDePagina
+            :icono="Building2"
             :titulo="$t('clientes.titulo')"
             :descripcion="$t('clientes.nota_desactivar')"
         >
@@ -132,6 +133,7 @@ const abrir = (cliente: Cliente): void => {
             :columnas-visibles="props.columnasVisibles"
             :paginacion="props.clientes"
             :etiqueta="$t('clientes.titulo')"
+            :busqueda="{ clave: 'buscar', marcador: $t('clientes.buscar') }"
             :vacio="{
                 titulo: $t('clientes.sin_clientes'),
                 cuerpo: $t('clientes.sin_clientes_ayuda'),
@@ -160,13 +162,17 @@ const abrir = (cliente: Cliente): void => {
             </template>
 
             <template #celda-correo="{ fila }">
-                <span class="text-texto-suave">{{
+                <span class="break-all text-texto-suave">{{
                     fila.contacto_email ?? '—'
                 }}</span>
             </template>
 
             <template #celda-estado="{ fila }">
-                <Badge :variant="fila.activo ? 'secondary' : 'outline'">
+                <Badge :variant="tonoDeActivo(fila.activo)">
+                    <span
+                        class="size-1.5 rounded-full bg-current"
+                        aria-hidden="true"
+                    />
                     {{
                         fila.activo
                             ? $t('clientes.activo')
@@ -197,24 +203,37 @@ const abrir = (cliente: Cliente): void => {
                      parece a nada en lo que se pueda pulsar. La etiqueta dice
                      **qué va a pasar**, no en qué estado está: en un cliente
                      inactivo pone «Activar». -->
-                <Form
-                    v-if="props.puede.crear"
-                    v-bind="EstadoClienteController.update.form(fila.id)"
-                    v-slot="{ processing }"
-                >
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        type="submit"
-                        :disabled="processing"
+                <div class="flex items-center justify-end gap-minimo">
+                    <BotonDeAccion
+                        :href="show(fila.id)"
+                        :icono="Eye"
+                        :etiqueta="$t('clientes.ver')"
+                    />
+                    <BotonDeAccion
+                        v-if="props.puede.crear"
+                        :href="edit(fila.id)"
+                        :icono="Pencil"
+                        tono="info"
+                        :etiqueta="$t('clientes.editar')"
+                    />
+                    <Form
+                        v-if="props.puede.crear"
+                        v-bind="EstadoClienteController.update.form(fila.id)"
+                        v-slot="{ processing }"
                     >
-                        {{
-                            fila.activo
-                                ? $t('clientes.desactivar')
-                                : $t('clientes.activar')
-                        }}
-                    </Button>
-                </Form>
+                        <BotonDeAccion
+                            type="submit"
+                            :disabled="processing"
+                            :icono="fila.activo ? PowerOff : Power"
+                            :tono="fila.activo ? 'aviso' : 'exito'"
+                            :etiqueta="
+                                fila.activo
+                                    ? $t('clientes.desactivar')
+                                    : $t('clientes.activar')
+                            "
+                        />
+                    </Form>
+                </div>
             </template>
         </TablaDatos>
     </div>

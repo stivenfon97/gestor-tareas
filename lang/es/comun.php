@@ -95,5 +95,13 @@ return [
         // las columnas prioritarias, y el resto detrás de esto.
         'opciones' => 'Opciones',
         'ver_mas' => 'Ver más',
+        'ver_mas' => 'Ver más',
+        'limpiar_busqueda' => 'Borrar la búsqueda',
+        'buscar_opcion' => 'Buscar…',
+        'sin_opciones' => 'Ninguna opción coincide.',
+        'mostrando' => 'Mostrando :desde–:hasta de :total',
+        'primera_pagina' => 'Primera página',
+        'ultima_pagina' => 'Última página',
+        'quitar_filtro_de' => 'Quitar el filtro de :columna',
     ],
 ];
