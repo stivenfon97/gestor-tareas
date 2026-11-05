@@ -30,9 +30,7 @@ defineProps<{
                         <div
                             class="mb-1 flex h-9 w-9 items-center justify-center rounded-md"
                         >
-                            <AppLogoIcon
-                                class="size-9 fill-current text-[var(--foreground)] dark:text-white"
-                            />
+                            <AppLogoIcon class="size-9 text-marca" />
                         </div>
                         <span class="sr-only">{{ $t(title ?? '') }}</span>
                     </Link>

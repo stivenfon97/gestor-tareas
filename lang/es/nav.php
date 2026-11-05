@@ -10,6 +10,4 @@ return [
     'proyectos' => 'Proyectos',
     'usuarios' => 'Usuarios',
     'equipos' => 'Equipos',
-    'repositorio' => 'Repositorio',
-    'documentacion' => 'Documentación',
 ];

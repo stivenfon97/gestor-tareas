@@ -221,6 +221,45 @@
     --color-prioridad-media: var(--prioridad-media);
     --color-prioridad-alta: var(--prioridad-alta);
     --color-prioridad-critica: var(--prioridad-critica);
+
+    /*
+     * Tonos de categoría para todo lo que no es el estado de una tarea: estado
+     * de un cliente o un usuario, rol, estado de un proyecto o de un periodo.
+     * Son las mismas familias que los estados —así heredan sus pares claro y
+     * oscuro y su contraste de 4.5:1— con un nombre que dice qué comunican,
+     * no a qué estado de tarea se parecen. Los consumen las variantes de
+     * `Badge` y `BotonDeAccion`.
+     */
+    --color-tono-exito-fondo: var(--estado-terminada-fondo);
+    --color-tono-exito-texto: var(--estado-terminada-texto);
+    --color-tono-exito-borde: var(--estado-terminada-borde);
+
+    --color-tono-aviso-fondo: var(--estado-pendiente-fondo);
+    --color-tono-aviso-texto: var(--estado-pendiente-texto);
+    --color-tono-aviso-borde: var(--estado-pendiente-borde);
+
+    --color-tono-info-fondo: var(--estado-en-proceso-fondo);
+    --color-tono-info-texto: var(--estado-en-proceso-texto);
+    --color-tono-info-borde: var(--estado-en-proceso-borde);
+
+    --color-tono-acento-fondo: var(--estado-entregada-fondo);
+    --color-tono-acento-texto: var(--estado-entregada-texto);
+    --color-tono-acento-borde: var(--estado-entregada-borde);
+
+    --color-tono-peligro-fondo: var(--estado-cancelada-fondo);
+    --color-tono-peligro-texto: var(--estado-cancelada-texto);
+    --color-tono-peligro-borde: var(--estado-cancelada-borde);
+
+    --color-tono-neutro-fondo: var(--estado-en-espera-fondo);
+    --color-tono-neutro-texto: var(--estado-en-espera-texto);
+    --color-tono-neutro-borde: var(--estado-en-espera-borde);
+
+    --color-tono-exito-solido: var(--tono-exito-solido);
+    --color-tono-aviso-solido: var(--tono-aviso-solido);
+    --color-tono-info-solido: var(--tono-info-solido);
+    --color-tono-acento-solido: var(--tono-acento-solido);
+    --color-tono-peligro-solido: var(--tono-peligro-solido);
+    --color-tono-neutro-solido: var(--tono-neutro-solido);
 }
 
 /*
@@ -257,13 +296,20 @@
     --marca-contraste: hsl(0 0% 100%);
     --marca-suave: hsl(152 76% 95%);
 
-    /* Superficies: stone, de fondo de página a capa flotante. */
-    --fondo: hsl(60 9% 98%);
-    --panel: hsl(0 0% 100%);
-    --panel-cabecera: hsl(60 6% 97%);
-    --panel-flotante: hsl(0 0% 100%);
-    --fila-hover: hsl(60 5% 95%);
-    --fila-activa: hsl(24 6% 91%);
+    /*
+     * Superficies: stone cálido, de fondo de página a capa flotante.
+     *
+     * **Ninguna es blanco puro.** Con el fondo a 98% y los paneles a 100% la
+     * pantalla deslumbraba y las tablas no se separaban del fondo: el claro
+     * ahora arranca en 93.5% y sube unos tres puntos por escalón, igual que
+     * el oscuro baja.
+     */
+    --fondo: hsl(40 8% 93.5%);
+    --panel: hsl(40 14% 98%);
+    --panel-cabecera: hsl(40 9% 95.5%);
+    --panel-flotante: hsl(40 14% 98.5%);
+    --fila-hover: hsl(40 8% 94%);
+    --fila-activa: hsl(36 9% 90%);
 
     /*
      * Dos pesos de borde. El fuerte es solo para el canto exterior del panel,
@@ -271,8 +317,8 @@
      * oscuro. Los divisores de fila van con el suave, a bajo contraste: un
      * divisor que se ve mucho compite con los datos.
      */
-    --borde: hsl(24 6% 90%);
-    --borde-fuerte: hsl(24 6% 80%);
+    --borde: hsl(30 8% 87%);
+    --borde-fuerte: hsl(30 6% 78%);
 
     --texto: hsl(24 10% 10%);
     --texto-suave: hsl(25 5% 40%);
@@ -295,9 +341,9 @@
     --popover-foreground: var(--texto);
     --primary: var(--marca);
     --primary-foreground: var(--marca-contraste);
-    --secondary: hsl(60 5% 94%);
+    --secondary: hsl(40 7% 91%);
     --secondary-foreground: var(--texto);
-    --muted: hsl(60 5% 96%);
+    --muted: hsl(40 7% 92.5%);
     --muted-foreground: var(--texto-suave);
     --accent: var(--fila-hover);
     --accent-foreground: var(--texto);
@@ -311,15 +357,16 @@
     --chart-3: hsl(43 96% 46%);
     --chart-4: hsl(269 75% 55%);
     --chart-5: hsl(25 95% 45%);
-    --sidebar-background: var(--panel-cabecera);
+    /* El menú lateral, un escalón por debajo del fondo: enmarca sin brillar. */
+    --sidebar-background: hsl(40 8% 91%);
     --sidebar-foreground: var(--texto-suave);
     --sidebar-primary: var(--marca);
     --sidebar-primary-foreground: var(--marca-contraste);
-    --sidebar-accent: var(--fila-hover);
+    --sidebar-accent: hsl(36 8% 86%);
     --sidebar-accent-foreground: var(--texto);
     --sidebar-border: var(--borde);
     --sidebar-ring: var(--marca);
-    --sidebar: var(--panel-cabecera);
+    --sidebar: hsl(40 8% 91%);
 
     /*
      * Estados. Solo el estado lleva relleno de color: el tipo va como icono
@@ -359,6 +406,20 @@
     --prioridad-media: hsl(43 96% 56%);
     --prioridad-alta: hsl(25 95% 53%);
     --prioridad-critica: hsl(0 72% 51%);
+
+    /*
+     * Tono sólido: el color de un icono de acción. El `-texto` de cada tono
+     * está pensado para ir sobre su `-fondo` y en claro es casi negro; un
+     * icono suelto sobre el panel necesita el color medio de la familia para
+     * reconocerse. Todos superan 3:1 sobre `--panel` (contraste de objeto
+     * gráfico, WCAG 1.4.11).
+     */
+    --tono-exito-solido: hsl(142 72% 30%);
+    --tono-aviso-solido: hsl(32 95% 38%);
+    --tono-info-solido: hsl(221 83% 48%);
+    --tono-acento-solido: hsl(270 60% 50%);
+    --tono-peligro-solido: hsl(0 72% 45%);
+    --tono-neutro-solido: hsl(25 5% 40%);
 }
 
 .dark {
@@ -453,6 +514,13 @@
     --prioridad-media: hsl(43 90% 50%);
     --prioridad-alta: hsl(25 90% 55%);
     --prioridad-critica: hsl(0 75% 58%);
+
+    --tono-exito-solido: hsl(142 69% 58%);
+    --tono-aviso-solido: hsl(38 92% 60%);
+    --tono-info-solido: hsl(213 94% 68%);
+    --tono-acento-solido: hsl(270 90% 75%);
+    --tono-peligro-solido: hsl(0 84% 66%);
+    --tono-neutro-solido: hsl(24 5% 68%);
 }
 
 @layer base {
