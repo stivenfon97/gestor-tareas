@@ -49,3 +49,6 @@ El dueño del producto los vio estrechos y con un salto de línea entre el icono
 
 ## Un tamaño de texto nuevo en el tema se registra también en cn()
 `cn()` (`lib/utils.ts`) usa `extendTailwindMerge` con la escala `--text-*` del tema (micro, fino, cuerpo, medio, alto, cima). Sin eso, tailwind-merge toma `text-micro` por un color y lo descarta en cuanto llega un `text-<token>-texto`, y el tamaño desaparece sin aviso (así salían los badges de estado «pequeños» a tamaño normal). Si añades un `--text-*` a app.css, añádelo a esa lista.
+
+## Ningún comentario HTML dentro del slot #item de vuedraggable
+vuedraggable exige que `<template #item>` tenga un solo hijo. En desarrollo Vue conserva los comentarios `<!-- -->` como nodos, así que un comentario dentro del slot rompe la lista con «Item slot must have only one child» (traza en rojo dentro del contenedor). En el build de producción los comentarios se eliminan y no falla: por eso pasa `make humo` y las capturas sobre el build. El comentario va encima del `<draggable>`. Pasó en `proyectos/Modulos.vue`.

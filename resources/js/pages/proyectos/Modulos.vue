@@ -224,6 +224,13 @@ const confirmarEliminar = (): void => {
             </div>
 
             <div class="rounded-lg border border-border p-2">
+                <!--
+                    La clave es el id, nunca el índice. Este comentario va aquí
+                    y no dentro de `#item`: vuedraggable exige que el slot tenga
+                    un solo hijo, y en desarrollo Vue conserva los comentarios
+                    como nodos («Item slot must have only one child»). En el
+                    build de producción se eliminan, así que solo falla en dev.
+                -->
                 <draggable
                     v-model="arbol"
                     :group="{ name: 'modulos' }"
@@ -235,7 +242,6 @@ const confirmarEliminar = (): void => {
                     @change="reordenar"
                 >
                     <template #item="{ element }">
-                        <!-- La clave es el id, nunca el índice. -->
                         <ModuloNodo
                             :key="element.id"
                             v-model:hijos="element.hijos"
