@@ -9,6 +9,7 @@ use App\Http\Requests\Gestion\AsignarUsuarioAProyectoRequest;
 use App\Models\Equipo;
 use App\Models\Proyecto;
 use App\Models\User;
+use App\Services\PresentarCabeceraDeProyecto;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -22,11 +23,12 @@ use Inertia\Response;
  */
 class ProyectoUsuarioController extends Controller
 {
-    public function index(Proyecto $proyecto): Response
+    public function index(Request $request, Proyecto $proyecto): Response
     {
         Gate::authorize('gestionarMiembros', $proyecto);
 
         return Inertia::render('proyectos/Miembros', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug']),
             'miembros' => $proyecto->usuarios()->orderBy('name')->get(['users.id', 'name', 'email'])
                 ->map(fn (User $usuario): array => [

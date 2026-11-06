@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Banknote, Eye } from '@lucide/vue';
 import { computed } from 'vue';
 import BotonDeAccion from '@/components/BotonDeAccion.vue';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,6 @@ import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { tonoDeOrigenTasa } from '@/lib/tonos';
 import { show as mostrarPago } from '@/routes/pagos';
-import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create, index } from '@/routes/proyectos/pagos';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
@@ -121,24 +120,15 @@ const columnas = computed((): ColumnaDeTabla<FilaPago>[] => [
     <Head :title="$t('recursos.pagos')" />
 
     <div class="flex flex-col gap-seccion">
-        <CabeceraDePagina
-            :icono="Banknote"
-            :titulo="$t('recursos.pagos')"
-            :descripcion="props.proyecto.nombre"
-        >
+        <EncabezadoDeSeccion :icono="Banknote" :titulo="$t('recursos.pagos')">
             <template #acciones>
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
-                        $t('comun.volver')
-                    }}</Link>
-                </Button>
                 <Button v-if="props.puede.registrar" as-child size="sm">
                     <Link :href="create(props.proyecto.id)">{{
                         $t('pagos.registrar')
                     }}</Link>
                 </Button>
             </template>
-        </CabeceraDePagina>
+        </EncabezadoDeSeccion>
 
         <TablaDatos
             :url="index(props.proyecto.id).url"

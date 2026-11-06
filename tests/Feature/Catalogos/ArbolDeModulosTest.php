@@ -282,7 +282,9 @@ it('carga el árbol con un número acotado de consultas, no una por nodo', funct
 
     // Sesión, usuario, permisos, proyecto, autorización, módulos y tareas.
     // El techo es holgado a propósito, pero muy por debajo del número de nodos.
-    expect($consultas)->toBeLessThanOrEqual(15);
+    // Incluye las consultas fijas de la cabecera del proyecto
+    // (`PresentarCabeceraDeProyecto`: una policy por pestaña).
+    expect($consultas)->toBeLessThanOrEqual(25);
 });
 
 it('niega al colaborador crear, renombrar, reordenar o borrar módulos', function () {

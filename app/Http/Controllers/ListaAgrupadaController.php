@@ -16,6 +16,7 @@ use App\Services\ArbolDeModulos;
 use App\Services\ArmarTablero;
 use App\Services\EstadoEnLaUrl;
 use App\Services\FiltrosDeTareas;
+use App\Services\PresentarCabeceraDeProyecto;
 use App\Services\VistasGuardadas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,6 +61,7 @@ class ListaAgrupadaController extends Controller
         $rutas = ArbolDeModulos::rutasDe($proyecto);
 
         return Inertia::render('tareas/Lista', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'agrupacion' => $agrupacion->value,
             'agrupaciones' => array_map(static fn (AgrupacionTablero $caso): array => [

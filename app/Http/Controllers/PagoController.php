@@ -14,6 +14,7 @@ use App\Services\BuscarEnColumnas;
 use App\Services\ConsultarTrm;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
+use App\Services\PresentarCabeceraDeProyecto;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,6 +58,7 @@ class PagoController extends Controller
             ]);
 
         return Inertia::render('pagos/Index', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'pagos' => $pagos,
             'filtros' => EstadoEnLaUrl::filtros($request),

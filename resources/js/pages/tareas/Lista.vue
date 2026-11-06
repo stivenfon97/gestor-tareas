@@ -2,7 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown, ListTree } from '@lucide/vue';
 import { computed, ref } from 'vue';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import FilaDeTarea from '@/components/tareas/FilaDeTarea.vue';
 import PanelDeFiltrosDeTareas from '@/components/tareas/PanelDeFiltrosDeTareas.vue';
@@ -17,7 +17,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { show as mostrarProyecto } from '@/routes/proyectos';
 import { create } from '@/routes/proyectos/tareas';
 import type { OpcionesDeTarea } from '@/types/tareas';
 import type {
@@ -103,19 +102,10 @@ const vacia = computed(() => props.grupos.every((grupo) => grupo.total === 0));
     <Head :title="$t('tablero.lista.titulo')" />
 
     <div class="flex min-w-0 flex-col gap-seccion">
-        <CabeceraDePagina
+        <EncabezadoDeSeccion
             :icono="ListTree"
             :titulo="$t('tablero.lista.titulo')"
-            :descripcion="props.proyecto.nombre"
         >
-            <template #acciones>
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
-                        $t('comun.volver')
-                    }}</Link>
-                </Button>
-            </template>
-
             <template #meta>
                 <SelectorDeVista
                     :proyecto="props.proyecto"
@@ -129,7 +119,7 @@ const vacia = computed(() => props.grupos.every((grupo) => grupo.total === 0));
                     :configuracion-actual="configuracionActual"
                 />
             </template>
-        </CabeceraDePagina>
+        </EncabezadoDeSeccion>
 
         <div class="flex flex-wrap items-center gap-corto">
             <div class="flex items-center gap-fino">

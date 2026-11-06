@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Layers, Network } from '@lucide/vue';
 import { ref, watch } from 'vue';
 import draggable from 'vuedraggable';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import InputError from '@/components/InputError.vue';
 import ModuloNodo from '@/components/modulos/ModuloNodo.vue';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { destroy, update } from '@/routes/modulos';
-import { show } from '@/routes/proyectos';
 import { orden, store } from '@/routes/proyectos/modulos';
 import type { NivelDeModulos, NodoModulo } from '@/types/modulos';
 
@@ -195,19 +194,12 @@ const confirmarEliminar = (): void => {
         <Head :title="$t('modulos.titulo')" />
 
         <div class="flex flex-col gap-6">
-            <CabeceraDePagina
+            <EncabezadoDeSeccion
                 :icono="Network"
                 :titulo="$t('modulos.titulo')"
                 :descripcion="$t('modulos.descripcion')"
             >
-                <template #acciones>
-                    <Button as-child variant="ghost" size="sm">
-                        <Link :href="show(props.proyecto.id)">{{
-                            $t('comun.volver')
-                        }}</Link>
-                    </Button>
-                </template>
-            </CabeceraDePagina>
+            </EncabezadoDeSeccion>
 
             <div v-if="props.puede.gestionar" class="grid gap-2">
                 <Label for="modulo_raiz">{{ $t('modulos.crear_raiz') }}</Label>

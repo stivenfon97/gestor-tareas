@@ -244,7 +244,7 @@ it('niega el borrado a un líder y se lo permite al administrador, en suave', fu
         ->and(Proyecto::withTrashed()->whereKey($proyecto->id)->exists())->toBeTrue();
 });
 
-it('devuelve el concentrador del proyecto con su resumen y sin datos de relleno', function () {
+it('devuelve el resumen del proyecto sin datos de relleno', function () {
     $proyecto = Proyecto::factory()->for($this->cliente)->create();
 
     $lider = usuarioCon(RolGlobal::Miembro);
@@ -256,9 +256,8 @@ it('devuelve el concentrador del proyecto con su resumen y sin datos de relleno'
 
     $props = $respuesta->viewData('page')['props'];
 
-    expect($props['proyecto']['modulos_count'])->toBe(0)
-        // Diferido desde la fase 09: no llega en la respuesta inicial.
-        ->and($props)->not->toHaveKey('resumen');
+    // Diferido desde la fase 09: no llega en la respuesta inicial.
+    expect($props)->not->toHaveKey('resumen');
 
     // El resumen sí llega en la recarga parcial que dispara `<Deferred>`.
     $respuesta->assertInertia(
@@ -300,4 +299,42 @@ it('la búsqueda no le enseña a un miembro proyectos en los que no participa', 
 
     expect(collect($respuesta->viewData('page')['props']['proyectos']['data'])->pluck('nombre')->all())
         ->toBe(['Portal Propio']);
+});
+
+/* ------------------------------------------------ cabecera y pestañas */
+
+it('comparte la cabecera del proyecto en cada sección con las pestañas que su rol puede abrir', function () {
+    $proyecto = Proyecto::factory()->for($this->cliente)->create();
+
+    $lider = usuarioCon(RolGlobal::Miembro);
+    asignarAProyecto($lider, $proyecto, RolProyecto::Lider);
+
+    $colaborador = usuarioCon(RolGlobal::Miembro);
+    asignarAProyecto($colaborador, $proyecto, RolProyecto::Colaborador);
+
+    $pestanasDe = fn ($usuario, string $ruta): array => $this->actingAs($usuario)
+        ->get(route($ruta, $proyecto))
+        ->assertOk()
+        ->viewData('page')['props']['cabeceraDeProyecto']['pestanas'];
+
+    // La misma cabecera en el resumen y en una sección cualquiera.
+    expect($pestanasDe($lider, 'proyectos.show'))->toBe($pestanasDe($lider, 'proyectos.periodos.index'))
+        ->and($pestanasDe($lider, 'proyectos.show')['equipo'])->toBeTrue();
+
+    // Equipo solo se lista para quien puede abrir su ruta: al colaborador le da 403.
+    expect($pestanasDe($colaborador, 'proyectos.modulos.index')['equipo'])->toBeFalse();
+    $this->actingAs($colaborador)->get(route('proyectos.miembros.index', $proyecto))->assertForbidden();
+});
+
+it('lleva un enlace antiguo con ?seccion= a la ruta de su sección', function () {
+    $proyecto = Proyecto::factory()->for($this->cliente)->create();
+
+    $this->actingAs($this->administrador)
+        ->get(route('proyectos.show', [$proyecto, 'seccion' => 'bitacora']))
+        ->assertRedirect(route('proyectos.reuniones.index', $proyecto));
+
+    // Una sección inventada no redirige a ningún sitio: abre el resumen.
+    $this->actingAs($this->administrador)
+        ->get(route('proyectos.show', [$proyecto, 'seccion' => 'inventada']))
+        ->assertOk();
 });

@@ -16,6 +16,7 @@ use App\Models\Proyecto;
 use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
+use App\Services\PresentarCabeceraDeProyecto;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -63,6 +64,7 @@ class PeriodoController extends Controller
         $abierto = $proyecto->periodoAbierto()->first(['id', 'consecutivo']);
 
         return Inertia::render('periodos/Index', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'periodos' => $periodos,
             'filtros' => EstadoEnLaUrl::filtros($request),

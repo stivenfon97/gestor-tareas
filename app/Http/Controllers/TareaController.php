@@ -22,6 +22,7 @@ use App\Services\CambiarEstadoTarea;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use App\Services\FiltrosDeTareas;
+use App\Services\PresentarCabeceraDeProyecto;
 use App\Services\ResolverRolProyecto;
 use App\Services\VistasGuardadas;
 use Illuminate\Database\Eloquent\Builder;
@@ -79,6 +80,7 @@ class TareaController extends Controller
             ->through(fn (Tarea $tarea): array => $this->comoFila($tarea, $rutas));
 
         return Inertia::render('tareas/Index', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'tareas' => $tareas,
             'filtros' => EstadoEnLaUrl::filtros($request),

@@ -3,6 +3,7 @@ import { I18n, i18nVue } from 'laravel-vue-i18n';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import ProyectoLayout from '@/layouts/proyecto/Layout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { instalarModoEstricto } from '@/lib/i18n';
@@ -38,6 +39,26 @@ const mensajesDe = (lang: string): Record<string, string> => ({
     ...diccionarios[`../../lang/${lang}.json`],
 });
 
+/**
+ * Secciones de un proyecto: comparten cabecera y pestañas en un layout
+ * persistente (`layouts/proyecto/Layout.vue`), así que cambiar de pestaña no
+ * vuelve a montar la cabecera. `tareas/Index` es también el listado global;
+ * sin `cabeceraDeProyecto` en las props el layout no pinta nada propio.
+ */
+const PAGINAS_DE_PROYECTO = [
+    'proyectos/Show',
+    'proyectos/Modulos',
+    'proyectos/Miembros',
+    'tareas/Index',
+    'tareas/Tablero',
+    'tareas/Lista',
+    'tareas/Agenda',
+    'periodos/Index',
+    'pagos/Index',
+    'reuniones/Listado',
+    'reportes/Index',
+];
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {
@@ -46,6 +67,8 @@ createInertiaApp({
                 return AuthLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
+            case PAGINAS_DE_PROYECTO.includes(name):
+                return [AppLayout, ProyectoLayout];
             default:
                 return AppLayout;
         }

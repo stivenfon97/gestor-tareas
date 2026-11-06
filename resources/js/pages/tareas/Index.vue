@@ -4,6 +4,7 @@ import { ListChecks } from '@lucide/vue';
 import { computed } from 'vue';
 import { toast } from 'vue-sonner';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import type { OrdenDeColumna } from '@/components/TablaDatos';
@@ -290,21 +291,15 @@ const enLote = async (
     <Head :title="esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')" />
 
     <div class="flex flex-col gap-seccion">
-        <CabeceraDePagina
+        <!-- Dentro de un proyecto la cabecera es la del proyecto (su layout)
+             y aquí solo va el subtítulo; el listado global es su propia página. -->
+        <component
+            :is="esGlobal ? CabeceraDePagina : EncabezadoDeSeccion"
             :icono="ListChecks"
             :titulo="esGlobal ? $t('tareas.todas.titulo') : $t('tareas.titulo')"
-            :descripcion="
-                esGlobal
-                    ? $t('tareas.todas.descripcion')
-                    : (props.proyecto?.nombre ?? null)
-            "
+            :descripcion="esGlobal ? $t('tareas.todas.descripcion') : null"
         >
             <template v-if="props.proyecto" #acciones>
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
-                        $t('comun.volver')
-                    }}</Link>
-                </Button>
                 <template v-if="props.puede.crear">
                     <Button as-child variant="outline" size="sm">
                         <Link :href="capturaRapida(props.proyecto.id)">
@@ -332,7 +327,7 @@ const enLote = async (
                     :configuracion-actual="configuracionActual"
                 />
             </template>
-        </CabeceraDePagina>
+        </component>
 
         <TablaDatos
             :url="props.proyecto ? index(props.proyecto.id).url : listado().url"

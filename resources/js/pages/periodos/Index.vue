@@ -9,7 +9,7 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BotonDeAccion from '@/components/BotonDeAccion.vue';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import InputError from '@/components/InputError.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
@@ -31,7 +31,6 @@ import { formatearFecha, formatearMonto } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { tonoDeEstadoPeriodo } from '@/lib/tonos';
 import { show as mostrarPeriodo } from '@/routes/periodos';
-import { show as mostrarProyecto } from '@/routes/proyectos';
 import { index, store } from '@/routes/proyectos/periodos';
 import type { RespuestaPaginada } from '@/types/paginacion';
 
@@ -164,18 +163,11 @@ const abrirPeriodo = (): void => {
     <Head :title="$t('recursos.periodos')" />
 
     <div class="flex flex-col gap-seccion">
-        <CabeceraDePagina
+        <EncabezadoDeSeccion
             :icono="CalendarRange"
             :titulo="$t('recursos.periodos')"
-            :descripcion="props.proyecto.nombre"
         >
             <template #acciones>
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
-                        $t('comun.volver')
-                    }}</Link>
-                </Button>
-
                 <Popover v-if="props.puede.gestionar" v-model:open="abierto">
                     <PopoverTrigger as-child>
                         <Button
@@ -253,7 +245,7 @@ const abrirPeriodo = (): void => {
                     </PopoverContent>
                 </Popover>
             </template>
-        </CabeceraDePagina>
+        </EncabezadoDeSeccion>
 
         <TablaDatos
             :url="index(props.proyecto.id).url"

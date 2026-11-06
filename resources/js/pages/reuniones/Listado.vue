@@ -2,7 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Calendar, NotebookPen } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -91,10 +91,9 @@ const limpiarFiltros = (): void => {
     <Head :title="trans('reuniones.bitacora')" />
 
     <div class="flex flex-col gap-seccion">
-        <CabeceraDePagina
+        <EncabezadoDeSeccion
             :icono="NotebookPen"
             :titulo="trans('reuniones.bitacora')"
-            :descripcion="props.proyecto.nombre"
         >
             <template #acciones>
                 <Button v-if="props.puede.crear" as-child size="sm">
@@ -103,7 +102,7 @@ const limpiarFiltros = (): void => {
                     }}</Link>
                 </Button>
             </template>
-        </CabeceraDePagina>
+        </EncabezadoDeSeccion>
 
         <div class="flex flex-wrap items-end gap-corto">
             <div class="grid gap-1">

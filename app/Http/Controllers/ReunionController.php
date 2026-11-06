@@ -16,6 +16,7 @@ use App\Models\Proyecto;
 use App\Models\Reunion;
 use App\Models\Tarea;
 use App\Services\Adjuntos;
+use App\Services\PresentarCabeceraDeProyecto;
 use App\Services\ResolverRolProyecto;
 use App\Services\SanearHtmlDeReunion;
 use Illuminate\Database\Eloquent\Builder;
@@ -49,6 +50,7 @@ class ReunionController extends Controller
             ->get(['id', 'fecha', 'titulo', 'tipo', 'visibilidad']);
 
         return Inertia::render('reuniones/Listado', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'reuniones' => $reuniones->map(fn (Reunion $reunion): array => [
                 'id' => $reunion->id,

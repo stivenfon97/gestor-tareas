@@ -8,7 +8,9 @@ use App\Http\Requests\ModuloRequest;
 use App\Models\Modulo;
 use App\Models\Proyecto;
 use App\Services\ArbolDeModulos;
+use App\Services\PresentarCabeceraDeProyecto;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,11 +23,12 @@ use Inertia\Response;
  */
 class ModuloController extends Controller
 {
-    public function index(Proyecto $proyecto): Response
+    public function index(Request $request, Proyecto $proyecto): Response
     {
         Gate::authorize('viewAny', [Modulo::class, $proyecto]);
 
         return Inertia::render('proyectos/Modulos', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug']),
             'arbol' => ArbolDeModulos::para($proyecto),
             'puede' => ['gestionar' => Gate::allows('create', [Modulo::class, $proyecto])],

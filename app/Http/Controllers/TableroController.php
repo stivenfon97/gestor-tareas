@@ -15,6 +15,7 @@ use App\Services\ArbolDeModulos;
 use App\Services\ArmarTablero;
 use App\Services\EstadoEnLaUrl;
 use App\Services\FiltrosDeTareas;
+use App\Services\PresentarCabeceraDeProyecto;
 use App\Services\VistasGuardadas;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -65,6 +66,7 @@ class TableroController extends Controller
         );
 
         return Inertia::render('tareas/Tablero', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'agrupacion' => $agrupacion->value,
             'agrupaciones' => $this->agrupaciones(),

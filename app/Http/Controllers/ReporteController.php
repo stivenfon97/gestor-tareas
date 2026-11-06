@@ -16,6 +16,7 @@ use App\Models\Reporte;
 use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
+use App\Services\PresentarCabeceraDeProyecto;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -83,6 +84,7 @@ class ReporteController extends Controller
             ->withQueryString();
 
         return Inertia::render('reportes/Index', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'periodos' => $periodos->map(function (Periodo $periodo) use ($conteosPorPeriodo): array {
                 $conteos = $conteosPorPeriodo->get($periodo->id, collect())->pluck('total', 'estado');

@@ -7,16 +7,14 @@ namespace App\Http\Controllers;
 use App\Enums\EstadoProyecto;
 use App\Http\Requests\ProyectoRequest;
 use App\Models\Cliente;
-use App\Models\Modulo;
 use App\Models\Pago;
 use App\Models\Proyecto;
-use App\Models\Reporte;
-use App\Models\Reunion;
 use App\Models\User;
 use App\Services\Adjuntos;
 use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
+use App\Services\PresentarCabeceraDeProyecto;
 use App\Services\ResolverRolProyecto;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +32,20 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class ProyectoController extends Controller
 {
+    /**
+     * `?seccion=` de la versión con pestañas en una sola página → ruta propia.
+     *
+     * @var array<string, string>
+     */
+    private const array RUTAS_DE_SECCIONES_ANTERIORES = [
+        'modulos' => 'proyectos.modulos.index',
+        'equipo' => 'proyectos.miembros.index',
+        'tareas' => 'proyectos.tareas.index',
+        'periodos' => 'proyectos.periodos.index',
+        'bitacora' => 'proyectos.reuniones.index',
+        'reportes' => 'proyectos.reportes.index',
+    ];
+
     public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Proyecto::class);
@@ -109,24 +121,25 @@ class ProyectoController extends Controller
     }
 
     /**
-     * Concentrador del proyecto.
+     * Resumen del proyecto: la primera pestaña.
      *
-     * Solo módulos y equipo tienen contenido real en la fase 05. El resto son
-     * secciones **vacías con su fase anotada**, sin datos de relleno: un
-     * placeholder con datos falsos se olvida y acaba en producción.
+     * Las demás (módulos, equipo, tareas, periodos, pagos, bitácora, reportes)
+     * son rutas propias que comparten esta misma cabecera a través de
+     * `layouts/proyecto/Layout.vue`; aquí solo vive lo que es del resumen.
      */
-    public function show(Request $request, Proyecto $proyecto): Response
+    public function show(Request $request, Proyecto $proyecto): Response|RedirectResponse
     {
         Gate::authorize('view', $proyecto);
 
-        $usuario = $request->user();
+        // Hasta noviembre de 2026 las secciones eran `?seccion=` sobre esta
+        // misma ruta. Un enlace guardado de entonces lleva a su sección.
+        $rutaDeSeccion = self::RUTAS_DE_SECCIONES_ANTERIORES[$request->query('seccion')] ?? null;
 
-        $proyecto->loadCount([
-            'modulos',
-            'tareas',
-            'tareas as tareas_abiertas_count' => fn ($consulta) => $consulta->activas(),
-            'usuarios as miembros_count',
-        ]);
+        if ($rutaDeSeccion !== null) {
+            return to_route($rutaDeSeccion, $proyecto);
+        }
+
+        $usuario = $request->user();
 
         // Ni siquiera con el flag en falso: si `respaldos` viajara vacío para
         // cualquiera, la lección de la fase 09 (PeriodoController mandaba el
@@ -135,40 +148,14 @@ class ProyectoController extends Controller
         $puedeGestionarRespaldos = ResolverRolProyecto::gestiona($usuario, $proyecto);
 
         return Inertia::render('proyectos/Show', [
-            'proyecto' => [
-                'id' => $proyecto->id,
-                'nombre' => $proyecto->nombre,
-                'slug' => $proyecto->slug,
-                'prefijo_tarea' => $proyecto->prefijo_tarea,
-                'descripcion' => $proyecto->descripcion,
-                'estado' => $proyecto->estado->value,
-                'cliente' => $proyecto->cliente->only(['id', 'nombre']),
-                'modulos_count' => $proyecto->modulos_count,
-                'tareas_count' => $proyecto->tareas_count,
-                'tareas_abiertas_count' => $proyecto->tareas_abiertas_count,
-                'miembros_count' => $proyecto->miembros_count,
-            ],
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $usuario),
+            'proyecto' => $proyecto->only(['id', 'nombre']),
             // Diferido: desde la fase 09 el resumen también cuenta periodos y
             // pagos, y se paga en cada navegación al proyecto. `defer()` deja
             // que la pantalla aparezca de inmediato y los números lleguen
             // después, en vez de esperar por ellos antes de pintar nada.
             'resumen' => Inertia::defer(fn () => $this->resumen($proyecto, $usuario)),
-            // La pestaña activa viaja en la URL, no solo en el estado de Vue:
-            // así se puede compartir un enlace a la bitácora de un proyecto y
-            // volver a la misma pestaña tras recargar.
-            'seccion' => $this->seccionActiva($request),
-            'miRol' => ResolverRolProyecto::para($usuario, $proyecto)?->value,
             'puede' => [
-                'editar' => $usuario->can('update', $proyecto),
-                'eliminar' => $usuario->can('delete', $proyecto),
-                'gestionarMiembros' => $usuario->can('gestionarMiembros', $proyecto),
-                'gestionarModulos' => $usuario->can('create', [Modulo::class, $proyecto]),
-                'verPagos' => $usuario->can('viewAny', [Pago::class, $proyecto]),
-                'verReuniones' => $usuario->can('viewAny', [Reunion::class, $proyecto]),
-                // La pestaña se abre para quien **ve** reportes (`observador`
-                // incluido); generar es un permiso más estrecho que resuelve
-                // la propia pantalla de reportes (`ReporteController@index`).
-                'verReportes' => $usuario->can('viewAny', [Reporte::class, $proyecto]),
                 'gestionarRespaldos' => $puedeGestionarRespaldos,
             ],
         ] + ($puedeGestionarRespaldos ? [
@@ -293,18 +280,6 @@ class ProyectoController extends Controller
      *
      * @return array<int, array{id: int, nombre: string}>
      */
-    /**
-     * Pestaña abierta del concentrador. Se valida contra la lista: un
-     * `?seccion=` inventado abre el resumen en vez de dejar la página en blanco.
-     */
-    private function seccionActiva(Request $request): string
-    {
-        $secciones = ['resumen', 'modulos', 'equipo', 'tareas', 'periodos', 'bitacora', 'reportes'];
-        $pedida = (string) $request->input('seccion', 'resumen');
-
-        return in_array($pedida, $secciones, true) ? $pedida : 'resumen';
-    }
-
     private function clientesAsignables(?int $incluir = null): array
     {
         return Cliente::query()

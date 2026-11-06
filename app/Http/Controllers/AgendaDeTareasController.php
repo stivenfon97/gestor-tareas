@@ -13,6 +13,7 @@ use App\Models\Tarea;
 use App\Services\ArbolDeModulos;
 use App\Services\EstadoEnLaUrl;
 use App\Services\FiltrosDeTareas;
+use App\Services\PresentarCabeceraDeProyecto;
 use App\Services\VistasGuardadas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,6 +80,7 @@ class AgendaDeTareasController extends Controller
         $totalSinFecha = $sinFecha->clone()->count();
 
         return Inertia::render('tareas/Agenda', [
+            'cabeceraDeProyecto' => PresentarCabeceraDeProyecto::para($proyecto, $request->user()),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'mes' => $mes->format('Y-m'),
             'dias' => $delMes

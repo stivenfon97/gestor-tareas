@@ -203,7 +203,10 @@ it('no dispara una consulta por fila para resolver la ruta del módulo', functio
     // subiendo por `padre` fila a fila otra vez.
     expect($conMuchas)->toBe($conPocas)
         // Techo generoso pero real: si alguien mete un `with` de más, salta.
-        ->and($conMuchas)->toBeLessThanOrEqual(15);
+        // Incluye las consultas fijas de la cabecera del proyecto
+        // (`PresentarCabeceraDeProyecto`: una policy por pestaña), que tampoco
+        // dependen de las filas.
+        ->and($conMuchas)->toBeLessThanOrEqual(25);
 });
 
 it('deja el módulo nulo cuando la tarea no tiene ninguno', function () {
@@ -275,23 +278,4 @@ it('aplica visiblesPara antes que el orden, las columnas y el tamaño de página
     ]));
 
     expect(codigosDelListadoDeTabla($respuesta))->toBe([]);
-});
-
-/* ------------------------------------------------ pestañas del concentrador */
-
-it('lleva la pestaña activa del proyecto en la URL', function () {
-    $respuesta = $this->actingAs($this->lider)->get(route('proyectos.show', [
-        $this->proyecto, 'seccion' => 'tareas',
-    ]));
-
-    expect($respuesta->viewData('page')['props']['seccion'])->toBe('tareas');
-});
-
-it('abre el resumen cuando la sección pedida no existe', function () {
-    // Un `?seccion=` inventado no puede dejar la página en blanco.
-    $respuesta = $this->actingAs($this->lider)->get(route('proyectos.show', [
-        $this->proyecto, 'seccion' => 'inventada',
-    ]));
-
-    expect($respuesta->viewData('page')['props']['seccion'])->toBe('resumen');
 });

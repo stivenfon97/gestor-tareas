@@ -5,7 +5,7 @@ import { computed } from 'vue';
 import AsignarEquipoAProyectoController from '@/actions/App/Http/Controllers/AsignarEquipoAProyectoController';
 import ProyectoUsuarioController from '@/actions/App/Http/Controllers/ProyectoUsuarioController';
 import BotonDeAccion from '@/components/BotonDeAccion.vue';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { TablaLocal } from '@/components/TablaDatos';
@@ -78,10 +78,9 @@ const columnasDeMiembros = computed((): ColumnaDeTabla<Miembro>[] => [
     <Head :title="$t('proyectos.miembros.titulo')" />
 
     <div class="flex flex-col gap-seccion">
-        <CabeceraDePagina
+        <EncabezadoDeSeccion
             :icono="UsersRound"
             :titulo="$t('proyectos.miembros.titulo')"
-            :descripcion="props.proyecto.nombre"
         />
 
         <TablaLocal

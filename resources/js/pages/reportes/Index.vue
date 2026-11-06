@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import {
     Copy,
     Download,
@@ -9,7 +9,7 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BotonDeAccion from '@/components/BotonDeAccion.vue';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import InputError from '@/components/InputError.vue';
 import { TablaDatos } from '@/components/TablaDatos';
@@ -27,7 +27,6 @@ import {
 import { formatearFechaHora } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { tonoDeTipoReporte } from '@/lib/tonos';
-import { show as mostrarProyecto } from '@/routes/proyectos';
 import { index, store } from '@/routes/proyectos/reportes';
 import { descargar } from '@/routes/reportes';
 import type { RespuestaPaginada } from '@/types/paginacion';
@@ -197,19 +196,11 @@ const columnas = computed((): ColumnaDeTabla<FilaHistorial>[] => [
     <Head :title="$t('reportes.titulo')" />
 
     <div class="flex flex-col gap-seccion">
-        <CabeceraDePagina
+        <EncabezadoDeSeccion
             :icono="FileSpreadsheet"
             :titulo="$t('reportes.titulo')"
-            :descripcion="props.proyecto.nombre"
         >
-            <template #acciones>
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
-                        $t('comun.volver')
-                    }}</Link>
-                </Button>
-            </template>
-        </CabeceraDePagina>
+        </EncabezadoDeSeccion>
 
         <EstadoVacio
             v-if="props.periodos.length === 0"

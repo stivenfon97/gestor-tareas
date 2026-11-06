@@ -40,7 +40,7 @@ it('la clave respaldos no existe en el JSON del proyecto para colaborador ni cli
 
     foreach ([$this->colaborador, $this->cliente] as $usuario) {
         $respuesta = $this->actingAs($usuario)
-            ->get(route('proyectos.show', $this->proyecto).'?seccion=bitacora');
+            ->get(route('proyectos.show', $this->proyecto));
 
         $respuesta->assertOk();
 
@@ -51,7 +51,7 @@ it('la clave respaldos no existe en el JSON del proyecto para colaborador ni cli
 
     // El líder sí la recibe.
     $conRespaldos = $this->actingAs($this->lider)
-        ->get(route('proyectos.show', $this->proyecto).'?seccion=bitacora');
+        ->get(route('proyectos.show', $this->proyecto));
 
     expect($conRespaldos->viewData('page')['props'])->toHaveKey('respaldos')
         ->and($conRespaldos->viewData('page')['props']['respaldos'])->toHaveCount(1);

@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { SquareKanban } from '@lucide/vue';
 import { computed, nextTick, ref } from 'vue';
 import draggable from 'vuedraggable';
-import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import DialogoDeMotivo from '@/components/tareas/DialogoDeMotivo.vue';
 import PanelDeFiltrosDeTareas from '@/components/tareas/PanelDeFiltrosDeTareas.vue';
@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/select';
 import { useTablero } from '@/composables/useTablero';
 import { cn } from '@/lib/utils';
-import { show as mostrarProyecto } from '@/routes/proyectos';
 import { columna as columnaDelTablero } from '@/routes/proyectos/tablero';
 import { create, index as tareasIndex } from '@/routes/proyectos/tareas';
 import { show as mostrarTarea } from '@/routes/tareas';
@@ -308,17 +307,11 @@ const esActiva = (columna: number, fila: number): boolean =>
     <Head :title="$t('tablero.titulo')" />
 
     <div class="flex min-w-0 flex-col gap-seccion">
-        <CabeceraDePagina
+        <EncabezadoDeSeccion
             :icono="SquareKanban"
             :titulo="$t('tablero.titulo')"
-            :descripcion="props.proyecto.nombre"
         >
             <template #acciones>
-                <Button as-child variant="ghost" size="sm">
-                    <Link :href="mostrarProyecto(props.proyecto.id)">{{
-                        $t('comun.volver')
-                    }}</Link>
-                </Button>
                 <Button v-if="props.puede.crear" as-child size="sm">
                     <Link :href="create(props.proyecto.id)">{{
                         $t('tareas.crear')
@@ -339,7 +332,7 @@ const esActiva = (columna: number, fila: number): boolean =>
                     :configuracion-actual="configuracionActual"
                 />
             </template>
-        </CabeceraDePagina>
+        </EncabezadoDeSeccion>
 
         <div class="flex flex-wrap items-center gap-corto">
             <div class="flex items-center gap-fino">
