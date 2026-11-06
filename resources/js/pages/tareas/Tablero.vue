@@ -301,6 +301,76 @@ const alPulsar = (
 
 const esActiva = (columna: number, fila: number): boolean =>
     foco.value.columna === columna && foco.value.fila === fila;
+
+/*
+ * Color de columna. Agrupado por estado, cada columna toma el color de su
+ * estado —fondo tenue, borde y título— para que se vea de un golpe a qué
+ * columna pertenece cada tarjeta; la tarjeta sigue en `bg-panel` y destaca
+ * sobre el tinte. Por prioridad basta un punto con el color de la barra.
+ * Por módulo, tipo o periodo no hay color que signifique algo: neutro.
+ *
+ * Clases escritas enteras: el escáner de Tailwind no ve las interpoladas y en
+ * producción la columna saldría sin color.
+ */
+type ColorDeColumna = { columna: string; titulo: string; punto: string };
+
+const COLUMNA_NEUTRA: ColorDeColumna = {
+    columna: 'border-borde bg-panel-cabecera',
+    titulo: 'text-texto',
+    punto: '',
+};
+
+const coloresPorEstado: Record<string, ColorDeColumna> = {
+    pendiente: {
+        columna: 'border-estado-pendiente-borde bg-estado-pendiente-fondo/50',
+        titulo: 'text-estado-pendiente-texto',
+        punto: 'bg-estado-pendiente-texto',
+    },
+    en_proceso: {
+        columna: 'border-estado-en-proceso-borde bg-estado-en-proceso-fondo/50',
+        titulo: 'text-estado-en-proceso-texto',
+        punto: 'bg-estado-en-proceso-texto',
+    },
+    en_espera: {
+        columna: 'border-estado-en-espera-borde bg-estado-en-espera-fondo/50',
+        titulo: 'text-estado-en-espera-texto',
+        punto: 'bg-estado-en-espera-texto',
+    },
+    terminada: {
+        columna: 'border-estado-terminada-borde bg-estado-terminada-fondo/50',
+        titulo: 'text-estado-terminada-texto',
+        punto: 'bg-estado-terminada-texto',
+    },
+    entregada: {
+        columna: 'border-estado-entregada-borde bg-estado-entregada-fondo/50',
+        titulo: 'text-estado-entregada-texto',
+        punto: 'bg-estado-entregada-texto',
+    },
+    cancelada: {
+        columna: 'border-estado-cancelada-borde bg-estado-cancelada-fondo/50',
+        titulo: 'text-estado-cancelada-texto',
+        punto: 'bg-estado-cancelada-texto',
+    },
+};
+
+const puntoPorPrioridad: Record<string, string> = {
+    baja: 'bg-prioridad-baja',
+    media: 'bg-prioridad-media',
+    alta: 'bg-prioridad-alta',
+    critica: 'bg-prioridad-critica',
+};
+
+const colorDeColumna = (clave: string): ColorDeColumna => {
+    if (props.agrupacion === 'estado') {
+        return coloresPorEstado[clave] ?? COLUMNA_NEUTRA;
+    }
+
+    if (props.agrupacion === 'prioridad' && puntoPorPrioridad[clave]) {
+        return { ...COLUMNA_NEUTRA, punto: puntoPorPrioridad[clave] };
+    }
+
+    return COLUMNA_NEUTRA;
+};
 </script>
 
 <template>
@@ -395,22 +465,33 @@ const esActiva = (columna: number, fila: number): boolean =>
                 :key="columna.clave"
                 :class="
                     cn(
-                        'flex w-72 shrink-0 flex-col gap-corto rounded-md border bg-panel-cabecera p-corto transition-colors',
-                        tablero.noDisponible(columna.clave)
-                            ? 'border-dashed border-borde-fuerte opacity-50'
-                            : 'border-borde',
+                        'flex w-72 shrink-0 flex-col gap-corto rounded-md border p-corto transition-colors',
+                        colorDeColumna(columna.clave).columna,
+                        tablero.noDisponible(columna.clave) &&
+                            'border-dashed opacity-50',
                     )
                 "
                 :aria-label="columna.etiqueta"
             >
                 <header
-                    class="flex items-baseline justify-between gap-fino px-fino"
+                    class="flex items-center justify-between gap-fino px-fino py-minimo"
                 >
-                    <h2 class="truncate text-cuerpo font-medium text-texto">
-                        {{ columna.etiqueta }}
+                    <h2
+                        class="flex min-w-0 items-center gap-ajustado text-cuerpo font-semibold"
+                        :class="colorDeColumna(columna.clave).titulo"
+                    >
+                        <span
+                            v-if="colorDeColumna(columna.clave).punto"
+                            class="size-2 shrink-0 rounded-full"
+                            :class="colorDeColumna(columna.clave).punto"
+                            aria-hidden="true"
+                        />
+                        <span class="truncate">{{ columna.etiqueta }}</span>
                     </h2>
                     <!-- Cargadas y total: «50» a secas escondería que hay 218. -->
-                    <span class="shrink-0 font-mono text-fino text-texto-suave">
+                    <span
+                        class="shrink-0 rounded-full bg-panel px-ajustado font-mono text-fino text-texto-suave"
+                    >
                         {{
                             columna.tareas.length === columna.total
                                 ? columna.total

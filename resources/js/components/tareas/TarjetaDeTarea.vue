@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { GripVertical } from '@lucide/vue';
+import {
+    CalendarDays,
+    CornerDownRight,
+    GripVertical,
+    Layers,
+} from '@lucide/vue';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
 import IconoTipo from '@/components/tareas/IconoTipo.vue';
@@ -47,7 +52,7 @@ withDefaults(
                 />
                 <Link
                     :href="show(tarea.id)"
-                    class="font-mono text-fino text-texto-suave underline-offset-4 hover:underline"
+                    class="font-mono text-fino font-medium text-texto-suave underline-offset-4 hover:text-texto hover:underline"
                 >
                     {{ tarea.codigo }}
                 </Link>
@@ -64,7 +69,7 @@ withDefaults(
                 />
             </div>
 
-            <p class="text-cuerpo text-texto">{{ tarea.nombre }}</p>
+            <p class="text-cuerpo font-medium text-texto">{{ tarea.nombre }}</p>
 
             <div class="flex flex-wrap items-center gap-fino">
                 <BadgeEstado
@@ -72,21 +77,31 @@ withDefaults(
                     :estado="tarea.estado"
                     tamano="pequeno"
                 />
+                <!-- El módulo es una etiqueta con su icono, no texto suelto:
+                     así no se confunde con una segunda línea del nombre. -->
                 <span
                     v-if="tarea.modulo && ejeDeLaColumna !== 'modulo'"
-                    class="truncate text-fino text-texto-suave"
+                    class="inline-flex min-w-0 items-center gap-fino rounded-sm border border-borde bg-panel-cabecera px-fino py-[1px] text-micro text-texto-suave"
+                    :title="tarea.modulo"
                 >
-                    {{ tarea.modulo }}
+                    <Layers class="size-3 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{{ tarea.modulo }}</span>
                 </span>
                 <!-- Una tarea arrastrada de otro periodo se marca: al cerrar un
                      periodo es lo primero que hay que poder distinguir. -->
-                <Badge v-if="tarea.arrastrada" variant="outline">
+                <Badge
+                    v-if="tarea.arrastrada"
+                    variant="aviso"
+                    class="px-fino py-[1px] text-micro"
+                >
+                    <CornerDownRight class="size-3" aria-hidden="true" />
                     {{ $t('tareas.arrastrada') }}
                 </Badge>
                 <span
                     v-if="tarea.fecha_fin"
-                    class="ml-auto text-fino text-texto-tenue"
+                    class="ml-auto inline-flex shrink-0 items-center gap-fino text-micro text-texto-suave"
                 >
+                    <CalendarDays class="size-3" aria-hidden="true" />
                     {{ formatearFecha(tarea.fecha_fin) }}
                 </span>
             </div>
