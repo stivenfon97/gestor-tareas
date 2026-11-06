@@ -1,6 +1,7 @@
 ---
 paths:
   - 'resources/js/**/*.vue'
+  - 'resources/js/**'
 ---
 
 # Formularios
@@ -45,3 +46,6 @@ Detalle en la skill `interfaz-estandar` §2c y §2d.
 El dueño del producto los vio estrechos y con un salto de línea entre el icono y el placeholder.
 - Ninguna página de formulario lleva `max-w-*` en su contenedor raíz y `TarjetaDeFormulario` no tiene tope: el layout ya acota a `max-w-contenido`. Tres campos cortos de la misma familia van en `md:grid-cols-2 lg:grid-cols-3`.
 - Un `InputGroupTextarea` lleva su icono con `InputGroupAddon` sin `align` (inline-start): `ui/input-group` lo alinea arriba, en la primera línea, cuando el grupo contiene un textarea. Prohibido `align="block-start"` en textareas.
+
+## Un tamaño de texto nuevo en el tema se registra también en cn()
+`cn()` (`lib/utils.ts`) usa `extendTailwindMerge` con la escala `--text-*` del tema (micro, fino, cuerpo, medio, alto, cima). Sin eso, tailwind-merge toma `text-micro` por un color y lo descarta en cuanto llega un `text-<token>-texto`, y el tamaño desaparece sin aviso (así salían los badges de estado «pequeños» a tamaño normal). Si añades un `--text-*` a app.css, añádelo a esa lista.

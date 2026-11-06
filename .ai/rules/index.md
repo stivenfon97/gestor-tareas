@@ -13,7 +13,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | docker/** | .ai/rules/docker.md |
 | app/Enums/** | .ai/rules/enums.md |
 | app/Exports/** | .ai/rules/exports.md |
-| resources/js/**/*.vue | .ai/rules/formularios.md |
+| resources/js/**/*.vue, resources/js/** | .ai/rules/formularios.md |
 | docker-compose.yml, .env*, .gitignore | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
 | lang/** | .ai/rules/lang.md |
