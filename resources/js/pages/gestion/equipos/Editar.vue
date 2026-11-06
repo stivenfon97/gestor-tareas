@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { FileText, UserMinus, Users, UsersRound } from '@lucide/vue';
-import { computed } from 'vue';
+import { FileText, User, UserMinus, Users, UsersRound } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import EquipoController from '@/actions/App/Http/Controllers/Gestion/EquipoController';
 import MiembroEquipoController from '@/actions/App/Http/Controllers/Gestion/MiembroEquipoController';
 import BotonDeAccion from '@/components/BotonDeAccion.vue';
@@ -12,6 +12,7 @@ import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vu
 import Heading from '@/components/Heading.vue';
 import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import InputError from '@/components/InputError.vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import { TablaLocal } from '@/components/TablaDatos';
 import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import { Button } from '@/components/ui/button';
@@ -22,13 +23,6 @@ import {
     InputGroupInput,
 } from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { trans } from '@/lib/i18n';
 import { index } from '@/routes/equipos';
 
@@ -40,6 +34,29 @@ const props = defineProps<{
     miembros: Persona[];
     candidatos: Persona[];
 }>();
+
+/*
+ * Las personas crecen con el uso: `SelectorConBusqueda`, controlado. Arranca en
+ * la primera, como el `<select>` nativo, y se recoloca cuando la lista cambia:
+ * tras agregar a alguien no puede seguir apuntando a quien ya no es candidato.
+ */
+const primeraPersona = (): string | null =>
+    props.candidatos[0] ? String(props.candidatos[0].id) : null;
+
+const personaElegida = ref<string | number | null>(primeraPersona());
+
+watch(
+    () => props.candidatos,
+    () => (personaElegida.value = primeraPersona()),
+);
+
+const opcionesDePersona = computed(() =>
+    props.candidatos.map((persona) => ({
+        valor: String(persona.id),
+        etiqueta: persona.name,
+        detalle: persona.email,
+    })),
+);
 
 const columnasDeMiembros = computed((): ColumnaDeTabla<Persona>[] => [
     {
@@ -200,41 +217,19 @@ const columnasDeMiembros = computed((): ColumnaDeTabla<Persona>[] => [
                 <div class="grid flex-1 gap-2">
                     <Label for="usuario_id">{{ $t('comun.agregar') }}</Label>
                     <!--
-                        Arranca en la primera persona, como el <select> nativo.
-                        La clave lo remonta cuando cambia la lista: si no, tras
-                        agregar a alguien seguiría apuntando a quien ya no está.
+                        Arranca en la primera persona y se recoloca cuando la
+                        lista cambia (ver `personaElegida`). Las personas crecen
+                        con el uso: selector con búsqueda, por nombre o correo.
                     -->
-                    <Select
-                        :key="props.candidatos.map((p) => p.id).join()"
+                    <SelectorConBusqueda
+                        id="usuario_id"
+                        v-model="personaElegida"
                         name="usuario_id"
-                        required
-                        :default-value="
-                            props.candidatos[0]
-                                ? String(props.candidatos[0].id)
-                                : undefined
-                        "
-                    >
-                        <SelectTrigger
-                            id="usuario_id"
-                            class="w-full"
-                            :aria-invalid="!!errors.usuario_id"
-                        >
-                            <SelectValue
-                                :placeholder="
-                                    $t('gestion.equipos.persona_marcador')
-                                "
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem
-                                v-for="persona in props.candidatos"
-                                :key="persona.id"
-                                :value="String(persona.id)"
-                            >
-                                {{ persona.name }} · {{ persona.email }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
+                        :opciones="opcionesDePersona"
+                        :marcador="$t('gestion.equipos.persona_marcador')"
+                        :icono="User"
+                        :invalido="!!errors.usuario_id"
+                    />
                     <InputError :message="errors.usuario_id" />
                 </div>
                 <Button type="submit" variant="outline" :disabled="processing">

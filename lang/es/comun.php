@@ -104,4 +104,12 @@ return [
         'ultima_pagina' => 'Última página',
         'quitar_filtro_de' => 'Quitar el filtro de :columna',
     ],
+
+    // Selector con búsqueda (`components/SelectorConBusqueda.vue`): las listas
+    // que crecen con el uso —clientes, personas, módulos, periodos, tareas—.
+    'selector' => [
+        'buscar' => 'Escribe para buscar…',
+        'sin_coincidencias' => 'Nada coincide con «:termino».',
+        'recortadas' => 'Se muestran :visibles de :total. Escribe para afinar.',
+    ],
 ];

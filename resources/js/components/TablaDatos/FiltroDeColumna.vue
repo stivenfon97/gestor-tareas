@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Search } from '@lucide/vue';
 import { ref, watch } from 'vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import {
     InputGroup,
     InputGroupAddon,
@@ -60,6 +61,9 @@ watch(
  */
 const TODOS = '__todos__';
 
+/** Mismo umbral que `FiltroFacetado`: a partir de aquí la lista lleva buscador. */
+const UMBRAL_DE_BUSQUEDA = 8;
+
 const alEscribir = (valor: string | number): void => {
     local.value = String(valor);
     emit('cambiar', local.value, true);
@@ -95,6 +99,20 @@ const alElegir = (valor: unknown): void => {
             <Search aria-hidden="true" />
         </InputGroupAddon>
     </InputGroup>
+
+    <!-- Muchas opciones (clientes, proyectos, módulos): con buscador, igual
+         que `FiltroFacetado` en la barra y con el mismo umbral. -->
+    <SelectorConBusqueda
+        v-else-if="props.filtro.opciones.length > UMBRAL_DE_BUSQUEDA"
+        :id="props.campoId"
+        :model-value="local === '' ? null : local"
+        :opciones="props.filtro.opciones"
+        :marcador="$t('comun.tabla.todos')"
+        :nula="$t('comun.tabla.todos')"
+        data-filtro-de-columna
+        :aria-label="$t('comun.tabla.filtrar_por', { columna: props.etiqueta })"
+        @update:model-value="(valor) => alElegir(valor ?? TODOS)"
+    />
 
     <Select
         v-else

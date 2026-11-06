@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import {
+    CalendarRange,
     Copy,
     Download,
     FileSpreadsheet,
@@ -12,18 +13,12 @@ import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import EncabezadoDeSeccion from '@/components/EncabezadoDeSeccion.vue';
 import EstadoVacio from '@/components/EstadoVacio.vue';
 import InputError from '@/components/InputError.vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import { TablaDatos } from '@/components/TablaDatos';
 import type { ColumnaDeTabla, OrdenDeColumna } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { formatearFechaHora } from '@/lib/formato';
 import { trans } from '@/lib/i18n';
 import { tonoDeTipoReporte } from '@/lib/tonos';
@@ -232,28 +227,25 @@ const columnas = computed((): ColumnaDeTabla<FilaHistorial>[] => [
                 >
                     {{ $t('reportes.generar.periodo') }}
                 </Label>
-                <Select v-model="periodoElegidoId">
-                    <SelectTrigger
-                        id="reporte-periodo"
-                        class="w-full"
-                        :aria-invalid="!!formulario.errors.periodo_id"
-                    >
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem
-                            v-for="periodo in props.periodos"
-                            :key="periodo.id"
-                            :value="String(periodo.id)"
-                        >
-                            {{
-                                $t('reportes.generar.periodo_numero', {
-                                    consecutivo: String(periodo.consecutivo),
-                                })
-                            }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+                <!-- Los periodos crecen con el uso: selector con búsqueda. -->
+                <SelectorConBusqueda
+                    id="reporte-periodo"
+                    :model-value="periodoElegidoId"
+                    :opciones="
+                        props.periodos.map((periodo) => ({
+                            valor: String(periodo.id),
+                            etiqueta: $t('reportes.generar.periodo_numero', {
+                                consecutivo: String(periodo.consecutivo),
+                            }),
+                        }))
+                    "
+                    :marcador="$t('reportes.generar.periodo')"
+                    :icono="CalendarRange"
+                    :invalido="!!formulario.errors.periodo_id"
+                    @update:model-value="
+                        (valor) => (periodoElegidoId = String(valor ?? ''))
+                    "
+                />
                 <InputError :message="formulario.errors.periodo_id" />
             </div>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import {
+    Building2,
     FileText,
     FolderGit2,
     FolderKanban,
@@ -13,6 +14,7 @@ import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
 import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
 import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import { Field, FieldDescription } from '@/components/ui/field';
 import {
     InputGroup,
@@ -83,28 +85,24 @@ const enviar = (): void => {
                             <Label for="cliente_id">{{
                                 $t('proyectos.cliente')
                             }}</Label>
-                            <Select v-model="form.cliente_id" required>
-                                <SelectTrigger
-                                    id="cliente_id"
-                                    class="w-full"
-                                    :aria-invalid="!!form.errors.cliente_id"
-                                >
-                                    <SelectValue
-                                        :placeholder="
-                                            $t('proyectos.cliente_marcador')
-                                        "
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="cliente in props.clientes"
-                                        :key="cliente.id"
-                                        :value="String(cliente.id)"
-                                    >
-                                        {{ cliente.nombre }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <!-- Los clientes crecen con el uso: selector con búsqueda. -->
+                            <SelectorConBusqueda
+                                id="cliente_id"
+                                :model-value="form.cliente_id"
+                                :opciones="
+                                    props.clientes.map((cliente) => ({
+                                        valor: String(cliente.id),
+                                        etiqueta: cliente.nombre,
+                                    }))
+                                "
+                                :marcador="$t('proyectos.cliente_marcador')"
+                                :icono="Building2"
+                                :invalido="!!form.errors.cliente_id"
+                                @update:model-value="
+                                    (valor) =>
+                                        (form.cliente_id = String(valor ?? ''))
+                                "
+                            />
                             <InputError :message="form.errors.cliente_id" />
                         </Field>
                         <Field>

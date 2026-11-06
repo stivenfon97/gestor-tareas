@@ -52,3 +52,10 @@ El dueño del producto los vio estrechos y con un salto de línea entre el icono
 
 ## Ningún comentario HTML dentro del slot #item de vuedraggable
 vuedraggable exige que `<template #item>` tenga un solo hijo. En desarrollo Vue conserva los comentarios `<!-- -->` como nodos, así que un comentario dentro del slot rompe la lista con «Item slot must have only one child» (traza en rojo dentro del contenedor). En el build de producción los comentarios se eliminan y no falla: por eso pasa `make humo` y las capturas sobre el build. El comentario va encima del `<draggable>`. Pasó en `proyectos/Modulos.vue`.
+
+## Lista que sale de registros = SelectorConBusqueda; conjunto cerrado = Select
+Todo desplegable cuyas opciones salen de registros (clientes, personas, equipos, módulos, periodos, tareas, miembros) usa `components/SelectorConBusqueda.vue`, aunque hoy tenga tres opciones: crecen con el uso y un `Select` largo obliga a hacer scroll a ciegas (pedido del dueño del producto). Los conjuntos cerrados de un enum (estado, tipo, prioridad, rol, visibilidad, agrupación, origen de la TRM, tamaño de página) siguen en `Select`.
+- Se apoya en `ui/combobox` (reka-ui). Filtro propio sin tildes ni mayúsculas; busca también en `detalle` (correo, estado). Pinta 100 como máximo y avisa de que hay más.
+- `nula` = opción «ninguno/todos», que devuelve `null`. `name` añade un input oculto para los `<Form>` de Inertia (es controlado: dale un `ref`).
+- En `TablaDatos`, `FiltroDeColumna` y `FiltroFacetado` pasan a buscador a partir de 8 opciones.
+- Trampa: sin `:display-value="() => ''"` en `ComboboxInput`, reka-ui rellena el buscador con el id elegido y lo escrito se pega detrás («96factur»).

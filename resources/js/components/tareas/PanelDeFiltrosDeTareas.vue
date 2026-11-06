@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ListFilter, Search } from '@lucide/vue';
 import { computed } from 'vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import { Button } from '@/components/ui/button';
 import {
     InputGroup,
@@ -82,6 +83,8 @@ const campos = computed(() => [
     {
         clave: 'modulo_id',
         etiqueta: trans('tareas.modulo'),
+        // Los módulos crecen con el proyecto: selector con búsqueda.
+        buscable: true,
         opciones: props.opciones.modulos.map((modulo) => ({
             valor: String(modulo.id),
             etiqueta: modulo.ruta,
@@ -142,7 +145,23 @@ const campos = computed(() => [
                 >
                     {{ campo.etiqueta }}
                 </Label>
+                <SelectorConBusqueda
+                    v-if="campo.buscable"
+                    :id="`filtro-tareas-${campo.clave}`"
+                    :model-value="props.filtros[campo.clave] || null"
+                    :opciones="campo.opciones"
+                    :marcador="$t('comun.tabla.todos')"
+                    :nula="$t('comun.tabla.todos')"
+                    @update:model-value="
+                        (valor) =>
+                            estado.aplicarFiltro(
+                                campo.clave,
+                                valor === null ? '' : String(valor),
+                            )
+                    "
+                />
                 <Select
+                    v-else
                     :model-value="props.filtros[campo.clave] || TODOS"
                     @update:model-value="
                         (valor) =>

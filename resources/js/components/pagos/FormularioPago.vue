@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/vue3';
 import {
     ArrowLeftRight,
     Calendar,
+    CalendarRange,
     DollarSign,
     FileText,
     Hash,
@@ -12,6 +13,7 @@ import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
 import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
 import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import { Field } from '@/components/ui/field';
 import {
     InputGroup,
@@ -75,17 +77,6 @@ useTrm(
     toRef(form, 'origen_tasa'),
 );
 
-/*
- * El `Select` de shadcn trabaja con cadenas y no admite un elemento con valor
- * vacío: «sin periodo elegido» es `undefined`, que muestra el marcador.
- */
-const periodoElegido = computed<string | undefined>({
-    get: () => (form.periodo_id === '' ? undefined : String(form.periodo_id)),
-    set: (valor) => {
-        form.periodo_id = valor === undefined ? '' : Number(valor);
-    },
-});
-
 const enviar = (): void => {
     form.submit(props.accion);
 };
@@ -103,32 +94,30 @@ const enviar = (): void => {
                         <Label for="periodo_id">{{
                             $t('pagos.periodo')
                         }}</Label>
-                        <Select v-model="periodoElegido" required>
-                            <SelectTrigger
-                                id="periodo_id"
-                                class="w-full"
-                                :aria-invalid="!!form.errors.periodo_id"
-                            >
-                                <SelectValue
-                                    :placeholder="$t('pagos.elegir_periodo')"
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="periodo in props.periodos"
-                                    :key="periodo.id"
-                                    :value="String(periodo.id)"
-                                >
-                                    {{
-                                        $t('tareas.periodo_numero', {
-                                            consecutivo: String(
-                                                periodo.consecutivo,
-                                            ),
-                                        })
-                                    }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <SelectorConBusqueda
+                            id="periodo_id"
+                            :model-value="
+                                form.periodo_id === '' ? null : form.periodo_id
+                            "
+                            :opciones="
+                                (props.periodos ?? []).map((periodo) => ({
+                                    valor: periodo.id,
+                                    etiqueta: $t('tareas.periodo_numero', {
+                                        consecutivo: String(
+                                            periodo.consecutivo,
+                                        ),
+                                    }),
+                                }))
+                            "
+                            :marcador="$t('pagos.elegir_periodo')"
+                            :icono="CalendarRange"
+                            :invalido="!!form.errors.periodo_id"
+                            @update:model-value="
+                                (valor) =>
+                                    (form.periodo_id =
+                                        valor === null ? '' : Number(valor))
+                            "
+                        />
                         <p
                             v-if="props.periodos && props.periodos.length === 0"
                             class="text-fino text-texto-suave"

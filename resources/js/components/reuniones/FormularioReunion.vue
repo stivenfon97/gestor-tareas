@@ -9,11 +9,13 @@ import {
     Type,
     User,
 } from '@lucide/vue';
+import { computed } from 'vue';
 import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
 import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
 import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import InputError from '@/components/InputError.vue';
 import EditorEnriquecido from '@/components/reuniones/EditorEnriquecido.vue';
+import SelectorConBusqueda from '@/components/SelectorConBusqueda.vue';
 import { Button } from '@/components/ui/button';
 import {
     InputGroup,
@@ -130,11 +132,12 @@ const alElegirMiembro = (asistente: Asistente, id: string): void => {
     }
 };
 
-/*
- * `SelectItem` no admite el valor vacío (reka-ui lo reserva para «sin
- * selección»): «No es usuario del sistema» usa este centinela.
- */
-const NINGUNO = '__ninguno__';
+const opcionesDeMiembro = computed(() =>
+    props.opciones.miembros.map((miembro) => ({
+        valor: miembro.id,
+        etiqueta: miembro.nombre,
+    })),
+);
 
 /** Error de una fila del repetidor: las claves `asistentes.N.campo` no son
  * literales del tipo de `form.errors`, igual que en `CapturaRapidaFormulario`. */
@@ -398,49 +401,33 @@ const enviar = (): void => {
                             <Label :for="`asistente-usuario-${indice}`">{{
                                 trans('reuniones.asistentes.usuario')
                             }}</Label>
-                            <Select
-                                :model-value="
-                                    asistente.usuario_id === null
-                                        ? NINGUNO
-                                        : String(asistente.usuario_id)
+                            <!-- Los miembros crecen con el uso: selector con búsqueda. -->
+                            <SelectorConBusqueda
+                                :id="`asistente-usuario-${indice}`"
+                                :model-value="asistente.usuario_id"
+                                :opciones="opcionesDeMiembro"
+                                :marcador="
+                                    trans(
+                                        'reuniones.asistentes.usuario_ninguno',
+                                    )
+                                "
+                                :nula="
+                                    trans(
+                                        'reuniones.asistentes.usuario_ninguno',
+                                    )
+                                "
+                                :icono="User"
+                                :invalido="
+                                    !!errorDeAsistente(indice, 'usuario_id')
                                 "
                                 @update:model-value="
                                     (valor) =>
                                         alElegirMiembro(
                                             asistente,
-                                            valor === NINGUNO
-                                                ? ''
-                                                : String(valor),
+                                            valor === null ? '' : String(valor),
                                         )
                                 "
-                            >
-                                <SelectTrigger
-                                    :id="`asistente-usuario-${indice}`"
-                                    class="w-full"
-                                    :aria-invalid="
-                                        !!errorDeAsistente(indice, 'usuario_id')
-                                    "
-                                >
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem :value="NINGUNO">
-                                        {{
-                                            trans(
-                                                'reuniones.asistentes.usuario_ninguno',
-                                            )
-                                        }}
-                                    </SelectItem>
-                                    <SelectItem
-                                        v-for="miembro in props.opciones
-                                            .miembros"
-                                        :key="miembro.id"
-                                        :value="String(miembro.id)"
-                                    >
-                                        {{ miembro.nombre }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            />
                             <InputError
                                 :message="
                                     errorDeAsistente(indice, 'usuario_id')
