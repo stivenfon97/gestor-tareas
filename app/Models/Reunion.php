@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use App\Enums\TipoReunion;
 use App\Enums\Visibilidad;
 use App\Services\Adjuntos;
@@ -53,9 +54,30 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Reunion extends Model implements HasMedia
 {
     /** @use HasFactory<ReunionFactory> */
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, TieneHistorialDeCambios;
 
     protected $table = 'reuniones';
+
+    /**
+     * `contenido_json` es el mismo contenido que `contenido_html` en otra forma.
+     *
+     * @return array<int, string>
+     */
+    public function camposSinHistorial(): array
+    {
+        return ['contenido_json'];
+    }
+
+    /**
+     * El contenido enriquecido se registra como «cambió», sin valor: un HTML
+     * de varias páginas antes y después no se lee como diferencia.
+     *
+     * @return array<int, string>
+     */
+    public function camposOcultosEnHistorial(): array
+    {
+        return ['contenido_html'];
+    }
 
     /**
      * @return array<string, string>

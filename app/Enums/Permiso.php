@@ -26,6 +26,8 @@ enum Permiso: string
     case ArchivosSubir = 'archivos.subir';
     case ReportesGenerar = 'reportes.generar';
     case UsuariosGestionar = 'usuarios.gestionar';
+    /** La pantalla global del historial de cambios: todo lo que cambió en el sistema, de todos los proyectos. */
+    case HistorialVer = 'historial.ver';
 
     public function etiqueta(): string
     {

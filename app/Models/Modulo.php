@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use Database\Factories\ModuloFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,9 +30,20 @@ use Illuminate\Support\Carbon;
 class Modulo extends Model
 {
     /** @use HasFactory<ModuloFactory> */
-    use HasFactory;
+    use HasFactory, TieneHistorialDeCambios;
 
     protected $table = 'modulos';
+
+    /**
+     * `orden` es la posición entre hermanos, no un dato del módulo. El cambio
+     * de padre sí se registra (`ReordenarModulos`).
+     *
+     * @return array<int, string>
+     */
+    public function camposSinHistorial(): array
+    {
+        return ['orden'];
+    }
 
     /**
      * @return array<string, string>

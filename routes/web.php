@@ -17,6 +17,8 @@ use App\Http\Controllers\Gestion\EquipoController;
 use App\Http\Controllers\Gestion\EstadoUsuarioController;
 use App\Http\Controllers\Gestion\MiembroEquipoController;
 use App\Http\Controllers\Gestion\UsuarioController;
+use App\Http\Controllers\HistorialDeCambiosController;
+use App\Http\Controllers\HistorialDelRegistroController;
 use App\Http\Controllers\ListaAgrupadaController;
 use App\Http\Controllers\ListadoDeTareasController;
 use App\Http\Controllers\ModuloController;
@@ -35,6 +37,7 @@ use App\Http\Controllers\ReunionTareaController;
 use App\Http\Controllers\TableroController;
 use App\Http\Controllers\TareaController;
 use App\Http\Controllers\VistaGuardadaController;
+use App\Models\HistorialCambio;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -241,6 +244,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Único camino a un adjunto. Nunca una URL directa al disco.
     Route::get('archivos/{media}', [ArchivoController::class, 'show'])->name('archivos.descargar');
+
+    /*
+     * Historial de cambios. La pantalla global es de `historial.ver` (hoy, el
+     * administrador); el de un registro lo pide el panel lateral de su ficha y
+     * lo autoriza `HistorialCambioPolicy@verDe`: ver el registro y ver lo
+     * interno. `{tipo}` es el alias de `HistorialCambio::TIPOS`, nunca una clase.
+     */
+    Route::get('historial', [HistorialDeCambiosController::class, 'index'])->name('historial.index');
+    Route::get('historial/{tipo}/{id}', HistorialDelRegistroController::class)
+        ->whereIn('tipo', array_keys(HistorialCambio::TIPOS))
+        ->whereNumber('id')
+        ->name('historial.registro');
 
     /*
      * Vistas guardadas. Son **privadas de cada usuario**: no llevan `{usuario}`

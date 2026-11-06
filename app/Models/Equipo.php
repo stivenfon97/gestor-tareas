@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use Database\Factories\EquipoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +26,7 @@ use Illuminate\Support\Carbon;
 class Equipo extends Model
 {
     /** @use HasFactory<EquipoFactory> */
-    use HasFactory;
+    use HasFactory, TieneHistorialDeCambios;
 
     protected $table = 'equipos';
 

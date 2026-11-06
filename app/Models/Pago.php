@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use App\Enums\OrigenTasaCambio;
 use App\Observers\PagoObserver;
 use Database\Factories\PagoFactory;
@@ -37,7 +38,7 @@ use Illuminate\Support\Carbon;
 class Pago extends Model
 {
     /** @use HasFactory<PagoFactory> */
-    use HasFactory;
+    use HasFactory, TieneHistorialDeCambios;
 
     protected $table = 'pagos';
 

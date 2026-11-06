@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Concerns\TieneHistorialDeCambios;
 use App\Enums\RolGlobal;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -36,7 +37,29 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable;
+    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TieneHistorialDeCambios;
+
+    /**
+     * `two_factor_*` no se registran: son secretos que cambian solos al
+     * activar o regenerar el segundo factor.
+     *
+     * @return array<int, string>
+     */
+    public function camposSinHistorial(): array
+    {
+        return ['two_factor_secret', 'two_factor_recovery_codes'];
+    }
+
+    /**
+     * La contraseña: se sabe que cambió y quién la cambió, nunca a qué (ni
+     * siquiera el hash, que se puede atacar sin conexión).
+     *
+     * @return array<int, string>
+     */
+    public function camposOcultosEnHistorial(): array
+    {
+        return ['password'];
+    }
 
     /**
      * Get the attributes that should be cast.

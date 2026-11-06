@@ -6,6 +6,7 @@ import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
 import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
 import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
 import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import InputError from '@/components/InputError.vue';
 import { Field } from '@/components/ui/field';
 import {
@@ -24,6 +25,7 @@ import {
 import { index } from '@/routes/usuarios';
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     usuario: {
         id: number;
         name: string;
@@ -43,7 +45,15 @@ const props = defineProps<{
             :icono="Users"
             :titulo="$t('gestion.usuarios.editar')"
             :descripcion="props.usuario.email"
-        />
+        >
+            <template #acciones>
+                <HistorialDelRegistro
+                    v-if="props.puedeVerHistorial"
+                    tipo="usuario"
+                    :id="props.usuario.id"
+                />
+            </template>
+        </CabeceraDePagina>
 
         <Form
             novalidate

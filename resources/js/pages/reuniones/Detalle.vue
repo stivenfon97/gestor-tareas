@@ -4,6 +4,7 @@ import { NotebookPen } from '@lucide/vue';
 import { ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import InputError from '@/components/InputError.vue';
 import CapturaRapidaFormulario from '@/components/tareas/CapturaRapidaFormulario.vue';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ import type { Adjunto } from '@/types/archivos';
 import type { EstadoTarea, Opcion } from '@/types/tareas';
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     proyecto: {
         id: number;
         nombre: string;
@@ -138,6 +140,11 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
                 </Badge>
             </template>
             <template #acciones>
+                <HistorialDelRegistro
+                    v-if="props.puedeVerHistorial"
+                    tipo="reunion"
+                    :id="props.reunion.id"
+                />
                 <Button as-child variant="ghost" size="sm">
                     <Link :href="indiceDeReuniones(props.proyecto.id)">{{
                         trans('comun.volver')

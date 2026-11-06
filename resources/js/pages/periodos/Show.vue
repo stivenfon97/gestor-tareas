@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Calendar, CalendarRange, FileText } from '@lucide/vue';
 import { ref } from 'vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import { index as periodosIndex } from '@/routes/proyectos/periodos';
 import { show as mostrarTarea } from '@/routes/tareas';
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     proyecto: {
         id: number;
         nombre: string;
@@ -120,6 +122,11 @@ const guardar = (): void => {
             :descripcion="props.proyecto.nombre"
         >
             <template #acciones>
+                <HistorialDelRegistro
+                    v-if="props.puedeVerHistorial"
+                    tipo="periodo"
+                    :id="props.periodo.id"
+                />
                 <Button as-child variant="ghost" size="sm">
                     <Link :href="periodosIndex(props.proyecto.id)">{{
                         $t('comun.volver')

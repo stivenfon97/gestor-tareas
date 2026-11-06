@@ -8,12 +8,14 @@ use App\Enums\RolGlobal;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Gestion\UsuarioStoreRequest;
 use App\Http\Requests\Gestion\UsuarioUpdateRequest;
+use App\Models\HistorialCambio;
 use App\Models\User;
 use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
 use App\Services\EstadoEnLaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -87,6 +89,8 @@ class UsuarioController extends Controller
     public function edit(User $usuario): Response
     {
         return Inertia::render('gestion/usuarios/Editar', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $usuario]),
             'usuario' => [
                 'id' => $usuario->id,
                 'name' => $usuario->name,

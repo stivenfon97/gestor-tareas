@@ -10,6 +10,8 @@ use App\Exceptions\PeriodoYaCerrado;
 use App\Models\Pago;
 use App\Models\Periodo;
 use App\Models\Proyecto;
+use App\Models\Tarea;
+use App\Services\RegistrarHistorial;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,6 +31,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class CerrarPeriodo
 {
+    public function __construct(private readonly RegistrarHistorial $registrarHistorial) {}
+
     /**
      * @param  array<int, int>  $idsTrasladar  Tareas no terminales del periodo que se cierra, a moverse al siguiente.
      * @param  array{fecha_pago: string, monto_usd: string, tasa_cambio: string, origen_tasa: string, referencia?: string|null, notas?: string|null}|null  $datosPago
@@ -78,12 +82,19 @@ final class CerrarPeriodo
             $trasladadas = 0;
 
             if ($idsTrasladar !== []) {
-                $trasladadas = $bloqueado->tareas()
+                $aTrasladar = $bloqueado->tareas()
                     ->whereIn('id', $idsTrasladar)
                     // Defensa en profundidad: aunque la request ya solo ofrece
                     // las no terminales, una terminal nunca se traslada aquí
                     // tampoco si alguien fuerza el id a mano.
-                    ->whereNotIn('estado', [EstadoTarea::Entregada, EstadoTarea::Cancelada])
+                    ->whereNotIn('estado', [EstadoTarea::Entregada, EstadoTarea::Cancelada]);
+
+                // El `update()` masivo no dispara el observer del historial:
+                // se lee antes qué había y se registra a mano, en la misma
+                // transacción, para que el traslado no quede como un hueco.
+                $origenPrevioPorTarea = (clone $aTrasladar)->pluck('periodo_origen_id', 'id')->all();
+
+                $trasladadas = $aTrasladar
                     // `orden` no se toca (D4.10, decisión 0.4 de la fase 09).
                     // Sigue siendo del proyecto, no del periodo: cada vista
                     // que lo usa (columna del tablero, grupo de la lista)
@@ -100,6 +111,16 @@ final class CerrarPeriodo
                         'periodo_id' => $siguiente->getKey(),
                         'periodo_origen_id' => $bloqueado->getKey(),
                     ]);
+
+                $this->registrarHistorial->actualizacionesMasivas(Tarea::class, array_map(
+                    static fn (int $id, mixed $origenPrevio): array => [
+                        'id' => $id,
+                        'anteriores' => ['periodo_id' => $bloqueado->getKey(), 'periodo_origen_id' => $origenPrevio],
+                        'nuevos' => ['periodo_id' => $siguiente->getKey(), 'periodo_origen_id' => $bloqueado->getKey()],
+                    ],
+                    array_keys($origenPrevioPorTarea),
+                    array_values($origenPrevioPorTarea),
+                ));
             }
 
             if ($datosPago !== null) {

@@ -92,5 +92,16 @@ return [
         'archivos_subir' => 'Upload files',
         'reportes_generar' => 'Generate reports',
         'usuarios_gestionar' => 'Manage users',
+        'historial_ver' => 'View change history',
+    ],
+
+    'evento_historial' => [
+        'creado' => 'Created',
+        'actualizado' => 'Updated',
+        'eliminado' => 'Deleted',
+        'restaurado' => 'Restored',
+        'miembro_agregado' => 'Member added',
+        'miembro_actualizado' => 'Member role changed',
+        'miembro_retirado' => 'Member removed',
     ],
 ];

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Gestion;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Gestion\EquipoRequest;
 use App\Models\Equipo;
+use App\Models\HistorialCambio;
 use App\Models\User;
 use App\Services\BuscarEnColumnas;
 use App\Services\EstadoDeTabla;
@@ -73,6 +74,8 @@ class EquipoController extends Controller
         Gate::authorize('update', $equipo);
 
         return Inertia::render('gestion/equipos/Editar', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $equipo]),
             'equipo' => $equipo->only(['id', 'nombre', 'descripcion']),
             'miembros' => $equipo->usuarios()->orderBy('name')->get(['users.id', 'name', 'email']),
             'candidatos' => User::query()

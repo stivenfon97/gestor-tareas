@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use App\Enums\EstadoPeriodo;
 use Database\Factories\PeriodoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -32,7 +33,7 @@ use Illuminate\Support\Carbon;
 class Periodo extends Model
 {
     /** @use HasFactory<PeriodoFactory> */
-    use HasFactory;
+    use HasFactory, TieneHistorialDeCambios;
 
     protected $table = 'periodos';
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use App\Enums\EstadoTarea;
 use App\Enums\PrioridadTarea;
 use App\Enums\TipoTarea;
@@ -77,9 +78,20 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Tarea extends Model implements HasMedia
 {
     /** @use HasFactory<TareaFactory> */
-    use HasFactory, InteractsWithMedia, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes, TieneHistorialDeCambios;
 
     protected $table = 'tareas';
+
+    /**
+     * `orden` cambia en cada arrastre del tablero y no es un dato de la tarea,
+     * es su posición entre las vecinas: solo metería ruido.
+     *
+     * @return array<int, string>
+     */
+    public function camposSinHistorial(): array
+    {
+        return ['orden'];
+    }
 
     /**
      * @return array<string, string>

@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Enums\EstadoPeriodo;
 use App\Http\Requests\ClienteRequest;
 use App\Models\Cliente;
+use App\Models\HistorialCambio;
 use App\Models\Periodo;
 use App\Models\Proyecto;
 use App\Models\Tarea;
@@ -93,6 +94,8 @@ class ClienteController extends Controller
         Gate::authorize('view', $cliente);
 
         return Inertia::render('clientes/Show', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $cliente]),
             'cliente' => [
                 'id' => $cliente->id,
                 'nombre' => $cliente->nombre,

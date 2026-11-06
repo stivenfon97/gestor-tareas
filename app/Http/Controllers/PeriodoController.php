@@ -9,6 +9,7 @@ use App\Enums\EstadoPeriodo;
 use App\Enums\EstadoTarea;
 use App\Exceptions\PeriodoAbiertoExistente;
 use App\Http\Requests\PeriodoRequest;
+use App\Models\HistorialCambio;
 use App\Models\Pago;
 use App\Models\Periodo;
 use App\Models\Proyecto;
@@ -121,6 +122,8 @@ class PeriodoController extends Controller
         $puedeVerPagos = $usuario->can('viewAny', [Pago::class, $periodo->proyecto]);
 
         return Inertia::render('periodos/Show', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $periodo]),
             'proyecto' => $periodo->proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'periodo' => [
                 'id' => $periodo->id,

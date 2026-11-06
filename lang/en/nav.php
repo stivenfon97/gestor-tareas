@@ -14,5 +14,6 @@ return [
     'tareas' => 'Tasks',
     'proyectos' => 'Projects',
     'usuarios' => 'Users',
+    'historial' => 'Change history',
     'equipos' => 'Teams',
 ];

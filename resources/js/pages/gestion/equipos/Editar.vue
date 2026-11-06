@@ -10,6 +10,7 @@ import PieDeFormulario from '@/components/formularios/PieDeFormulario.vue';
 import SeccionDeFormulario from '@/components/formularios/SeccionDeFormulario.vue';
 import TarjetaDeFormulario from '@/components/formularios/TarjetaDeFormulario.vue';
 import Heading from '@/components/Heading.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import InputError from '@/components/InputError.vue';
 import { TablaLocal } from '@/components/TablaDatos';
 import type { ColumnaDeTabla } from '@/components/TablaDatos';
@@ -34,6 +35,7 @@ import { index } from '@/routes/equipos';
 type Persona = { id: number; name: string; email: string };
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     equipo: { id: number; nombre: string; descripcion: string | null };
     miembros: Persona[];
     candidatos: Persona[];
@@ -73,7 +75,15 @@ const columnasDeMiembros = computed((): ColumnaDeTabla<Persona>[] => [
             :icono="UsersRound"
             :titulo="$t('gestion.equipos.editar')"
             :descripcion="$t('gestion.equipos.nota_no_otorga_permisos')"
-        />
+        >
+            <template #acciones>
+                <HistorialDelRegistro
+                    v-if="props.puedeVerHistorial"
+                    tipo="equipo"
+                    :id="props.equipo.id"
+                />
+            </template>
+        </CabeceraDePagina>
 
         <Form
             novalidate

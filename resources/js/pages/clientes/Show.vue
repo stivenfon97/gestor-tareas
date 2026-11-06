@@ -5,6 +5,7 @@ import { computed } from 'vue';
 import EstadoClienteController from '@/actions/App/Http/Controllers/EstadoClienteController';
 import BotonDeAccion from '@/components/BotonDeAccion.vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import { TablaLocal } from '@/components/TablaDatos';
 import type { ColumnaDeTabla } from '@/components/TablaDatos';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ import { edit, index } from '@/routes/clientes';
 import { show as mostrarProyecto } from '@/routes/proyectos';
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     cliente: {
         id: number;
         nombre: string;
@@ -99,6 +101,11 @@ const columnasDeProyectos = computed((): ColumnaDeTabla<FilaProyecto>[] => [
         >
             <template #acciones>
                 <div class="flex items-center gap-2">
+                    <HistorialDelRegistro
+                        v-if="props.puedeVerHistorial"
+                        tipo="cliente"
+                        :id="props.cliente.id"
+                    />
                     <Button as-child variant="ghost" size="sm">
                         <Link :href="index()">{{ $t('comun.volver') }}</Link>
                     </Button>

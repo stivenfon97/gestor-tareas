@@ -55,3 +55,37 @@ export const tonoDeEstadoProyecto = (estado: string): TonoDeBadge =>
 
 export const tonoDeEstadoPeriodo = (estado: string): TonoDeBadge =>
     ESTADO_PERIODO[estado] ?? 'neutro';
+
+/**
+ * Historial de cambios: lo que añade en verde, lo que modifica en azul, lo
+ * que quita en ámbar o rojo. Un borrado es `peligro` porque es irreversible
+ * en los modelos sin borrado suave.
+ */
+const EVENTO_HISTORIAL: Record<string, TonoDeBadge> = {
+    creado: 'exito',
+    actualizado: 'info',
+    eliminado: 'peligro',
+    restaurado: 'acento',
+    miembro_agregado: 'exito',
+    miembro_actualizado: 'info',
+    miembro_retirado: 'aviso',
+};
+
+/** Módulo del registro, agrupado como en el menú lateral. */
+const TIPO_DE_REGISTRO: Record<string, TonoDeBadge> = {
+    tarea: 'info',
+    proyecto: 'info',
+    modulo: 'info',
+    cliente: 'acento',
+    periodo: 'acento',
+    pago: 'acento',
+    reunion: 'aviso',
+    usuario: 'neutro',
+    equipo: 'neutro',
+};
+
+export const tonoDeEventoHistorial = (evento: string): TonoDeBadge =>
+    EVENTO_HISTORIAL[evento] ?? 'neutro';
+
+export const tonoDeTipoDeRegistro = (tipo: string): TonoDeBadge =>
+    TIPO_DE_REGISTRO[tipo] ?? 'neutro';

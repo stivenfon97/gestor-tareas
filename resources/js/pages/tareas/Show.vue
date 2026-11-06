@@ -4,6 +4,7 @@ import { AlignLeft, FileText } from '@lucide/vue';
 import { ref } from 'vue';
 import PanelDeAdjuntos from '@/components/archivos/PanelDeAdjuntos.vue';
 import Heading from '@/components/Heading.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import InputError from '@/components/InputError.vue';
 import BadgeEstado from '@/components/tareas/BadgeEstado.vue';
 import BarraPrioridad from '@/components/tareas/BarraPrioridad.vue';
@@ -42,6 +43,7 @@ import type {
 } from '@/types/tareas';
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     tarea: {
         id: number;
         codigo: string;
@@ -163,6 +165,11 @@ const adjuntosBorrarUrl = (adjunto: Adjunto): string =>
             </div>
 
             <div class="flex items-center gap-2">
+                <HistorialDelRegistro
+                    v-if="props.puedeVerHistorial"
+                    tipo="tarea"
+                    :id="props.tarea.id"
+                />
                 <Button as-child variant="ghost" size="sm">
                     <Link :href="tareasDelProyecto(props.tarea.proyecto.id)">{{
                         $t('comun.volver')

@@ -10,6 +10,7 @@ use App\Enums\PrioridadTarea;
 use App\Enums\TipoDeVista;
 use App\Enums\TipoTarea;
 use App\Http\Requests\TareaRequest;
+use App\Models\HistorialCambio;
 use App\Models\NotaTarea;
 use App\Models\Periodo;
 use App\Models\Proyecto;
@@ -154,6 +155,8 @@ class TareaController extends Controller
         $veLoInterno = ResolverRolProyecto::veLoInterno($usuario, $tarea->proyecto);
 
         return Inertia::render('tareas/Show', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $tarea]),
             'tarea' => $this->comoDetalle($tarea),
             // La interfaz nunca deduce la matriz: la recibe.
             'transiciones' => CambiarEstadoTarea::disponiblesPara($tarea->estado),

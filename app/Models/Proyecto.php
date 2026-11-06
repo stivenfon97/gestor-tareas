@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\TieneHistorialDeCambios;
 use App\Enums\EstadoPeriodo;
 use App\Enums\EstadoProyecto;
 use App\Observers\ProyectoObserver;
@@ -45,7 +46,7 @@ use Spatie\MediaLibrary\MediaCollections\File;
 class Proyecto extends Model implements HasMedia
 {
     /** @use HasFactory<ProyectoFactory> */
-    use HasFactory, InteractsWithMedia, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes, TieneHistorialDeCambios;
 
     protected $table = 'proyectos';
 

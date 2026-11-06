@@ -92,5 +92,16 @@ return [
         'archivos_subir' => 'Subir archivos',
         'reportes_generar' => 'Generar reportes',
         'usuarios_gestionar' => 'Gestionar usuarios',
+        'historial_ver' => 'Ver el historial de cambios',
+    ],
+
+    'evento_historial' => [
+        'creado' => 'Creado',
+        'actualizado' => 'Actualizado',
+        'eliminado' => 'Eliminado',
+        'restaurado' => 'Restaurado',
+        'miembro_agregado' => 'Miembro agregado',
+        'miembro_actualizado' => 'Rol de miembro cambiado',
+        'miembro_retirado' => 'Miembro retirado',
     ],
 ];

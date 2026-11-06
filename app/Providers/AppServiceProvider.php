@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Cliente;
 use App\Models\Equipo;
+use App\Models\HistorialCambio;
 use App\Models\Modulo;
 use App\Models\NotaTarea;
 use App\Models\Pago;
@@ -16,6 +17,7 @@ use App\Models\User;
 use App\Models\VistaGuardada;
 use App\Policies\ClientePolicy;
 use App\Policies\EquipoPolicy;
+use App\Policies\HistorialCambioPolicy;
 use App\Policies\MediaPolicy;
 use App\Policies\ModuloPolicy;
 use App\Policies\NotaTareaPolicy;
@@ -54,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Las doce policies se registran explícitamente para que el listado sea
+     * Las trece policies se registran explícitamente para que el listado sea
      * legible de un vistazo: si una falta, se ve aquí.
      */
     protected function registrarPolicies(): void
@@ -71,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Equipo::class, EquipoPolicy::class);
         Gate::policy(Media::class, MediaPolicy::class);
         Gate::policy(VistaGuardada::class, VistaGuardadaPolicy::class);
+        Gate::policy(HistorialCambio::class, HistorialCambioPolicy::class);
 
         // Único atajo por encima de las policies. Deliberadamente solo para el
         // administrador: cualquier otro `before` convierte las policies en

@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import {
     Building2,
     FolderGit2,
+    History,
     LayoutGrid,
     ListChecks,
     Users,
@@ -26,6 +27,7 @@ import { usePermisos } from '@/composables/usePermisos';
 import { dashboard } from '@/routes';
 import { index as clientesIndex } from '@/routes/clientes';
 import { index as equiposIndex } from '@/routes/equipos';
+import { index as historialIndex } from '@/routes/historial';
 import { index as proyectosIndex } from '@/routes/proyectos';
 import { index as tareasIndex } from '@/routes/tareas';
 import { index as usuariosIndex } from '@/routes/usuarios';
@@ -91,21 +93,29 @@ const gruposPrincipales = computed<GrupoDeMenu[]>(() => {
  * Ocultar una entrada del menú no es un permiso: la ruta la protege su policy
  * o su middleware igualmente. Esto solo evita enseñar puertas cerradas.
  */
-const grupoDeAdministracion = computed<GrupoDeMenu | null>(() =>
-    puede('usuarios.gestionar')
-        ? {
-              etiqueta: 'nav.grupos.administracion',
-              items: [
-                  { title: 'nav.usuarios', href: usuariosIndex(), icon: Users },
-                  {
-                      title: 'nav.equipos',
-                      href: equiposIndex(),
-                      icon: UsersRound,
-                  },
-              ],
-          }
-        : null,
-);
+const grupoDeAdministracion = computed<GrupoDeMenu | null>(() => {
+    const items: NavItem[] = [];
+
+    if (puede('usuarios.gestionar')) {
+        items.push(
+            { title: 'nav.usuarios', href: usuariosIndex(), icon: Users },
+            { title: 'nav.equipos', href: equiposIndex(), icon: UsersRound },
+        );
+    }
+
+    // El historial global cruza todos los proyectos: tiene permiso propio.
+    if (puede('historial.ver')) {
+        items.push({
+            title: 'nav.historial',
+            href: historialIndex(),
+            icon: History,
+        });
+    }
+
+    return items.length
+        ? { etiqueta: 'nav.grupos.administracion', items }
+        : null;
+});
 </script>
 
 <template>

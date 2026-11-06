@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Exceptions\CicloEnElArbol;
 use App\Models\Modulo;
 use App\Models\Proyecto;
+use App\Services\RegistrarHistorial;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class ReordenarModulos
 {
+    public function __construct(private readonly RegistrarHistorial $registrarHistorial) {}
+
     /**
      * @param  array<int, array{parent_id: int|null, modulos: array<int, int>}>  $niveles
      *
@@ -40,14 +43,32 @@ final class ReordenarModulos
 
         self::verificarSinCiclos($resultante);
 
-        DB::transaction(function () use ($proyecto, $niveles): void {
+        DB::transaction(function () use ($proyecto, $niveles, $padrePorModulo): void {
+            $cambiosDePadre = [];
+
             foreach ($niveles as $nivel) {
                 foreach ($nivel['modulos'] as $posicion => $id) {
                     $proyecto->modulos()
                         ->whereKey($id)
                         ->update(['parent_id' => $nivel['parent_id'], 'orden' => $posicion]);
+
+                    // `orden` no va al historial; cambiar de padre sí. Este
+                    // `update()` no dispara el observer, así que se registra
+                    // aquí, dentro de la misma transacción.
+                    $padreAnterior = isset($padrePorModulo[$id]) ? (int) $padrePorModulo[$id] : null;
+                    $padreNuevo = $nivel['parent_id'] === null ? null : (int) $nivel['parent_id'];
+
+                    if (array_key_exists($id, $padrePorModulo) && $padreAnterior !== $padreNuevo) {
+                        $cambiosDePadre[] = [
+                            'id' => (int) $id,
+                            'anteriores' => ['parent_id' => $padreAnterior],
+                            'nuevos' => ['parent_id' => $padreNuevo],
+                        ];
+                    }
                 }
             }
+
+            $this->registrarHistorial->actualizacionesMasivas(Modulo::class, $cambiosDePadre);
         });
     }
 

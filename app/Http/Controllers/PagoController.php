@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\OrigenTasaCambio;
 use App\Http\Requests\PagoRequest;
+use App\Models\HistorialCambio;
 use App\Models\Pago;
 use App\Models\Periodo;
 use App\Models\Proyecto;
@@ -110,6 +111,8 @@ class PagoController extends Controller
         $pago->load('periodo:id,consecutivo,proyecto_id');
 
         return Inertia::render('pagos/Show', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $pago]),
             'proyecto' => $pago->periodo->proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'pago' => self::comoDetalle($pago),
             'puede' => ['editar' => request()->user()->can('update', $pago)],

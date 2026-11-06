@@ -2,12 +2,14 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Banknote } from '@lucide/vue';
 import CabeceraDePagina from '@/components/CabeceraDePagina.vue';
+import HistorialDelRegistro from '@/components/historial/HistorialDelRegistro.vue';
 import { Button } from '@/components/ui/button';
 import { formatearFecha, formatearMonto, formatearNumero } from '@/lib/formato';
 import { edit } from '@/routes/pagos';
 import { show as periodoShow } from '@/routes/periodos';
 
 const props = defineProps<{
+    puedeVerHistorial: boolean;
     proyecto: {
         id: number;
         nombre: string;
@@ -73,6 +75,11 @@ const campos = [
             "
         >
             <template #acciones>
+                <HistorialDelRegistro
+                    v-if="props.puedeVerHistorial"
+                    tipo="pago"
+                    :id="props.pago.id"
+                />
                 <Button as-child variant="outline" size="sm">
                     <Link :href="periodoShow(props.pago.periodo_id)">{{
                         $t('comun.volver')

@@ -11,6 +11,7 @@ use App\Enums\TipoTarea;
 use App\Enums\Visibilidad;
 use App\Http\Requests\ReunionRequest;
 use App\Models\AsistenteReunion;
+use App\Models\HistorialCambio;
 use App\Models\Proyecto;
 use App\Models\Reunion;
 use App\Models\Tarea;
@@ -106,6 +107,8 @@ class ReunionController extends Controller
         $reunion->load(['asistentes.usuario:id,name', 'creadoPor:id,name']);
 
         return Inertia::render('reuniones/Detalle', [
+            // Solo esconde el botón: la cerradura es `HistorialCambioPolicy@verDe`.
+            'puedeVerHistorial' => Gate::allows('verDe', [HistorialCambio::class, $reunion]),
             'proyecto' => $proyecto->only(['id', 'nombre', 'slug', 'prefijo_tarea']),
             'reunion' => $this->comoDetalle($reunion),
             'adjuntos' => [
